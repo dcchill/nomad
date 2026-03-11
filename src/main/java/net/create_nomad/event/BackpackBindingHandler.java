@@ -10,12 +10,12 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import net.create_nomad.GearboundMod;
+import net.create_nomad.CreateNomadMod;
 
-@EventBusSubscriber(modid = GearboundMod.MODID)
+@EventBusSubscriber(modid = CreateNomadMod.MODID)
 public class BackpackBindingHandler {
     private static final TagKey<Item> BACKPACKS_TAG = TagKey.create(net.minecraft.core.registries.Registries.ITEM,
-            ResourceLocation.fromNamespaceAndPath(GearboundMod.MODID, "backpacks"));
+            ResourceLocation.fromNamespaceAndPath(CreateNomadMod.MODID, "backpacks"));
     private static final String BINDING_TAG = "gearboundBackpackBinding";
 
     private BackpackBindingHandler() {

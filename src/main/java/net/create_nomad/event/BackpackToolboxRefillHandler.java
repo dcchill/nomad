@@ -18,14 +18,14 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.server.level.ServerPlayer;
 
-import net.create_nomad.GearboundMod;
+import net.create_nomad.CreateNomadMod;
 import net.create_nomad.network.BackpackRefillHighlightMessage;
 import net.create_nomad.util.BackpackItemAssociations;
 
-@EventBusSubscriber(modid = GearboundMod.MODID)
+@EventBusSubscriber(modid = CreateNomadMod.MODID)
 public class BackpackToolboxRefillHandler {
     private static final TagKey<Item> BACKPACKS_TAG = TagKey.create(net.minecraft.core.registries.Registries.ITEM,
-            ResourceLocation.fromNamespaceAndPath(GearboundMod.MODID, "backpacks"));
+            ResourceLocation.fromNamespaceAndPath(CreateNomadMod.MODID, "backpacks"));
     private static final String BINDING_TAG = "gearboundBackpackBinding";
     private static final int HOTBAR_SLOTS = 9;
     private static final int REFILL_RADIUS = 32;

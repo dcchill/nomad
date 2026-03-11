@@ -9,13 +9,13 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 
 import net.create_nomad.world.inventory.BrassBackpackGUIMenu;
-import net.create_nomad.init.GearboundModScreens;
+import net.create_nomad.init.CreateNomadModScreens;
 
-import net.create_nomad.init.GearboundModSounds;
+import net.create_nomad.init.CreateNomadModSounds;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
-public class BrassBackpackGUIScreen extends AbstractContainerScreen<BrassBackpackGUIMenu> implements GearboundModScreens.ScreenAccessor {
+public class BrassBackpackGUIScreen extends AbstractContainerScreen<BrassBackpackGUIMenu> implements CreateNomadModScreens.ScreenAccessor {
 	private final Level world;
 	private final Player entity;
 	private boolean menuStateUpdateActive = false;
@@ -70,14 +70,14 @@ public class BrassBackpackGUIScreen extends AbstractContainerScreen<BrassBackpac
 	public void init() {
 		super.init();
 		if (this.minecraft != null) {
-			this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(GearboundModSounds.BACKPACK_OPEN.get(), 1.0F));
+			this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(CreateNomadModSounds.BACKPACK_OPEN.get(), 1.0F));
 		}
 	}
 
 	@Override
 	public void onClose() {
 		if (this.minecraft != null) {
-			this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(GearboundModSounds.BACKPACK_CLOSE.get(), 1.0F));
+			this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(CreateNomadModSounds.BACKPACK_CLOSE.get(), 1.0F));
 		}
 		super.onClose();
 	}

@@ -20,7 +20,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.registries.BuiltInRegistries;
 
 import net.create_nomad.world.inventory.BrassBackpackGUIMenu;
-import net.create_nomad.init.GearboundModBlockEntities;
+import net.create_nomad.init.CreateNomadModBlockEntities;
 import net.create_nomad.util.BackpackInventoryRules;
 
 import javax.annotation.Nullable;
@@ -41,7 +41,7 @@ public class BrownBrassBackpackBlockEntity extends RandomizableContainerBlockEnt
 	}
 
 	private static BlockEntityType<?> resolveBlockEntityType(BlockState state) {
-		return GearboundModBlockEntities.BROWN_BRASS_BACKPACK.get();
+		return CreateNomadModBlockEntities.BROWN_BRASS_BACKPACK.get();
 	}
 
 	@Override

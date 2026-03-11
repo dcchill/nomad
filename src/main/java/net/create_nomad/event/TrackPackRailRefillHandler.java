@@ -1,6 +1,6 @@
 package net.create_nomad.event;
 
-import net.create_nomad.GearboundMod;
+import net.create_nomad.CreateNomadMod;
 import net.create_nomad.item.TrackPackItem;
 import net.create_nomad.network.BackpackRefillHighlightMessage;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -13,7 +13,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.server.level.ServerPlayer;
 
-@EventBusSubscriber(modid = GearboundMod.MODID)
+@EventBusSubscriber(modid = CreateNomadMod.MODID)
 public class TrackPackRailRefillHandler {
     private TrackPackRailRefillHandler() {
     }

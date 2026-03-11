@@ -21,7 +21,7 @@ import net.minecraft.world.level.block.Block;
 import java.util.List;
 import net.minecraft.client.gui.screens.Screen;
 
-import net.create_nomad.init.GearboundModBlocks;
+import net.create_nomad.init.CreateNomadModBlocks;
 import net.create_nomad.world.inventory.BrassBackpackGUIMenu;
 
 import io.netty.buffer.Unpooled;
@@ -31,7 +31,7 @@ public class BrownBrassBackpackItemItem extends BlockItem {
 	private final Component displayName;
 
 	public BrownBrassBackpackItemItem() {
-		this(GearboundModBlocks.BROWN_BRASS_BACKPACK, "Brown Brass Backpack");
+		this(CreateNomadModBlocks.BROWN_BRASS_BACKPACK, "Brown Brass Backpack");
 	}
 
 	public BrownBrassBackpackItemItem(Supplier<? extends Block> blockSupplier, String displayName) {

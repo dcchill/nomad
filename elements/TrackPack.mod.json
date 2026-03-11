@@ -12,7 +12,7 @@
     "rarity": "COMMON",
     "creativeTabs": [
       {
-        "value": "CUSTOM:CreateGearboundMenu"
+        "value": "CUSTOM:CreateCreateNomadMenu"
       }
     ],
     "stackSize": 64,

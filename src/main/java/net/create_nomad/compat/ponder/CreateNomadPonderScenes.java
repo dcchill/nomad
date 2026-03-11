@@ -5,7 +5,7 @@ import net.createmod.ponder.api.scene.SceneBuildingUtil;
 import net.createmod.catnip.math.Pointing;
 import net.minecraft.core.Direction;
 
-public class GearboundPonderScenes {
+public class CreateNomadPonderScenes {
 	public static void backpackAutoHotbar(SceneBuilder scene, SceneBuildingUtil util) {
 		scene.title("backpack_auto_hotbar", "Backpack Auto Hotbar Filling");
 		scene.configureBasePlate(0, 0, 5);

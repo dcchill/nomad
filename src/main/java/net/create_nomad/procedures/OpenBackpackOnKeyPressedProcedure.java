@@ -13,7 +13,7 @@ import net.minecraft.world.item.ItemStack;
 
 import net.neoforged.neoforge.items.IItemHandler;
 
-import net.create_nomad.GearboundMod;
+import net.create_nomad.CreateNomadMod;
 import net.create_nomad.util.BackpackItemAssociations;
 import net.create_nomad.world.inventory.BrassBackpackGUIMenu;
 
@@ -42,7 +42,7 @@ public class OpenBackpackOnKeyPressedProcedure {
 	}
 
 	private static ItemStack findFirstCuriosBackpack(Player player) {
-		IItemHandler curiosInventory = GearboundMod.CuriosApiHelper.getCuriosInventory(player);
+		IItemHandler curiosInventory = CreateNomadMod.CuriosApiHelper.getCuriosInventory(player);
 
 		if (curiosInventory == null) {
 			return ItemStack.EMPTY;

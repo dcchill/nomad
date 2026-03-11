@@ -11,14 +11,14 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 
-import net.create_nomad.GearboundMod;
+import net.create_nomad.CreateNomadMod;
 import net.create_nomad.util.BackpackRefillHighlightState;
 
 public final class BackpackRefillSlotHighlighter {
     private BackpackRefillSlotHighlighter() {
     }
 
-    @EventBusSubscriber(modid = GearboundMod.MODID, value = Dist.CLIENT)
+    @EventBusSubscriber(modid = CreateNomadMod.MODID, value = Dist.CLIENT)
     public static class ForgeEvents {
         @SubscribeEvent
         public static void onClientTick(ClientTickEvent.Post event) {
