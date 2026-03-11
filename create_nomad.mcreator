@@ -668,7 +668,7 @@
     {
       "name": "OpenBackpack",
       "type": "keybind",
-      "compiles": false,
+      "compiles": true,
       "locked_code": false,
       "registry_name": "open_backpack",
       "metadata": {
