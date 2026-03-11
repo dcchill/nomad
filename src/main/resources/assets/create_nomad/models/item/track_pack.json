@@ -1,7 +1,7 @@
 {
-  "parent": "gearbound:custom/trackpack",
+  "parent": "create_nomad:custom/trackpack",
   "textures": {
-    "0": "gearbound:block/trackpack",
+    "0": "create_nomad:block/trackpack",
     "particle": "minecraft:item/bundle_filled"
   }
 }

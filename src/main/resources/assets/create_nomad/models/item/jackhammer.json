@@ -1,6 +1,6 @@
 {
-  "parent": "gearbound:displaysettings/jackhammer",
+  "parent": "create_nomad:displaysettings/jackhammer",
   "textures": {
-    "layer0": "gearbound:item/jackhammer_texture"
+    "layer0": "create_nomad:item/jackhammer_texture"
   }
 }

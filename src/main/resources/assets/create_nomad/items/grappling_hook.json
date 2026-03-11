@@ -7,13 +7,13 @@
         "when": 1,
         "model": {
           "type": "minecraft:model",
-          "model": "gearbound:item/grapple_hook_fired"
+          "model": "create_nomad:item/grapple_hook_fired"
         }
       }
     ],
     "fallback": {
       "type": "minecraft:model",
-      "model": "gearbound:item/grappling_hook"
+      "model": "create_nomad:item/grappling_hook"
     }
   }
 }

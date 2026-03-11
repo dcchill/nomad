@@ -1,6 +1,6 @@
 {
   "type": "minecraft:block",
-  "random_sequence": "gearbound:blocks/light_blue_brass_backpack",
+  "random_sequence": "create_nomad:blocks/light_blue_brass_backpack",
   "pools": [
     {
       "rolls": 1.0,
@@ -12,7 +12,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "gearbound:light_blue_brass_backpack"
+          "name": "create_nomad:light_blue_brass_backpack"
         }
       ]
     }

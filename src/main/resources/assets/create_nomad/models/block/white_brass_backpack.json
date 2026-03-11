@@ -1,9 +1,9 @@
 {
-  "parent": "gearbound:custom/backpack",
+  "parent": "create_nomad:custom/backpack",
   "textures": {
     "all": "minecraft:block/white_wool",
     "particle": "minecraft:block/white_wool",
-    "0": "gearbound:block/white_backpack_texture"
+    "0": "create_nomad:block/white_backpack_texture"
   },
   "render_type": "solid"
 }

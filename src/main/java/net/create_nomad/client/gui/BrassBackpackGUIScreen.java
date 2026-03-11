@@ -34,7 +34,7 @@ public class BrassBackpackGUIScreen extends AbstractContainerScreen<BrassBackpac
 		menuStateUpdateActive = false;
 	}
 
-	private static final ResourceLocation texture = ResourceLocation.parse("gearbound:textures/screens/brass_backpack_gui.png");
+	private static final ResourceLocation texture = ResourceLocation.parse("create_nomad:textures/screens/brass_backpack_gui.png");
 
 	@Override
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
@@ -48,7 +48,7 @@ public class BrassBackpackGUIScreen extends AbstractContainerScreen<BrassBackpac
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
 		guiGraphics.blit(texture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight, this.imageWidth, this.imageHeight);
-		guiGraphics.blit(ResourceLocation.parse("gearbound:textures/screens/brass_backpack.png"), this.leftPos + -2, this.topPos + -21, 0, 0, 256, 256, 256, 256);
+		guiGraphics.blit(ResourceLocation.parse("create_nomad:textures/screens/brass_backpack.png"), this.leftPos + -2, this.topPos + -21, 0, 0, 256, 256, 256, 256);
 		RenderSystem.disableBlend();
 	}
 

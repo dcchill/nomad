@@ -1,7 +1,7 @@
 {
-  "parent": "gearbound:custom/backpack",
+  "parent": "create_nomad:custom/backpack",
   "textures": {
-    "0": "gearbound:block/black_backpack_texture",
+    "0": "create_nomad:block/black_backpack_texture",
     "particle": "minecraft:item/bundle_filled"
   }
 }

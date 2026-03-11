@@ -1,8 +1,8 @@
 {
   "variants": {
-    "facing=north": { "model": "gearbound:block/pink_brass_backpack", "y": 180 },
-    "facing=east": { "model": "gearbound:block/pink_brass_backpack", "y": 270 },
-    "facing=south": { "model": "gearbound:block/pink_brass_backpack" },
-    "facing=west": { "model": "gearbound:block/pink_brass_backpack", "y": 90 }
+    "facing=north": { "model": "create_nomad:block/pink_brass_backpack", "y": 180 },
+    "facing=east": { "model": "create_nomad:block/pink_brass_backpack", "y": 270 },
+    "facing=south": { "model": "create_nomad:block/pink_brass_backpack" },
+    "facing=west": { "model": "create_nomad:block/pink_brass_backpack", "y": 90 }
   }
 }
