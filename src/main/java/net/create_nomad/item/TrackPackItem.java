@@ -255,16 +255,4 @@ public class TrackPackItem extends Item {
     private static void playRemoveSound(Level level, Player player) {
         level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.BUNDLE_REMOVE_ONE, SoundSource.PLAYERS, 0.8F, 1.0F);
     }
-    private static CompoundTag getDataTag(ItemStack stack) {
-        CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
-        return customData == null ? new CompoundTag() : customData.copyTag();
-    }
-
-    private static void playInsertSound(Level level, Player player) {
-        level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.BUNDLE_INSERT, SoundSource.PLAYERS, 0.8F, 1.0F);
-    }
-
-    private static void playRemoveSound(Level level, Player player) {
-        level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.BUNDLE_REMOVE_ONE, SoundSource.PLAYERS, 0.8F, 1.0F);
-    }
 }

@@ -7,6 +7,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 
 import net.minecraft.world.level.Level;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.network.protocol.PacketFlow;
@@ -43,15 +44,11 @@ public record OpenBackpackMessage(int eventType, int pressedms) implements Custo
 
 	public static void pressAction(Player entity, int type, int pressedms) {
 		Level world = entity.level();
-		double x = entity.getX();
-		double y = entity.getY();
-		double z = entity.getZ();
 		// security measure to prevent arbitrary chunk generation
 		if (!world.hasChunkAt(entity.blockPosition()))
 			return;
-		if (type == 0) {
-
-			OpenBackpackOnKeyPressedProcedure.execute(world, x, y, z);
+		if (type == 0 && entity instanceof ServerPlayer serverPlayer) {
+			OpenBackpackOnKeyPressedProcedure.execute(serverPlayer);
 		}
 	}
 
