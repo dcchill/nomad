@@ -9,10 +9,10 @@ import net.neoforged.neoforge.items.wrapper.SidedInvWrapper;
 import net.minecraft.world.WorldlyContainer;
 
 @EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD)
-public class GearboundCustomBackpackCapabilities {
+public class CreateNomadCustomBackpackCapabilities {
 	@SubscribeEvent
 	public static void registerCapabilities(RegisterCapabilitiesEvent event) {
-		register(event, GearboundModBlockEntities.BROWN_BRASS_BACKPACK);
+		register(event, CreateNomadModBlockEntities.BROWN_BRASS_BACKPACK);
 	}
 
 	private static void register(RegisterCapabilitiesEvent event,

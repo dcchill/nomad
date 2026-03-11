@@ -12,12 +12,12 @@ import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
-import net.create_nomad.GearboundMod;
+import net.create_nomad.CreateNomadMod;
 import net.create_nomad.util.BackpackRefillHighlightState;
 
 @EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD)
 public record BackpackRefillHighlightMessage(int slot, boolean fromTrackpack) implements CustomPacketPayload {
-    public static final Type<BackpackRefillHighlightMessage> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(GearboundMod.MODID, "backpack_refill_highlight"));
+    public static final Type<BackpackRefillHighlightMessage> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(CreateNomadMod.MODID, "backpack_refill_highlight"));
     public static final StreamCodec<RegistryFriendlyByteBuf, BackpackRefillHighlightMessage> STREAM_CODEC = StreamCodec.of(BackpackRefillHighlightMessage::write, BackpackRefillHighlightMessage::read);
 
     private static void write(FriendlyByteBuf buffer, BackpackRefillHighlightMessage message) {
@@ -49,6 +49,6 @@ public record BackpackRefillHighlightMessage(int slot, boolean fromTrackpack) im
 
     @SubscribeEvent
     public static void registerMessage(FMLCommonSetupEvent event) {
-        GearboundMod.addNetworkMessage(TYPE, STREAM_CODEC, BackpackRefillHighlightMessage::handle);
+        CreateNomadMod.addNetworkMessage(TYPE, STREAM_CODEC, BackpackRefillHighlightMessage::handle);
     }
 }

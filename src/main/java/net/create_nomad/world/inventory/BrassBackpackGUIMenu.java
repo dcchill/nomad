@@ -23,8 +23,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.BlockPos;
 
-import net.create_nomad.GearboundMod;
-import net.create_nomad.init.GearboundModMenus;
+import net.create_nomad.CreateNomadMod;
+import net.create_nomad.init.CreateNomadModMenus;
 import net.create_nomad.util.BackpackDataUtils;
 import net.create_nomad.util.BackpackInventoryRules;
 import net.create_nomad.util.BackpackItemAssociations;
@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Collections;
 
-public class BrassBackpackGUIMenu extends AbstractContainerMenu implements GearboundModMenus.MenuAccessor {
+public class BrassBackpackGUIMenu extends AbstractContainerMenu implements CreateNomadModMenus.MenuAccessor {
 
     public final Level world;
     public final Player entity;
@@ -51,7 +51,7 @@ public class BrassBackpackGUIMenu extends AbstractContainerMenu implements Gearb
     private ItemStack boundStack = ItemStack.EMPTY;
 
     public BrassBackpackGUIMenu(int id, Inventory inv, FriendlyByteBuf extraData) {
-        super(GearboundModMenus.BRASS_BACKPACK_GUI.get(), id);
+        super(CreateNomadModMenus.BRASS_BACKPACK_GUI.get(), id);
 
         this.entity = inv.player;
         this.world = inv.player.level();
@@ -301,7 +301,7 @@ public class BrassBackpackGUIMenu extends AbstractContainerMenu implements Gearb
     }
 
     private static ItemStack findFirstCuriosBackpack(Player player) {
-        IItemHandler curiosInventory = GearboundMod.CuriosApiHelper.getCuriosInventory(player);
+        IItemHandler curiosInventory = CreateNomadMod.CuriosApiHelper.getCuriosInventory(player);
 
         if (curiosInventory == null) {
             return ItemStack.EMPTY;

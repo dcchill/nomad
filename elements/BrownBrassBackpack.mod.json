@@ -86,7 +86,7 @@
     "immuneToFire": false,
     "creativeTabs": [
       {
-        "value": "CUSTOM:CreateGearboundMenu"
+        "value": "CUSTOM:CreateCreateNomadMenu"
       }
     ],
     "destroyTool": "Not specified",

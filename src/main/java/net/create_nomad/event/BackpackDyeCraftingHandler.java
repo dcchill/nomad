@@ -10,11 +10,11 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-import net.create_nomad.GearboundMod;
+import net.create_nomad.CreateNomadMod;
 
-@EventBusSubscriber(modid = GearboundMod.MODID)
+@EventBusSubscriber(modid = CreateNomadMod.MODID)
 public class BackpackDyeCraftingHandler {
-	private static final TagKey<Item> BACKPACKS_TAG = TagKey.create(net.minecraft.core.registries.Registries.ITEM, ResourceLocation.fromNamespaceAndPath(GearboundMod.MODID, "backpacks"));
+	private static final TagKey<Item> BACKPACKS_TAG = TagKey.create(net.minecraft.core.registries.Registries.ITEM, ResourceLocation.fromNamespaceAndPath(CreateNomadMod.MODID, "backpacks"));
 
 	private BackpackDyeCraftingHandler() {
 	}

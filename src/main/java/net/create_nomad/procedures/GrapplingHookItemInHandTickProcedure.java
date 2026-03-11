@@ -7,7 +7,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomModelData;
 import net.minecraft.world.phys.Vec3;
 
-import net.create_nomad.init.GearboundModItems;
+import net.create_nomad.init.CreateNomadModItems;
 
 public class GrapplingHookItemInHandTickProcedure {
 
@@ -22,8 +22,8 @@ public class GrapplingHookItemInHandTickProcedure {
         ItemStack mainHand = player.getMainHandItem();
         ItemStack offHand = player.getOffhandItem();
 
-        boolean holdingMain = mainHand.getItem() == GearboundModItems.GRAPPLING_HOOK.get();
-        boolean holdingOff = offHand.getItem() == GearboundModItems.GRAPPLING_HOOK.get();
+        boolean holdingMain = mainHand.getItem() == CreateNomadModItems.GRAPPLING_HOOK.get();
+        boolean holdingOff = offHand.getItem() == CreateNomadModItems.GRAPPLING_HOOK.get();
 
         boolean grappling = player.getPersistentData().getBoolean("gearbound_grappling");
 

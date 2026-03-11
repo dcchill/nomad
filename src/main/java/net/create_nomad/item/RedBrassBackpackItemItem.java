@@ -2,10 +2,10 @@ package net.create_nomad.item;
 
 import net.minecraft.world.item.DyeColor;
 
-import net.create_nomad.init.GearboundModDyedBackpackHooks;
+import net.create_nomad.init.CreateNomadModDyedBackpackHooks;
 
 public class RedBrassBackpackItemItem extends BrassBackpackItem {
 	public RedBrassBackpackItemItem() {
-		super(GearboundModDyedBackpackHooks.RED_BRASS_BACKPACK, DyeColor.RED);
+		super(CreateNomadModDyedBackpackHooks.RED_BRASS_BACKPACK, DyeColor.RED);
 	}
 }

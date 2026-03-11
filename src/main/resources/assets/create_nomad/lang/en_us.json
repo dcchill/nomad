@@ -1,5 +1,5 @@
 {
-  "item_group.gearbound.create_gearbound_menu": "Create: Gearbound",
+  "item_group.gearbound.create_gearbound_menu": "Create: CreateNomad",
   "gui.gearbound.brass_backpack_gui.label_brass_backpack": "Brass Backpack",
   "item.gearbound.white_brass_backpack": "White Brass Backpack",
   "item.gearbound.light_gray_brass_backpack": "Light Gray Brass Backpack",
@@ -36,7 +36,7 @@
   "tooltip.gearbound.jackhammer.description_1": "Hold [Shift] for Summary",
   "tooltip.gearbound.jackhammer.description_2": "Uses backtank air instead of durability while air is available.  Mines stones and full veins of ores.",
   "key.gearbound.open_backpack": "Open Backpack On Back",
-  "keys.categories.gearbound": "Gearbound",
+  "keys.categories.gearbound": "CreateNomad",
   "subtitles.backpack_equip": "Equips Backpack",
   "subtitles.backpack_close": "Closes Backpack",
   "subtitles.backpack_open": "Opens Backpack",
@@ -49,6 +49,6 @@
   "gearbound.ponder.backpack_auto_hotbar_pg2.text_1": "Backpacks can be dyed into any color to match your style.",
   "gearbound.ponder.backpack_auto_hotbar_pg2.text_2": "Use any dye with a backpack in crafting to recolor it!",
   "tooltip.gearbound.trackpack.description_1": "Automatically refills stacks of tracks in your hotbar.",
-  "item_group.create_nomad.create_gearbound_menu": "Create: Gearbound",
+  "item_group.create_nomad.create_gearbound_menu": "Create: CreateNomad",
   "key.create_nomad.open_backpack": "Open Backpack On Back"
 }

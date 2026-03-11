@@ -16,7 +16,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.resources.ResourceLocation;
 
-import net.create_nomad.GearboundMod;
+import net.create_nomad.CreateNomadMod;
 import net.create_nomad.block.BlackBrassBackpackBlock;
 import net.create_nomad.block.BlueBrassBackpackBlock;
 import net.create_nomad.block.CyanBrassBackpackBlock;
@@ -49,11 +49,11 @@ import net.create_nomad.block.entity.WhiteBrassBackpackBlockEntity;
 import net.create_nomad.block.entity.YellowBrassBackpackBlockEntity;
 
 @EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD)
-public class GearboundModDyedBackpackHooks {
+public class CreateNomadModDyedBackpackHooks {
 	private static boolean deferredRegistersBound = false;
 
-	public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(GearboundMod.MODID);
-	public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(BuiltInRegistries.BLOCK_ENTITY_TYPE, GearboundMod.MODID);
+	public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(CreateNomadMod.MODID);
+	public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(BuiltInRegistries.BLOCK_ENTITY_TYPE, CreateNomadMod.MODID);
 
 	public static final DeferredBlock<Block> BLACK_BRASS_BACKPACK = BLOCKS.register("black_brass_backpack", BlackBrassBackpackBlock::new);
 	public static final DeferredBlock<Block> BLUE_BRASS_BACKPACK = BLOCKS.register("blue_brass_backpack", BlueBrassBackpackBlock::new);
@@ -88,7 +88,7 @@ public class GearboundModDyedBackpackHooks {
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<?>> YELLOW_BRASS_BACKPACK_BLOCK_ENTITY = blockEntity("yellow_brass_backpack", YELLOW_BRASS_BACKPACK, YellowBrassBackpackBlockEntity::new);
 
 
-	private GearboundModDyedBackpackHooks() {
+	private CreateNomadModDyedBackpackHooks() {
 	}
 
 	public static void register(IEventBus modEventBus) {
@@ -106,7 +106,7 @@ public class GearboundModDyedBackpackHooks {
 	}
 
 	private static void registerCapability(RegisterCapabilitiesEvent event, String blockEntityId) {
-		BuiltInRegistries.BLOCK_ENTITY_TYPE.getOptional(ResourceLocation.fromNamespaceAndPath(GearboundMod.MODID, blockEntityId))
+		BuiltInRegistries.BLOCK_ENTITY_TYPE.getOptional(ResourceLocation.fromNamespaceAndPath(CreateNomadMod.MODID, blockEntityId))
 				.ifPresent(type -> event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, type, (blockEntity, side) -> new SidedInvWrapper((WorldlyContainer) blockEntity, side)));
 	}
 
