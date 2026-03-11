@@ -1,9 +1,9 @@
 {
-  "parent": "gearbound:custom/chainsaw",
+  "parent": "create_nomad:custom/chainsaw",
   "textures": {
-    "1": "gearbound:block/extendo_grip",
+    "1": "create_nomad:block/extendo_grip",
     "4": "minecraft:block/stonecutter_saw",
-    "2": "gearbound:block/mechanical_press_pole",
+    "2": "create_nomad:block/mechanical_press_pole",
     "particle": "minecraft:item/empty_slot_axe"
   }
 }

@@ -1,10 +1,10 @@
 {
-  "parent": "gearbound:custom/grapple_hook_fired",
+  "parent": "create_nomad:custom/grapple_hook_fired",
   "textures": {
-    "0": "gearbound:block/extendo_grip",
+    "0": "create_nomad:block/extendo_grip",
     "1": "minecraft:block/stripped_dark_oak_log",
-    "2": "gearbound:block/mechanical_press_head",
-    "3": "gearbound:block/axis",
+    "2": "create_nomad:block/mechanical_press_head",
+    "3": "create_nomad:block/axis",
     "particle": "minecraft:item/bow_pulling_1"
   }
 }

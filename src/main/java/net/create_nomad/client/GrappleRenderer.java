@@ -16,11 +16,11 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 
-@EventBusSubscriber(modid = "gearbound", value = Dist.CLIENT)
+@EventBusSubscriber(modid = "create_nomad", value = Dist.CLIENT)
 public class GrappleRenderer {
 
     private static final ResourceLocation CHAIN_TEXTURE =
-            ResourceLocation.fromNamespaceAndPath("gearbound", "textures/entities/grapple_chain.png");
+            ResourceLocation.fromNamespaceAndPath("create_nomad", "textures/entities/grapple_chain.png");
 
     @SubscribeEvent
     public static void onRenderLevel(RenderLevelStageEvent event) {

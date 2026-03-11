@@ -1,5 +1,5 @@
 {
-  "parent": "gearbound:block/yellow_brass_backpack",
+  "parent": "create_nomad:block/yellow_brass_backpack",
   "display": {
     "thirdperson": {
       "rotation": [

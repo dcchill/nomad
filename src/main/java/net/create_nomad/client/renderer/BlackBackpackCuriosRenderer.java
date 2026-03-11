@@ -25,7 +25,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 public class BlackBackpackCuriosRenderer implements ICurioRenderer {
-	private static final ResourceLocation TEXTURE = ResourceLocation.parse("gearbound:textures/entities/black_backpack_e_texture.png");
+	private static final ResourceLocation TEXTURE = ResourceLocation.parse("create_nomad:textures/entities/black_backpack_e_texture.png");
 	private final HumanoidModel humanoidModel;
 
 	public BlackBackpackCuriosRenderer() {

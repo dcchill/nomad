@@ -9,16 +9,16 @@ import net.create_nomad.item.JackhammerItem;
 public class JackhammerItemModel extends GeoModel<JackhammerItem> {
 	@Override
 	public ResourceLocation getAnimationResource(JackhammerItem animatable) {
-		return ResourceLocation.parse("gearbound:animations/jackhammer.animation.json");
+		return ResourceLocation.parse("create_nomad:animations/jackhammer.animation.json");
 	}
 
 	@Override
 	public ResourceLocation getModelResource(JackhammerItem animatable) {
-		return ResourceLocation.parse("gearbound:geo/jackhammer.geo.json");
+		return ResourceLocation.parse("create_nomad:geo/jackhammer.geo.json");
 	}
 
 	@Override
 	public ResourceLocation getTextureResource(JackhammerItem animatable) {
-		return ResourceLocation.parse("gearbound:textures/item/jackhammer_texture.png");
+		return ResourceLocation.parse("create_nomad:textures/item/jackhammer_texture.png");
 	}
 }

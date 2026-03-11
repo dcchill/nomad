@@ -6,11 +6,11 @@
       "item": "minecraft:cyan_dye"
     },
     {
-      "tag": "gearbound:backpacks"
+      "tag": "create_nomad:backpacks"
     }
   ],
   "result": {
-    "id": "gearbound:cyan_brass_backpack_item",
+    "id": "create_nomad:cyan_brass_backpack_item",
     "count": 1
   }
 }

@@ -1,6 +1,6 @@
 {
   "type": "minecraft:block",
-  "random_sequence": "gearbound:blocks/orange_brass_backpack",
+  "random_sequence": "create_nomad:blocks/orange_brass_backpack",
   "pools": [
     {
       "rolls": 1.0,
@@ -12,7 +12,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "gearbound:orange_brass_backpack"
+          "name": "create_nomad:orange_brass_backpack"
         }
       ]
     }
