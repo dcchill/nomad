@@ -1,0 +1,38 @@
+{
+  "backpack_equip": {
+    "subtitle": "subtitles.backpack_equip",
+    "sounds": [
+      {
+        "name": "create_nomad:backpack_equip",
+        "stream": false
+      }
+    ]
+  },
+  "backpack_close": {
+    "subtitle": "subtitles.backpack_close",
+    "sounds": [
+      {
+        "name": "create_nomad:backpack_close",
+        "stream": false
+      }
+    ]
+  },
+  "backpack_open": {
+    "subtitle": "subtitles.backpack_open",
+    "sounds": [
+      {
+        "name": "create_nomad:backpack_open",
+        "stream": false
+      }
+    ]
+  },
+  "backpack_off": {
+    "subtitle": "subtitles.backpack_off",
+    "sounds": [
+      {
+        "name": "create_nomad:backpack_off",
+        "stream": false
+      }
+    ]
+  }
+}

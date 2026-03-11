@@ -1,0 +1,34 @@
+{
+  "type": "create:mechanical_crafting",
+  "accept_mirrored": false,
+  "category": "misc",
+  "key": {
+    "H": {
+      "tag": "c:ingots/iron"
+    },
+    "L": {
+      "tag": "c:ingots/brass"
+    },
+    "R": {
+      "item": "create:precision_mechanism"
+    },
+    "S": {
+      "tag": "c:rods/wooden"
+    },
+    "C": {
+      "item": "minecraft:chain"
+    }
+  },
+  "pattern": [
+    " L ",
+    " R ",
+    "SCS",
+    "SCS",
+    " H "
+  ],
+  "result": {
+    "count": 1,
+    "id": "gearbound:grappling_hook"
+  },
+  "show_notification": false
+}

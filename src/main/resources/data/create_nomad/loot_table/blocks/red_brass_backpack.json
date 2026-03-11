@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:block",
+  "random_sequence": "gearbound:blocks/red_brass_backpack",
+  "pools": [
+    {
+      "rolls": 1.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "gearbound:red_brass_backpack"
+        }
+      ]
+    }
+  ]
+}

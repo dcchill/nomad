@@ -1,0 +1,11 @@
+{
+  "parent": "gearbound:custom/grapple_hook_base",
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 1
+      },
+      "model": "gearbound:item/grapple_hook_fired"
+    }
+  ]
+}

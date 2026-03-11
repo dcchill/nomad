@@ -1,0 +1,18 @@
+{
+  "parent": "gearbound:custom/grapple_hook_base",
+  "textures": {
+    "0": "gearbound:block/extendo_grip",
+    "1": "minecraft:block/stripped_dark_oak_log",
+    "2": "gearbound:block/mechanical_press_head",
+    "3": "gearbound:block/axis",
+    "particle": "minecraft:item/bow_pulling_1"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 1
+      },
+      "model": "gearbound:item/grapple_hook_fired"
+    }
+  ]
+}

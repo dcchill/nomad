@@ -1,0 +1,36 @@
+{
+  "_fv": 79,
+  "_type": "tool",
+  "definition": {
+    "toolType": "Axe",
+    "renderType": 1,
+    "blockingRenderType": 0,
+    "texture": "minecraft:empty_slot_axe",
+    "customModelName": "chainsaw:default",
+    "blockingModelName": "Normal blocking",
+    "guiTexture": "",
+    "name": "Chainsaw",
+    "specialInformation": {
+      "fixedValue": []
+    },
+    "creativeTabs": [
+      {
+        "value": "CUSTOM:CreateGearboundMenu"
+      }
+    ],
+    "efficiency": 8.0,
+    "attackSpeed": 0.5,
+    "enchantability": 2,
+    "damageVsEntity": 4.0,
+    "usageCount": 1024,
+    "glowCondition": {
+      "fixedValue": false
+    },
+    "repairItems": [],
+    "immuneToFire": false,
+    "blockDropsTier": "NETHERITE",
+    "blocksAffected": [],
+    "stayInGridWhenCrafting": false,
+    "damageOnCrafting": false
+  }
+}

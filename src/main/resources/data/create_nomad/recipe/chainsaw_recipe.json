@@ -1,0 +1,34 @@
+{
+  "type": "create:mechanical_crafting",
+  "accept_mirrored": false,
+  "category": "misc",
+  "key": {
+    "H": {
+      "tag": "c:plates/iron"
+    },
+    "L": {
+      "tag": "c:ingots/brass"
+    },
+    "R": {
+      "item": "create:precision_mechanism"
+    },
+    "S": {
+      "tag": "c:rods/wooden"
+    },
+    "C": {
+      "item": "create:mechanical_saw"
+    }
+  },
+  "pattern": [
+    " L ",
+    " R ",
+    "HSH",
+    "HSH",
+    " C "
+  ],
+  "result": {
+    "count": 1,
+    "id": "gearbound:chainsaw"
+  },
+  "show_notification": false
+}

@@ -1,0 +1,12 @@
+{
+  "mappings": {
+    "default": {
+      "map": {
+        "1": "extendo_grip",
+        "2": "mechanical_press_pole",
+        "4": "minecraft:stonecutter_saw"
+      },
+      "name": "default"
+    }
+  }
+}

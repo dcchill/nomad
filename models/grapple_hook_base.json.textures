@@ -1,0 +1,13 @@
+{
+  "mappings": {
+    "default": {
+      "map": {
+        "0": "extendo_grip",
+        "1": "stripped_dark_oak_log",
+        "2": "mechanical_press_head",
+        "3": "axis"
+      },
+      "name": "default"
+    }
+  }
+}

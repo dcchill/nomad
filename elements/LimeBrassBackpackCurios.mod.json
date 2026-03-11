@@ -1,0 +1,25 @@
+{
+  "_fv": 79,
+  "_type": "curiosbauble",
+  "definition": {
+    "item": "LimeBrassBackpackItem",
+    "slotType": "BACK",
+    "slotAmount": 1,
+    "addSlot": false,
+    "enderMask": false,
+    "friendlyPigs": false,
+    "snowWalk": false,
+    "equipSound": {
+      "value": "CUSTOM:backpack_equip"
+    },
+    "hasModel": true,
+    "baubleModel": "Modelbackpack",
+    "baubleModelTexture": "lime_backpack_e_texture.png",
+    "helmetModelPart": "Empty",
+    "bodyModelPart": "backpack",
+    "armsModelPartL": "Empty",
+    "armsModelPartR": "Empty",
+    "leggingsModelPartL": "Empty",
+    "leggingsModelPartR": "Empty"
+  }
+}

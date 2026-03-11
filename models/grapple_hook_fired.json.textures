@@ -1,0 +1,12 @@
+{
+  "mappings": {
+    "default": {
+      "map": {
+        "0": "extendo_grip",
+        "1": "minecraft:stripped_dark_oak_log",
+        "3": "axis"
+      },
+      "name": "default"
+    }
+  }
+}

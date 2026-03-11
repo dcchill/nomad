@@ -1,0 +1,885 @@
+{
+  "mod_elements": [
+    {
+      "name": "CreateGearboundMenu",
+      "type": "tab",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "create_gearbound_menu",
+      "metadata": {
+        "files": []
+      }
+    },
+    {
+      "name": "BrassBackpackGUI",
+      "type": "gui",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "brass_backpack_gui",
+      "metadata": {
+        "files": [
+          "src/main/java/net/gearbound/client/gui/BrassBackpackGUIScreen.java",
+          "src/main/java/net/gearbound/world/inventory/BrassBackpackGUIMenu.java"
+        ]
+      },
+      "path": "~/brass backpacks"
+    },
+    {
+      "name": "BrownBrassBackpack",
+      "type": "block",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "brown_brass_backpack",
+      "metadata": {
+        "files": [
+          "src/main/java/net/gearbound/block/entity/BrownBrassBackpackBlockEntity.java",
+          "src/main/resources/assets/gearbound/models/item/brown_brass_backpack.json",
+          "src/main/resources/assets/gearbound/models/block/brown_brass_backpack.json",
+          "src/main/resources/assets/gearbound/blockstates/brown_brass_backpack.json",
+          "src/main/java/net/gearbound/block/BrownBrassBackpackBlock.java",
+          "src/main/resources/data/gearbound/loot_table/blocks/brown_brass_backpack.json"
+        ]
+      },
+      "path": "~/brass backpacks"
+    },
+    {
+      "name": "BrownBrassBackpackItem",
+      "type": "item",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "brown_brass_backpack_item",
+      "metadata": {
+        "files": [
+          "src/main/java/net/gearbound/item/BrownBrassBackpackItemItem.java",
+          "src/main/resources/assets/gearbound/models/item/brown_brass_backpack_item.json"
+        ]
+      },
+      "path": "~/brass backpacks"
+    },
+    {
+      "name": "BrassBackpackRecipe",
+      "type": "recipe",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "brass_backpack_recipe",
+      "metadata": {
+        "files": [
+          "src/main/resources/data/gearbound/recipe/brass_backpack_recipe.json"
+        ]
+      },
+      "path": "~/brass backpacks"
+    },
+    {
+      "name": "GrapplingHookRightclicked",
+      "type": "procedure",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "grappling_hook_rightclicked",
+      "metadata": {
+        "dependencies": [
+          {
+            "name": "entity",
+            "type": "entity"
+          }
+        ],
+        "files": [
+          "src/main/java/net/gearbound/procedures/GrapplingHookRightclickedProcedure.java"
+        ]
+      },
+      "path": "~/grapple hook"
+    },
+    {
+      "name": "GrapplingHook",
+      "type": "item",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "grappling_hook",
+      "metadata": {
+        "files": [
+          "src/main/resources/assets/gearbound/models/item/grappling_hook.json",
+          "src/main/java/net/gearbound/item/GrapplingHookItem.java"
+        ]
+      },
+      "path": "~/grapple hook"
+    },
+    {
+      "name": "GrapplingHookItemInHandTick",
+      "type": "procedure",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "grappling_hook_item_in_hand_tick",
+      "metadata": {
+        "dependencies": [
+          {
+            "name": "entity",
+            "type": "entity"
+          }
+        ],
+        "files": [
+          "src/main/java/net/gearbound/procedures/GrapplingHookItemInHandTickProcedure.java"
+        ]
+      },
+      "path": "~/grapple hook"
+    },
+    {
+      "name": "GrapplingHookRecipe",
+      "type": "recipe",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "grappling_hook_recipe",
+      "metadata": {
+        "files": [
+          "src/main/resources/data/gearbound/recipe/grappling_hook_recipe.json"
+        ]
+      },
+      "path": "~/grapple hook"
+    },
+    {
+      "name": "TrackPack",
+      "type": "item",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "track_pack",
+      "metadata": {
+        "files": [
+          "src/main/java/net/gearbound/item/TrackPackItem.java",
+          "src/main/resources/assets/gearbound/models/item/track_pack.json"
+        ]
+      },
+      "path": "~/track pack"
+    },
+    {
+      "name": "TrackPackRecipe",
+      "type": "recipe",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "track_pack_recipe",
+      "metadata": {
+        "files": [
+          "src/main/resources/data/gearbound/recipe/track_pack_recipe.json"
+        ]
+      },
+      "path": "~/track pack"
+    },
+    {
+      "name": "Chainsaw",
+      "type": "tool",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "chainsaw",
+      "metadata": {
+        "files": [
+          "src/main/java/net/gearbound/item/ChainsawItem.java",
+          "src/main/resources/assets/gearbound/models/item/chainsaw.json"
+        ]
+      },
+      "path": "~/handheld saw"
+    },
+    {
+      "name": "ChainsawRecipe",
+      "type": "recipe",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "chainsaw_recipe",
+      "metadata": {
+        "files": [
+          "src/main/resources/data/gearbound/recipe/chainsaw_recipe.json"
+        ]
+      },
+      "path": "~/handheld saw"
+    },
+    {
+      "name": "Jackhammer",
+      "type": "animateditem",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "jackhammer",
+      "metadata": {
+        "files": [
+          "src/main/resources/assets/gearbound/models/item/jackhammer.json",
+          "src/main/java/net/gearbound/item/renderer/JackhammerItemRenderer.java",
+          "src/main/java/net/gearbound/item/JackhammerItem.java",
+          "src/main/java/net/gearbound/item/model/JackhammerItemModel.java"
+        ]
+      },
+      "path": "~/jackhammer"
+    },
+    {
+      "name": "JackhammerRecipe",
+      "type": "recipe",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "jackhammer_recipe",
+      "metadata": {
+        "files": [
+          "src/main/resources/data/gearbound/recipe/jackhammer_recipe.json"
+        ]
+      },
+      "path": "~/jackhammer"
+    },
+    {
+      "name": "BrownBrassBackpackCurios",
+      "type": "curiosbauble",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "brown_brass_backpack_curios",
+      "metadata": {
+        "files": [
+          "src/main/java/net/create_nomad/client/renderer/BrownBrassBackpackCuriosRenderer.java"
+        ]
+      },
+      "path": "~/curios"
+    },
+    {
+      "name": "BlackBrassBackpackItem",
+      "type": "item",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "black_brass_backpack_item",
+      "metadata": {
+        "files": [
+          "src/main/java/net/gearbound/item/BlackBrassBackpackItemItem.java",
+          "src/main/resources/assets/gearbound/models/item/black_brass_backpack_item.json"
+        ]
+      },
+      "path": "~/brass backpacks"
+    },
+    {
+      "name": "BlueBrassBackpackItem",
+      "type": "item",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "blue_brass_backpack_item",
+      "metadata": {
+        "files": [
+          "src/main/java/net/gearbound/item/BlueBrassBackpackItemItem.java",
+          "src/main/resources/assets/gearbound/models/item/blue_brass_backpack_item.json"
+        ]
+      },
+      "path": "~/brass backpacks"
+    },
+    {
+      "name": "CyanBrassBackpackItem",
+      "type": "item",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "cyan_brass_backpack_item",
+      "metadata": {
+        "files": [
+          "src/main/java/net/gearbound/item/CyanBrassBackpackItemItem.java",
+          "src/main/resources/assets/gearbound/models/item/cyan_brass_backpack_item.json"
+        ]
+      },
+      "path": "~/brass backpacks"
+    },
+    {
+      "name": "GrayBrassBackpackItem",
+      "type": "item",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "gray_brass_backpack_item",
+      "metadata": {
+        "files": [
+          "src/main/java/net/gearbound/item/GrayBrassBackpackItemItem.java",
+          "src/main/resources/assets/gearbound/models/item/gray_brass_backpack_item.json"
+        ]
+      },
+      "path": "~/brass backpacks"
+    },
+    {
+      "name": "GreenBrassBackpackItem",
+      "type": "item",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "green_brass_backpack_item",
+      "metadata": {
+        "files": [
+          "src/main/java/net/gearbound/item/GreenBrassBackpackItemItem.java",
+          "src/main/resources/assets/gearbound/models/item/green_brass_backpack_item.json"
+        ]
+      },
+      "path": "~/brass backpacks"
+    },
+    {
+      "name": "LightBlueBrassBackpackItem",
+      "type": "item",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "light_blue_brass_backpack_item",
+      "metadata": {
+        "files": [
+          "src/main/java/net/gearbound/item/LightBlueBrassBackpackItemItem.java",
+          "src/main/resources/assets/gearbound/models/item/light_blue_brass_backpack_item.json"
+        ]
+      },
+      "path": "~/brass backpacks"
+    },
+    {
+      "name": "LightGrayBrassBackpackItem",
+      "type": "item",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "light_gray_brass_backpack_item",
+      "metadata": {
+        "files": [
+          "src/main/java/net/gearbound/item/LightGrayBrassBackpackItemItem.java",
+          "src/main/resources/assets/gearbound/models/item/light_gray_brass_backpack_item.json"
+        ]
+      },
+      "path": "~/brass backpacks"
+    },
+    {
+      "name": "LimeBrassBackpackItem",
+      "type": "item",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "lime_brass_backpack_item",
+      "metadata": {
+        "files": [
+          "src/main/java/net/gearbound/item/LimeBrassBackpackItemItem.java",
+          "src/main/resources/assets/gearbound/models/item/lime_brass_backpack_item.json"
+        ]
+      },
+      "path": "~/brass backpacks"
+    },
+    {
+      "name": "MagentaBrassBackpackItem",
+      "type": "item",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "magenta_brass_backpack_item",
+      "metadata": {
+        "files": [
+          "src/main/java/net/gearbound/item/MagentaBrassBackpackItemItem.java",
+          "src/main/resources/assets/gearbound/models/item/magenta_brass_backpack_item.json"
+        ]
+      },
+      "path": "~/brass backpacks"
+    },
+    {
+      "name": "OrangeBrassBackpackItem",
+      "type": "item",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "orange_brass_backpack_item",
+      "metadata": {
+        "files": [
+          "src/main/java/net/gearbound/item/OrangeBrassBackpackItemItem.java",
+          "src/main/resources/assets/gearbound/models/item/orange_brass_backpack_item.json"
+        ]
+      },
+      "path": "~/brass backpacks"
+    },
+    {
+      "name": "PinkBrassBackpackItem",
+      "type": "item",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "pink_brass_backpack_item",
+      "metadata": {
+        "files": [
+          "src/main/java/net/gearbound/item/PinkBrassBackpackItemItem.java",
+          "src/main/resources/assets/gearbound/models/item/pink_brass_backpack_item.json"
+        ]
+      },
+      "path": "~/brass backpacks"
+    },
+    {
+      "name": "PurpleBrassBackpackItem",
+      "type": "item",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "purple_brass_backpack_item",
+      "metadata": {
+        "files": [
+          "src/main/java/net/gearbound/item/PurpleBrassBackpackItemItem.java",
+          "src/main/resources/assets/gearbound/models/item/purple_brass_backpack_item.json"
+        ]
+      },
+      "path": "~/brass backpacks"
+    },
+    {
+      "name": "RedBrassBackpackItem",
+      "type": "item",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "red_brass_backpack_item",
+      "metadata": {
+        "files": [
+          "src/main/java/net/gearbound/item/RedBrassBackpackItemItem.java",
+          "src/main/resources/assets/gearbound/models/item/red_brass_backpack_item.json"
+        ]
+      },
+      "path": "~/brass backpacks"
+    },
+    {
+      "name": "WhiteBrassBackpackItem",
+      "type": "item",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "white_brass_backpack_item",
+      "metadata": {
+        "files": [
+          "src/main/java/net/gearbound/item/WhiteBrassBackpackItemItem.java",
+          "src/main/resources/assets/gearbound/models/item/white_brass_backpack_item.json"
+        ]
+      },
+      "path": "~/brass backpacks"
+    },
+    {
+      "name": "YellowBrassBackpackItem",
+      "type": "item",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "yellow_brass_backpack_item",
+      "metadata": {
+        "files": [
+          "src/main/java/net/gearbound/item/YellowBrassBackpackItemItem.java",
+          "src/main/resources/assets/gearbound/models/item/yellow_brass_backpack_item.json"
+        ]
+      },
+      "path": "~/brass backpacks"
+    },
+    {
+      "name": "BlackBrassBackpackCurios",
+      "type": "curiosbauble",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "black_brass_backpack_curios",
+      "metadata": {
+        "files": [
+          "src/main/java/net/create_nomad/client/renderer/BlackBrassBackpackCuriosRenderer.java"
+        ]
+      },
+      "path": "~/curios"
+    },
+    {
+      "name": "GrayBrassBackpackCurios",
+      "type": "curiosbauble",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "gray_brass_backpack_curios",
+      "metadata": {
+        "files": [
+          "src/main/java/net/create_nomad/client/renderer/GrayBrassBackpackCuriosRenderer.java"
+        ]
+      },
+      "path": "~/curios"
+    },
+    {
+      "name": "LightGrayBrassBackpackCurios",
+      "type": "curiosbauble",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "light_gray_brass_backpack_curios",
+      "metadata": {
+        "files": [
+          "src/main/java/net/create_nomad/client/renderer/LightGrayBrassBackpackCuriosRenderer.java"
+        ]
+      },
+      "path": "~/curios"
+    },
+    {
+      "name": "LightBlueBrassBackpackCurios",
+      "type": "curiosbauble",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "light_blue_brass_backpack_curios",
+      "metadata": {
+        "files": [
+          "src/main/java/net/create_nomad/client/renderer/LightBlueBrassBackpackCuriosRenderer.java"
+        ]
+      },
+      "path": "~/curios"
+    },
+    {
+      "name": "BlueBrassBackpackCurios",
+      "type": "curiosbauble",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "blue_brass_backpack_curios",
+      "metadata": {
+        "files": [
+          "src/main/java/net/create_nomad/client/renderer/BlueBrassBackpackCuriosRenderer.java"
+        ]
+      },
+      "path": "~/curios"
+    },
+    {
+      "name": "YellowBrassBackpackCurios",
+      "type": "curiosbauble",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "yellow_brass_backpack_curios",
+      "metadata": {
+        "files": [
+          "src/main/java/net/create_nomad/client/renderer/YellowBrassBackpackCuriosRenderer.java"
+        ]
+      },
+      "path": "~/curios"
+    },
+    {
+      "name": "GreenBrassBackpackCurios",
+      "type": "curiosbauble",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "green_brass_backpack_curios",
+      "metadata": {
+        "files": [
+          "src/main/java/net/create_nomad/client/renderer/GreenBrassBackpackCuriosRenderer.java"
+        ]
+      },
+      "path": "~/curios"
+    },
+    {
+      "name": "OrangeBrassBackpackCurios",
+      "type": "curiosbauble",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "orange_brass_backpack_curios",
+      "metadata": {
+        "files": [
+          "src/main/java/net/create_nomad/client/renderer/OrangeBrassBackpackCuriosRenderer.java"
+        ]
+      },
+      "path": "~/curios"
+    },
+    {
+      "name": "RedBrassBackpackCurios",
+      "type": "curiosbauble",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "red_brass_backpack_curios",
+      "metadata": {
+        "files": [
+          "src/main/java/net/create_nomad/client/renderer/RedBrassBackpackCuriosRenderer.java"
+        ]
+      },
+      "path": "~/curios"
+    },
+    {
+      "name": "PinkBrassBackpackCurios",
+      "type": "curiosbauble",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "pink_brass_backpack_curios",
+      "metadata": {
+        "files": [
+          "src/main/java/net/create_nomad/client/renderer/PinkBrassBackpackCuriosRenderer.java"
+        ]
+      },
+      "path": "~/curios"
+    },
+    {
+      "name": "PurpleBrassBackpackCurios",
+      "type": "curiosbauble",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "purple_brass_backpack_curios",
+      "metadata": {
+        "files": [
+          "src/main/java/net/create_nomad/client/renderer/PurpleBrassBackpackCuriosRenderer.java"
+        ]
+      },
+      "path": "~/curios"
+    },
+    {
+      "name": "MagentaBrassBackpackCurios",
+      "type": "curiosbauble",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "magenta_brass_backpack_curios",
+      "metadata": {
+        "files": [
+          "src/main/java/net/create_nomad/client/renderer/MagentaBrassBackpackCuriosRenderer.java"
+        ]
+      },
+      "path": "~/curios"
+    },
+    {
+      "name": "WhiteBrassBackpackCurios",
+      "type": "curiosbauble",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "white_brass_backpack_curios",
+      "metadata": {
+        "files": [
+          "src/main/java/net/create_nomad/client/renderer/WhiteBrassBackpackCuriosRenderer.java"
+        ]
+      },
+      "path": "~/curios"
+    },
+    {
+      "name": "LimeBrassBackpackCurios",
+      "type": "curiosbauble",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "lime_brass_backpack_curios",
+      "metadata": {
+        "files": [
+          "src/main/java/net/create_nomad/client/renderer/LimeBrassBackpackCuriosRenderer.java"
+        ]
+      },
+      "path": "~/curios"
+    },
+    {
+      "name": "CyanBrassBackpackCurios",
+      "type": "curiosbauble",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "cyan_brass_backpack_curios",
+      "metadata": {
+        "files": [
+          "src/main/java/net/create_nomad/client/renderer/CyanBrassBackpackCuriosRenderer.java"
+        ]
+      },
+      "path": "~/curios"
+    },
+    {
+      "name": "OpenBackpackOnKeyPressed",
+      "type": "procedure",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "open_backpack_on_key_pressed",
+      "metadata": {
+        "dependencies": [
+          {
+            "name": "x",
+            "type": "number"
+          },
+          {
+            "name": "y",
+            "type": "number"
+          },
+          {
+            "name": "z",
+            "type": "number"
+          },
+          {
+            "name": "world",
+            "type": "world"
+          }
+        ],
+        "files": [
+          "src/main/java/net/gearbound/procedures/OpenBackpackOnKeyPressedProcedure.java"
+        ]
+      }
+    },
+    {
+      "name": "OpenBackpack",
+      "type": "keybind",
+      "compiles": false,
+      "locked_code": false,
+      "registry_name": "open_backpack",
+      "metadata": {
+        "files": [
+          "src/main/java/net/create_nomad/network/OpenBackpackMessage.java"
+        ]
+      }
+    }
+  ],
+  "variable_elements": [],
+  "sound_elements": [
+    {
+      "name": "backpack_equip",
+      "files": [
+        "backpack_equip"
+      ],
+      "category": "player",
+      "subtitle": "Equips Backpack"
+    },
+    {
+      "name": "backpack_close",
+      "files": [
+        "backpack_close"
+      ],
+      "category": "player",
+      "subtitle": "Closes Backpack"
+    },
+    {
+      "name": "backpack_open",
+      "files": [
+        "backpack_open"
+      ],
+      "category": "player",
+      "subtitle": "Opens Backpack"
+    },
+    {
+      "name": "backpack_off",
+      "files": [
+        "backpack_off"
+      ],
+      "category": "player",
+      "subtitle": "Takes off Backpack"
+    }
+  ],
+  "tag_elements": {
+    "ITEMS:minecraft:axes": [
+      "CUSTOM:Chainsaw"
+    ],
+    "ITEMS:minecraft:pickaxes": [
+      "CUSTOM:Jackhammer"
+    ]
+  },
+  "tab_element_order": {
+    "CUSTOM:CreateGearboundMenu": [
+      "GrapplingHook",
+      "Chainsaw",
+      "Jackhammer",
+      "TrackPack",
+      "BrownBrassBackpackItem",
+      "WhiteBrassBackpackItem",
+      "LightGrayBrassBackpackItem",
+      "GrayBrassBackpackItem",
+      "BlackBrassBackpackItem",
+      "BrownBrassBackpack",
+      "RedBrassBackpackItem",
+      "OrangeBrassBackpackItem",
+      "YellowBrassBackpackItem",
+      "LimeBrassBackpackItem",
+      "GreenBrassBackpackItem",
+      "CyanBrassBackpackItem",
+      "LightBlueBrassBackpackItem",
+      "BlueBrassBackpackItem",
+      "PurpleBrassBackpackItem",
+      "MagentaBrassBackpackItem",
+      "PinkBrassBackpackItem"
+    ]
+  },
+  "language_map": {
+    "en_us": {
+      "item_group.gearbound.create_gearbound_menu": "Create: Gearbound",
+      "gui.gearbound.brass_backpack_gui.label_brass_backpack": "Brass Backpack",
+      "item.gearbound.white_brass_backpack": "White Brass Backpack",
+      "item.gearbound.light_gray_brass_backpack": "Light Gray Brass Backpack",
+      "item.gearbound.gray_brass_backpack": "Gray Brass Backpack",
+      "item.gearbound.black_brass_backpack": "Black Brass Backpack",
+      "item.gearbound.brown_brass_backpack": "Brown Brass Backpack",
+      "block.gearbound.brown_brass_backpack": "Brown Brass Backpack",
+      "item.gearbound.brown_brass_backpack_item": "Brown Brass Backpack Item",
+      "item.gearbound.red_brass_backpack": "Red Brass Backpack",
+      "item.gearbound.orange_brass_backpack": "Orange Brass Backpack",
+      "item.gearbound.yellow_brass_backpack": "Yellow Brass Backpack",
+      "item.gearbound.lime_brass_backpack": "Lime Brass Backpack",
+      "item.gearbound.green_brass_backpack": "Green Brass Backpack",
+      "item.gearbound.cyan_brass_backpack": "Cyan Brass Backpack",
+      "item.gearbound.light_blue_brass_backpack": "Light Blue Brass Backpack",
+      "item.gearbound.blue_brass_backpack": "Blue Brass Backpack",
+      "item.gearbound.purple_brass_backpack": "Purple Brass Backpack",
+      "item.gearbound.magenta_brass_backpack": "Magenta Brass Backpack",
+      "item.gearbound.pink_brass_backpack": "Pink Brass Backpack",
+      "item.gearbound.grappling_hook": "Grappling Hook",
+      "tooltip.gearbound.shift_for_info": "Hold [Shift] for Summary",
+      "tooltip.gearbound.grappling_hook.description_1": "Hold [Shift] for Summary",
+      "tooltip.gearbound.grappling_hook.description_2": "Uses backtank air instead of durability while air is available.  Right click to grapple to the block if in range.",
+      "tooltip.gearbound.backpack.description_1": "Hold [Shift] for Summary",
+      "tooltip.gearbound.backpack.description_2": "The Backpack is a wearable storage item. When placed down, it also acts as a supply station that automatically refills your hotbar with items from its inventory while you’re nearby.",
+      "item.gearbound.track_pack": "Track Pack",
+      "tooltip.gearbound.track_pack.contents": "Stored Tracks: %s/%s",
+      "tooltip.gearbound.track_pack.hint": "Right-Click the air to take a stack out.",
+      "tooltip.gearbound.track_pack.empty": "Empty. Sneak + Right-Click to collect Create tracks from inventory.",
+      "item.gearbound.chainsaw": "Mobile Mechanical Saw",
+      "tooltip.gearbound.chainsaw.description_1": "Hold [Shift] for Summary",
+      "tooltip.gearbound.chainsaw.description_2": "Uses backtank air instead of durability while air is available.  Consumes 1 air per block broken, including timber-felled logs.",
+      "item.gearbound.jackhammer": "Jackhammer",
+      "tooltip.gearbound.jackhammer.description_1": "Hold [Shift] for Summary",
+      "tooltip.gearbound.jackhammer.description_2": "Uses backtank air instead of durability while air is available.  Mines stones and full veins of ores.",
+      "key.gearbound.open_backpack": "Open Backpack On Back",
+      "keys.categories.gearbound": "Gearbound",
+      "subtitles.backpack_equip": "Equips Backpack",
+      "subtitles.backpack_close": "Closes Backpack",
+      "subtitles.backpack_open": "Opens Backpack",
+      "subtitles.backpack_off": "Takes off Backpack",
+      "gearbound.ponder.backpack_auto_hotbar.header": "Backpack Auto Hotbar Filling",
+      "gearbound.ponder.backpack_auto_hotbar.text_1": "When an item stack in your hotbar runs low, the backpack refills it automatically.",
+      "gearbound.ponder.backpack_auto_hotbar.text_2": "Right click a placed backpack to bind to it.",
+      "gearbound.ponder.backpack_auto_hotbar.text_3": "Keep matching stacks inside the backpack and it will keep your hotbar stocked while you build.",
+      "gearbound.ponder.backpack_auto_hotbar_pg2.header": "Dyeing Backpack Variants",
+      "gearbound.ponder.backpack_auto_hotbar_pg2.text_1": "Backpacks can be dyed into any color to match your style.",
+      "gearbound.ponder.backpack_auto_hotbar_pg2.text_2": "Use any dye with a backpack in crafting to recolor it!",
+      "tooltip.gearbound.trackpack.description_1": "Automatically refills stacks of tracks in your hotbar.",
+      "item_group.create_nomad.create_gearbound_menu": "Create: Gearbound",
+      "key.create_nomad.open_backpack": "Open Backpack On Back"
+    }
+  },
+  "metadata": {
+    "files": [
+      "src/main/java/net/create_nomad/init/CreateNomadModSounds.java",
+      "src/main/resources/assets/create_nomad/sounds.json",
+      "src/main/java/net/create_nomad/CreateNomadMod.java",
+      "src/main/resources/META-INF/neoforge.mods.toml",
+      "src/main/resources/pack.mcmeta",
+      "src/main/java/net/create_nomad/init/CreateNomadModModels.java",
+      "src/main/java/net/create_nomad/init/CreateNomadModTabs.java",
+      "src/main/java/net/create_nomad/utils/AnimUtils.java",
+      "src/main/java/net/create_nomad/init/ItemAnimationFactory.java",
+      "src/main/java/net/create_nomad/init/CreateNomadModCuriosCompat.java",
+      "src/main/resources/data/create_nomad/curios/slots/back.json",
+      "src/main/resources/data/curios/tags/item/back.json",
+      "src/main/java/net/create_nomad/init/CreateNomadModCuriosRenderers.java",
+      "src/main/resources/data/create_nomad/curios/entities/slots.json",
+      "src/main/java/net/create_nomad/network/MenuStateUpdateMessage.java",
+      "src/main/java/net/create_nomad/init/CreateNomadModMenus.java",
+      "src/main/java/net/create_nomad/init/CreateNomadModScreens.java",
+      "src/main/java/net/create_nomad/init/CreateNomadModKeyMappings.java",
+      "src/main/java/net/create_nomad/init/CreateNomadModBrewingRecipes.java",
+      "src/main/java/net/create_nomad/init/CreateNomadModBlocks.java",
+      "src/main/java/net/create_nomad/init/CreateNomadModBlockEntities.java",
+      "src/main/java/net/create_nomad/init/CreateNomadModItems.java"
+    ]
+  },
+  "foldersRoot": {
+    "name": "~",
+    "children": [
+      {
+        "name": "brass backpacks",
+        "children": []
+      },
+      {
+        "name": "grapple hook",
+        "children": []
+      },
+      {
+        "name": "track pack",
+        "children": []
+      },
+      {
+        "name": "handheld saw",
+        "children": []
+      },
+      {
+        "name": "jackhammer",
+        "children": []
+      },
+      {
+        "name": "curios",
+        "children": []
+      }
+    ]
+  },
+  "workspaceSettings": {
+    "modid": "create_nomad",
+    "modName": "Nomad",
+    "version": "0.1.0",
+    "description": "Adds more gadgets and storage to the create mod",
+    "author": "Dcchill",
+    "websiteURL": "https://github.com/dcchill/gearbound",
+    "license": "Not specified",
+    "serverSideOnly": false,
+    "modPicture": "backpack_logo",
+    "requiredMods": [
+      "create"
+    ],
+    "dependencies": [],
+    "dependants": [],
+    "mcreatorDependencies": [
+      "curios_api",
+      "geckolib",
+      "jei"
+    ],
+    "currentGenerator": "neoforge-1.21.1",
+    "credits": "Dcchill",
+    "modElementsPackage": "net.create_nomad"
+  },
+  "mcreatorVersion": 202500228610
+}

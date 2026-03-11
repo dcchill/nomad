@@ -1,0 +1,12 @@
+{
+  "_fv": 79,
+  "_type": "keybind",
+  "definition": {
+    "triggerKey": "B",
+    "keyBindingName": "Open Backpack On Back",
+    "keyBindingCategoryKey": "gearbound",
+    "onKeyPressed": {
+      "name": "OpenBackpackOnKeyPressed"
+    }
+  }
+}

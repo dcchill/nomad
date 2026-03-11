@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "minecraft:light_blue_dye"
+    },
+    {
+      "tag": "gearbound:backpacks"
+    }
+  ],
+  "result": {
+    "id": "gearbound:light_blue_brass_backpack_item",
+    "count": 1
+  }
+}

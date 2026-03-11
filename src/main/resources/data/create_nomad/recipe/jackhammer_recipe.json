@@ -1,0 +1,34 @@
+{
+  "type": "create:mechanical_crafting",
+  "accept_mirrored": false,
+  "category": "misc",
+  "key": {
+    "H": {
+      "tag": "c:plates/iron"
+    },
+    "L": {
+      "tag": "c:ingots/brass"
+    },
+    "R": {
+      "item": "create:precision_mechanism"
+    },
+    "S": {
+      "item": "create:andesite_alloy"
+    },
+    "C": {
+      "item": "create:mechanical_drill"
+    }
+  },
+  "pattern": [
+    " L ",
+    " R ",
+    "HSH",
+    "HSH",
+    " C "
+  ],
+  "result": {
+    "count": 1,
+    "id": "gearbound:jackhammer"
+  },
+  "show_notification": false
+}

@@ -1,0 +1,21 @@
+{
+  "replace": false,
+  "values": [
+    "create_nomad:brown_brass_backpack_item",
+    "create_nomad:black_brass_backpack_item",
+    "create_nomad:gray_brass_backpack_item",
+    "create_nomad:light_gray_brass_backpack_item",
+    "create_nomad:light_blue_brass_backpack_item",
+    "create_nomad:blue_brass_backpack_item",
+    "create_nomad:yellow_brass_backpack_item",
+    "create_nomad:green_brass_backpack_item",
+    "create_nomad:orange_brass_backpack_item",
+    "create_nomad:red_brass_backpack_item",
+    "create_nomad:pink_brass_backpack_item",
+    "create_nomad:purple_brass_backpack_item",
+    "create_nomad:magenta_brass_backpack_item",
+    "create_nomad:white_brass_backpack_item",
+    "create_nomad:lime_brass_backpack_item",
+    "create_nomad:cyan_brass_backpack_item"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "minecraft:cyan_dye"
+    },
+    {
+      "tag": "gearbound:backpacks"
+    }
+  ],
+  "result": {
+    "id": "gearbound:cyan_brass_backpack_item",
+    "count": 1
+  }
+}

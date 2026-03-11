@@ -1,0 +1,6 @@
+{
+  "parent": "gearbound:displaysettings/jackhammer",
+  "textures": {
+    "layer0": "gearbound:item/jackhammer_texture"
+  }
+}

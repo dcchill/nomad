@@ -1,0 +1,19 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "cases": [
+      {
+        "when": 1,
+        "model": {
+          "type": "minecraft:model",
+          "model": "gearbound:item/grapple_hook_fired"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "gearbound:item/grappling_hook"
+    }
+  }
+}

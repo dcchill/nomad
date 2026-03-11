@@ -1,0 +1,21 @@
+{
+  "replace": false,
+  "values": [
+    "gearbound:white_brass_backpack_item",
+    "gearbound:light_gray_brass_backpack_item",
+    "gearbound:gray_brass_backpack_item",
+    "gearbound:black_brass_backpack_item",
+    "gearbound:brown_brass_backpack_item",
+    "gearbound:red_brass_backpack_item",
+    "gearbound:orange_brass_backpack_item",
+    "gearbound:yellow_brass_backpack_item",
+    "gearbound:lime_brass_backpack_item",
+    "gearbound:green_brass_backpack_item",
+    "gearbound:cyan_brass_backpack_item",
+    "gearbound:light_blue_brass_backpack_item",
+    "gearbound:blue_brass_backpack_item",
+    "gearbound:purple_brass_backpack_item",
+    "gearbound:magenta_brass_backpack_item",
+    "gearbound:pink_brass_backpack_item"
+  ]
+}
