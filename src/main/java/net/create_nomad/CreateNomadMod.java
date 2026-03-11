@@ -59,10 +59,12 @@ public class CreateNomadMod {
 		CreateNomadModBlocks.REGISTRY.register(modEventBus);
 		CreateNomadModBlockEntities.REGISTRY.register(modEventBus);
 		CreateNomadModItems.REGISTRY.register(modEventBus);
+
 		CreateNomadModTabs.REGISTRY.register(modEventBus);
+
 		CreateNomadModMenus.REGISTRY.register(modEventBus);
+
 		// Start of user code block mod init
-		CreateNomadModDyedBackpackHooks.register(modEventBus);
 		// End of user code block mod init
 	}
 
