@@ -69,11 +69,7 @@ public class BrassBackpackGUIScreen extends AbstractContainerScreen<BrassBackpac
 	@Override
 	public void init() {
 		super.init();
-	}
-	@Override
-	public void init() {
-		super.init();
-				if (this.minecraft != null) {
+		if (this.minecraft != null) {
 			this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(GearboundModSounds.BACKPACK_OPEN.get(), 1.0F));
 		}
 	}
