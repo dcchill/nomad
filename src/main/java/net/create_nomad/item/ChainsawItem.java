@@ -95,10 +95,10 @@ public class ChainsawItem extends AxeItem {
 		super.appendHoverText(stack, context, tooltip, flag);
 
 		if (Screen.hasShiftDown()) {
-			tooltip.add(Component.translatable("tooltip.gearbound.chainsaw.description_1").withStyle(ChatFormatting.WHITE));
-			tooltip.add(Component.translatable("tooltip.gearbound.chainsaw.description_2").withStyle(ChatFormatting.GOLD));
+			tooltip.add(Component.translatable("tooltip.create_nomad.chainsaw.description_1").withStyle(ChatFormatting.WHITE));
+			tooltip.add(Component.translatable("tooltip.create_nomad.chainsaw.description_2").withStyle(ChatFormatting.GOLD));
 		} else {
-			tooltip.add(Component.translatable("tooltip.gearbound.shift_for_info",
+			tooltip.add(Component.translatable("tooltip.create_nomad.shift_for_info",
 					Component.translatable("key.keyboard.left.shift").withStyle(ChatFormatting.YELLOW))
 					.withStyle(ChatFormatting.GRAY));
 		}
