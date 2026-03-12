@@ -79,7 +79,7 @@ public class GrappleRenderer {
 
         MultiBufferSource.BufferSource buffer = mc.renderBuffers().bufferSource();
         VertexConsumer builder =
-                buffer.getBuffer(RenderType.entityTranslucent(CHAIN_TEXTURE));
+                buffer.getBuffer(RenderType.entityCutoutNoCull(CHAIN_TEXTURE));
 
         var pose = poseStack.last();
 

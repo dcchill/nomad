@@ -4,6 +4,11 @@ import net.createmod.ponder.api.scene.SceneBuilder;
 import net.createmod.ponder.api.scene.SceneBuildingUtil;
 import net.createmod.catnip.math.Pointing;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.monster.Shulker;
+
+
 
 public class CreateNomadPonderScenes {
 	public static void backpackAutoHotbar(SceneBuilder scene, SceneBuildingUtil util) {
@@ -12,6 +17,22 @@ public class CreateNomadPonderScenes {
 		scene.showBasePlate();
 
 		scene.world().showSection(util.select().everywhere(), Direction.UP);
+		scene.world().createEntity(level -> {
+		    Shulker shulker = EntityType.SHULKER.create(level);
+		    if (shulker != null) {
+		        shulker.moveTo(util.vector().centerOf(util.grid().at(1, 0, 3)));
+		
+		        shulker.setYRot(180); // rotate shulker
+		        shulker.setYBodyRot(180);
+		
+		        CompoundTag shulkerData = shulker.saveWithoutId(new CompoundTag());
+		        shulkerData.putByte("Peek", (byte) 100);
+		        shulker.load(shulkerData);
+		    }
+		    return shulker;
+		});
+
+
 		scene.idle(20);
 
 		scene.addKeyframe();
