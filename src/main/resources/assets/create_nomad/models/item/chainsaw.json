@@ -5,5 +5,19 @@
     "4": "minecraft:block/stonecutter_saw",
     "2": "create_nomad:block/mechanical_press_pole",
     "particle": "minecraft:item/empty_slot_axe"
-  }
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "create_nomad:mining": 0.34
+      },
+      "model": "create_nomad:item/chainsaw_mining_back"
+    },
+    {
+      "predicate": {
+        "create_nomad:mining": 0.67
+      },
+      "model": "create_nomad:item/chainsaw_mining_forward"
+    }
+  ]
 }
