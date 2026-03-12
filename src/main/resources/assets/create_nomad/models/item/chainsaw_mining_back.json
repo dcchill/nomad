@@ -1,0 +1,21 @@
+{
+  "parent": "create_nomad:custom/chainsaw",
+  "textures": {
+    "1": "create_nomad:block/extendo_grip",
+    "4": "minecraft:block/stonecutter_saw",
+    "2": "create_nomad:block/mechanical_press_pole",
+    "particle": "minecraft:item/empty_slot_axe"
+  },
+  "display": {
+    "firstperson_righthand": {
+      "rotation": [0, 0, 0],
+      "translation": [0, 0, -1.1],
+      "scale": [1, 1, 1]
+    },
+    "firstperson_lefthand": {
+      "rotation": [0, 0, 0],
+      "translation": [0, 0, -1.1],
+      "scale": [1, 1, 1]
+    }
+  }
+}
