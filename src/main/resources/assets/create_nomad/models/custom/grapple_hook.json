@@ -1,11 +1,11 @@
 {
-  "parent": "create_nomad:custom/grapple_hook_base",
+  "parent": "gearbound:custom/grapple_hook_base",
   "overrides": [
     {
       "predicate": {
         "custom_model_data": 1
       },
-      "model": "create_nomad:item/grapple_hook_fired"
+      "model": "gearbound:item/grapple_hook_fired"
     }
   ]
 }
