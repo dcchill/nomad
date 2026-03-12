@@ -74,16 +74,16 @@ public class TrackPackItem extends Item {
         super.appendHoverText(stack, context, tooltip, flag);
         int count = getStoredCount(stack);
         if (count <= 0) {
-            tooltip.add(Component.translatable("tooltip.gearbound.track_pack.empty").withStyle(ChatFormatting.DARK_GRAY));
+            tooltip.add(Component.translatable("tooltip.create_nomad.track_pack.empty").withStyle(ChatFormatting.DARK_GRAY));
             return;
         }
 
         String trackId = getStoredTrackId(stack);
-        tooltip.add(Component.translatable("tooltip.gearbound.track_pack.contents", count, MAX_TRACKS).withStyle(ChatFormatting.YELLOW));
+        tooltip.add(Component.translatable("tooltip.create_nomad.track_pack.contents", count, MAX_TRACKS).withStyle(ChatFormatting.YELLOW));
         if (!trackId.isEmpty()) {
             tooltip.add(Component.literal(trackId).withStyle(ChatFormatting.DARK_GRAY));
         }
-        tooltip.add(Component.translatable("tooltip.gearbound.track_pack.hint").withStyle(ChatFormatting.DARK_GRAY));
+        tooltip.add(Component.translatable("tooltip.create_nomad.track_pack.hint").withStyle(ChatFormatting.DARK_GRAY));
     }
 
     private int insertTracksFromInventory(ItemStack pack, Player player) {

@@ -63,7 +63,7 @@ public class BrassBackpackGUIScreen extends AbstractContainerScreen<BrassBackpac
 
 	@Override
 	protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-		guiGraphics.drawString(this.font, Component.translatable("gui.gearbound.brass_backpack_gui.label_brass_backpack"), 2, -18, -12829636, false);
+		guiGraphics.drawString(this.font, Component.translatable("gui.create_nomad.brass_backpack_gui.label_brass_backpack"), 2, -18, -12829636, false);
 	}
 
 	@Override
