@@ -15,6 +15,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 
 @EventBusSubscriber(modid = "create_nomad", value = Dist.CLIENT)
 public class GrappleRenderer {
@@ -89,7 +90,7 @@ public class GrappleRenderer {
         int segments = Math.max(1, (int)(length / segmentLength));
 
         int light = LightTexture.FULL_BRIGHT;
-        int overlay = 0;
+        int overlay = OverlayTexture.NO_OVERLAY;
 
         float nx = (float) fullDirection.x;
         float ny = (float) fullDirection.y;
