@@ -47,7 +47,7 @@ public class ChainsawItem extends AxeItem {
 
 		@Override
 		public float getSpeed() {
-			return 16f;
+			return 8f;
 		}
 
 		@Override
@@ -160,7 +160,7 @@ public class ChainsawItem extends AxeItem {
 
 	@Override
 	public boolean onEntitySwing(ItemStack stack, LivingEntity entity) {
-		return true;
+		return false;
 	}
 
 	@Override
