@@ -82,6 +82,17 @@ public class ChainsawItem extends AxeItem {
 			public boolean applyForgeHandTransform(PoseStack poseStack, LocalPlayer player, HumanoidArm arm, ItemStack itemInHand, float partialTick, float equipProcess, float swingProcess) {
 				float armSide = arm == HumanoidArm.RIGHT ? 1.0F : -1.0F;
 				poseStack.translate(armSide * 0.56F, -0.52F, -0.72F);
+
+				float miningProgress = swingProcess;
+				if (miningProgress <= 0.0F && player.swinging) {
+					float swingTime = player.tickCount + partialTick;
+					miningProgress = (float) ((Math.sin(swingTime * 1.35F) + 1.0F) * 0.5F);
+				}
+
+				if (miningProgress > 0.0F) {
+					float thrust = (float) Math.sin(miningProgress * Math.PI);
+					poseStack.translate(0.0F, 0.02F * thrust, 0.16F * thrust);
+				}
 				return true;
 			}
 		});
