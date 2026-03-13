@@ -159,7 +159,7 @@ public class HarpoonGunItem extends Item implements GeoItem {
 			projectile.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, SHOT_POWER, 0.0F);
 			projectile.setBaseDamage(SHOT_DAMAGE);
 			projectile.setKnockback(SHOT_KNOCKBACK);
-			projectile.setPierceLevel(SHOT_PIERCING);
+			projectile.setHarpoonPierceLevel(SHOT_PIERCING);
 			projectile.pickup = HarpoonEntity.Pickup.DISALLOWED;
 			level.addFreshEntity(projectile);
 			spawnSteamPuff((ServerLevel) level, player);

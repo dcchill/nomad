@@ -30,6 +30,7 @@ import javax.annotation.Nullable;
 public class HarpoonEntity extends AbstractArrow implements ItemSupplier {
 	public static final ItemStack PROJECTILE_ITEM = new ItemStack(CreateNomadModItems.HARPOON_ITEM.get());
 	private int knockback = 0;
+	private int remainingPierceHits = 0;
 
 	public HarpoonEntity(EntityType<? extends HarpoonEntity> type, Level world) {
 		super(type, world);
@@ -68,8 +69,10 @@ public class HarpoonEntity extends AbstractArrow implements ItemSupplier {
 		this.knockback = knockback;
 	}
 	public void setHarpoonPierceLevel(int level) {
-    super.setPierceLevel((byte) level);
-}
+		this.remainingPierceHits = Math.max(0, level);
+	}
+
+
 	@Override
 	protected void doKnockback(LivingEntity livingEntity, DamageSource damageSource) {
 		if (knockback > 0.0) {
@@ -89,6 +92,25 @@ public class HarpoonEntity extends AbstractArrow implements ItemSupplier {
 		if (this.inGround)
 			this.discard();
 	}
+	@Override
+	protected void onHitEntity(EntityHitResult result) {
+		int pierceHitsBeforeImpact = this.remainingPierceHits;
+		Vec3 velocityBeforeHit = this.getDeltaMovement();
+		super.onHitEntity(result);
+		if (pierceHitsBeforeImpact > 0) {
+			this.remainingPierceHits--;
+			if (!this.isAlive()) {
+				this.unsetRemoved();
+			}
+			this.inGround = false;
+			double speed = velocityBeforeHit.length();
+			if (speed > 0.0) {
+				this.setDeltaMovement(velocityBeforeHit.normalize().scale(speed * 0.9));
+			}
+		}
+	}
+
+
 
 	public static HarpoonEntity shoot(Level world, LivingEntity entity, RandomSource source) {
 		return shoot(world, entity, source, 2f, 15, 0);

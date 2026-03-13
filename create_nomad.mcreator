@@ -680,7 +680,7 @@
     {
       "name": "HarpoonGun",
       "type": "animateditem",
-      "compiles": false,
+      "compiles": true,
       "locked_code": true,
       "registry_name": "harpoon_gun",
       "metadata": {
@@ -696,7 +696,7 @@
     {
       "name": "Harpoon",
       "type": "projectile",
-      "compiles": false,
+      "compiles": true,
       "locked_code": true,
       "registry_name": "harpoon",
       "metadata": {
