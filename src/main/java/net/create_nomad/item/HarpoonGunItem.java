@@ -49,6 +49,7 @@ public class HarpoonGunItem extends Item implements GeoItem {
 
 	private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 	public String animationprocedure = "empty";
+	private boolean hasAmmoForAnimation = true;
 
 	public HarpoonGunItem() {
 		super(new Item.Properties().stacksTo(1).rarity(Rarity.COMMON));
@@ -108,7 +109,7 @@ public class HarpoonGunItem extends Item implements GeoItem {
 
 	private PlayState idlePredicate(AnimationState event) {
 		if (this.animationprocedure.equals("empty")) {
-			if (event.getAnimatable() instanceof ItemStack stack && hasCachedAmmo(stack)) {
+			if (this.hasAmmoForAnimation) {
 				event.getController().setAnimation(RawAnimation.begin().thenLoop("idle"));
 			} else {
 				event.getController().setAnimation(RawAnimation.begin().thenLoop("idle_no_harpoon"));
@@ -134,7 +135,7 @@ public class HarpoonGunItem extends Item implements GeoItem {
 			projectile.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, SHOT_POWER, 0.0F);
 			projectile.setBaseDamage(SHOT_DAMAGE);
 			projectile.setKnockback(SHOT_KNOCKBACK);
-			projectile.setPierceLevel((byte) SHOT_PIERCING);
+			projectile.setPierceTargets(SHOT_PIERCING);
 			projectile.pickup = HarpoonEntity.Pickup.DISALLOWED;
 			level.addFreshEntity(projectile);
 			consumeAmmo(player);
@@ -155,6 +156,8 @@ public class HarpoonGunItem extends Item implements GeoItem {
 			return;
 		}
 
+		this.hasAmmoForAnimation = hasAmmo(player);
+
 		CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putBoolean(HAS_AMMO_TAG, hasAmmo(player)));
 
 		int reloadTicks = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getInt(RELOAD_TICKS_TAG);
@@ -169,10 +172,6 @@ public class HarpoonGunItem extends Item implements GeoItem {
 				tag.putString("geckoAnim", "reload");
 			}
 		});
-	}
-
-	private static boolean hasCachedAmmo(ItemStack gunStack) {
-		return gunStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getBoolean(HAS_AMMO_TAG);
 	}
 
 	private static boolean hasAmmo(Player player) {
