@@ -42,6 +42,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.world.entity.HumanoidArm;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.world.InteractionHand;
 
 import java.util.ArrayDeque;
 import java.util.HashSet;
@@ -53,6 +55,15 @@ public class JackhammerItem extends PickaxeItem implements GeoItem {
 	private static final int BACKTANK_AIR_COST_PER_BLOCK = 1;
 	private static final TagKey<Block> C_ORES_TAG = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("c", "ores"));
 	private static final TagKey<Block> FORGE_ORES_TAG = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("forge", "ores"));
+	public static final EnumProxy<HumanoidModel.ArmPose> ARM_POSE = new EnumProxy<>(HumanoidModel.ArmPose.class, false, (IArmPoseTransformer) (model, entity, arm) -> {
+		if (arm == HumanoidArm.LEFT) {
+			model.leftArm.xRot = -1.35F + model.head.xRot;
+			model.leftArm.yRot = 0.22F;
+		} else {
+			model.rightArm.xRot = -1.35F + model.head.xRot;
+			model.rightArm.yRot = -0.22F;
+		}
+	});
 
 	private static final Tier TOOL_TIER = new Tier() {
 		@Override
