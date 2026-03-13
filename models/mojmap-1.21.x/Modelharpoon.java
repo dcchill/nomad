@@ -17,9 +17,10 @@ public class Modelharpoon<T extends Entity> extends EntityModel<T> {
 		MeshDefinition meshdefinition = new MeshDefinition();
 		PartDefinition partdefinition = meshdefinition.getRoot();
 
-		PartDefinition harpoon = partdefinition.addOrReplaceChild("harpoon", CubeListBuilder.create().texOffs(0, 32)
-				.addBox(-1.99F, -0.99F, -6.7662F, 2.0F, 2.0F, 28.0F, new CubeDeformation(0.01F)),
-				PartPose.offset(0.0F, 24.0F, -4.6219F));
+		PartDefinition harpoon = partdefinition.addOrReplaceChild("harpoon",
+				CubeListBuilder.create().texOffs(0, 32).addBox(-1.99F, -0.99F, -6.7662F, 2.0F, 2.0F, 28.0F,
+						new CubeDeformation(0.01F)),
+				PartPose.offsetAndRotation(0.0F, 24.0F, -0.6219F, 0.0F, 1.5708F, 1.5708F));
 
 		PartDefinition cube_r1 = harpoon.addOrReplaceChild("cube_r1",
 				CubeListBuilder.create().texOffs(64, 0).addBox(-3.0F, -2.0F, -2.0F, 2.0F, 2.0F, 6.0F,
