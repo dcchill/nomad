@@ -1,5 +1,6 @@
 package net.create_nomad.item;
 
+import com.simibubi.create.content.equipment.armor.BacktankUtil;
 import software.bernie.geckolib.util.GeckoLibUtil;
 import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.animation.PlayState;
@@ -25,6 +26,8 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.model.HumanoidModel;
@@ -34,14 +37,16 @@ import net.create_nomad.entity.HarpoonEntity;
 import net.create_nomad.item.renderer.HarpoonGunItemRenderer;
 
 import java.util.function.Consumer;
+import java.util.List;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
 public class HarpoonGunItem extends Item implements GeoItem {
 	private static final String RELOAD_TICKS_TAG = "harpoonReloadTicks";
 	private static final String HAS_AMMO_TAG = "hasHarpoonAmmo";
-	private static final int RELOAD_TICKS = 12;
-	private static final int FIRE_COOLDOWN_TICKS = 12;
+	private static final int RELOAD_TICKS = 20;
+	private static final int FIRE_COOLDOWN_TICKS = RELOAD_TICKS;
+	private static final int BACKTANK_AIR_COST_PER_SHOT = 10;
 	private static final float SHOT_POWER = 3.8f;
 	private static final double SHOT_DAMAGE = 18;
 	private static final int SHOT_KNOCKBACK = 2;
@@ -130,6 +135,10 @@ public class HarpoonGunItem extends Item implements GeoItem {
 			return InteractionResultHolder.fail(gunStack);
 		}
 
+		if (!tryConsumeBacktankAir(player, BACKTANK_AIR_COST_PER_SHOT)) {
+			return InteractionResultHolder.fail(gunStack);
+		}
+
 		if (!level.isClientSide) {
 			HarpoonEntity projectile = new HarpoonEntity(net.create_nomad.init.CreateNomadModEntities.HARPOON.get(), player, level, gunStack);
 			projectile.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, SHOT_POWER, 0.0F);
@@ -138,6 +147,7 @@ public class HarpoonGunItem extends Item implements GeoItem {
 			projectile.setPierceTargets(SHOT_PIERCING);
 			projectile.pickup = HarpoonEntity.Pickup.DISALLOWED;
 			level.addFreshEntity(projectile);
+			spawnSteamPuff((ServerLevel) level, player);
 			consumeAmmo(player);
 		}
 
@@ -211,6 +221,32 @@ public class HarpoonGunItem extends Item implements GeoItem {
 				return;
 			}
 		}
+	}
+
+	private static boolean tryConsumeBacktankAir(Player player, int airCost) {
+		if (airCost <= 0 || player.isCreative()) {
+			return true;
+		}
+
+		List<ItemStack> backtanksWithAir = BacktankUtil.getAllWithAir(player);
+		if (backtanksWithAir.isEmpty()) {
+			return false;
+		}
+
+		ItemStack backtank = backtanksWithAir.getFirst();
+		if (BacktankUtil.getAir(backtank) < airCost) {
+			return false;
+		}
+
+		BacktankUtil.consumeAir(player, backtank, airCost);
+		return true;
+	}
+
+	private static void spawnSteamPuff(ServerLevel level, Player player) {
+		double x = player.getX() + player.getLookAngle().x * 0.8;
+		double y = player.getEyeY() - 0.2 + player.getLookAngle().y * 0.8;
+		double z = player.getZ() + player.getLookAngle().z * 0.8;
+		level.sendParticles(ParticleTypes.CLOUD, x, y, z, 10, 0.08, 0.08, 0.08, 0.03);
 	}
 
 	String prevAnim = "empty";
