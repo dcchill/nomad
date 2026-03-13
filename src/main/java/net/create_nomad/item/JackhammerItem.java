@@ -49,8 +49,6 @@ import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import net.neoforged.neoforge.client.IArmPoseTransformer;
-import net.neoforged.fml.common.asm.enumextension.EnumProxy;
 
 public class JackhammerItem extends PickaxeItem implements GeoItem {
 	private static final int MAX_VEIN_BLOCKS = 128;

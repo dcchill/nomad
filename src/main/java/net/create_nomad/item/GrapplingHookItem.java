@@ -4,7 +4,6 @@ import com.simibubi.create.content.equipment.armor.BacktankUtil;
 import net.create_nomad.procedures.GrapplingHookItemInHandTickProcedure;
 import net.create_nomad.procedures.GrapplingHookRightclickedProcedure;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -18,9 +17,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.entity.HumanoidArm;
-import net.neoforged.neoforge.client.IArmPoseTransformer;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
-import net.neoforged.fml.common.asm.enumextension.EnumProxy;
 import com.mojang.blaze3d.vertex.PoseStack;
 import java.util.function.Consumer;
 
@@ -46,14 +43,6 @@ public class GrapplingHookItem extends Item {
 	public void initializeClient(Consumer<IClientItemExtensions> consumer) {
 		super.initializeClient(consumer);
 		consumer.accept(new IClientItemExtensions() {
-			@Override
-			public HumanoidModel.ArmPose getArmPose(LivingEntity entityLiving, InteractionHand hand, ItemStack itemStack) {
-				if (!itemStack.isEmpty() && entityLiving.getItemInHand(hand) == itemStack) {
-					return (HumanoidModel.ArmPose) ARM_POSE.getValue();
-				}
-				return HumanoidModel.ArmPose.EMPTY;
-			}
-
 			@Override
 			public boolean applyForgeHandTransform(PoseStack poseStack, LocalPlayer player, HumanoidArm arm, ItemStack itemInHand, float partialTick, float equipProcess, float swingProcess) {
 				float armSide = arm == HumanoidArm.RIGHT ? 1.0F : -1.0F;
