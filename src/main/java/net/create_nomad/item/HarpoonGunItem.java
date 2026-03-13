@@ -43,10 +43,9 @@ import com.mojang.blaze3d.vertex.PoseStack;
 
 public class HarpoonGunItem extends Item implements GeoItem {
 	private static final String RELOAD_TICKS_TAG = "harpoonReloadTicks";
-	private static final String RELOAD_PENDING_TAG = "harpoonReloadPending";
-	private static final String HAS_AMMO_TAG = "hasHarpoonAmmo";
+	private static final String LOADED_TAG = "harpoonLoaded";
 	private static final int RELOAD_TICKS = 20;
-	private static final int FIRE_COOLDOWN_TICKS = RELOAD_TICKS;
+	private static final int FIRE_COOLDOWN_TICKS = 10;
 	private static final int BACKTANK_AIR_COST_PER_SHOT = 10;
 	private static final float SHOT_POWER = 3.8f;
 	private static final double SHOT_DAMAGE = 18;
@@ -55,7 +54,7 @@ public class HarpoonGunItem extends Item implements GeoItem {
 
 	private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 	public String animationprocedure = "empty";
-	private boolean hasAmmoForAnimation = true;
+	private boolean loadedForAnimation = true;
 
 	public HarpoonGunItem() {
 		super(new Item.Properties().stacksTo(1).rarity(Rarity.COMMON));
@@ -115,7 +114,7 @@ public class HarpoonGunItem extends Item implements GeoItem {
 
 	private PlayState idlePredicate(AnimationState event) {
 		if (this.animationprocedure.equals("empty")) {
-			if (this.hasAmmoForAnimation) {
+			if (this.loadedForAnimation) {
 				event.getController().setAnimation(RawAnimation.begin().thenLoop("idle"));
 			} else {
 				event.getController().setAnimation(RawAnimation.begin().thenLoop("idle_no_harpoon"));
@@ -128,12 +127,27 @@ public class HarpoonGunItem extends Item implements GeoItem {
 	@Override
 	public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
 		ItemStack gunStack = player.getItemInHand(hand);
+		boolean loaded = isLoaded(gunStack);
 		if (player.getCooldowns().isOnCooldown(this)) {
 			return InteractionResultHolder.fail(gunStack);
 		}
 
-		if (!hasAmmo(player)) {
-			return InteractionResultHolder.fail(gunStack);
+		if (!loaded) {
+			if (!hasAmmo(player)) {
+				return InteractionResultHolder.fail(gunStack);
+			}
+
+			if (!level.isClientSide) {
+				consumeAmmo(player);
+				CustomData.update(DataComponents.CUSTOM_DATA, gunStack, tag -> {
+					tag.putBoolean(LOADED_TAG, true);
+					tag.putString("geckoAnim", "reload");
+					tag.putInt(RELOAD_TICKS_TAG, RELOAD_TICKS);
+				});
+			}
+
+			player.getCooldowns().addCooldown(this, RELOAD_TICKS);
+			return InteractionResultHolder.sidedSuccess(gunStack, level.isClientSide());
 		}
 
 		if (!tryConsumeBacktankAir(player, BACKTANK_AIR_COST_PER_SHOT)) {
@@ -145,17 +159,16 @@ public class HarpoonGunItem extends Item implements GeoItem {
 			projectile.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, SHOT_POWER, 0.0F);
 			projectile.setBaseDamage(SHOT_DAMAGE);
 			projectile.setKnockback(SHOT_KNOCKBACK);
-			projectile.setPierceTargets(SHOT_PIERCING);
+			projectile.setPierceLevel((byte) SHOT_PIERCING);
 			projectile.pickup = HarpoonEntity.Pickup.DISALLOWED;
 			level.addFreshEntity(projectile);
 			spawnSteamPuff((ServerLevel) level, player);
-			consumeAmmo(player);
 		}
 
 		CustomData.update(DataComponents.CUSTOM_DATA, gunStack, tag -> {
 			tag.putString("geckoAnim", "fired");
-			tag.putInt(RELOAD_TICKS_TAG, RELOAD_TICKS);
-			tag.putBoolean(RELOAD_PENDING_TAG, true);
+			tag.putBoolean(LOADED_TAG, false);
+			tag.putInt(RELOAD_TICKS_TAG, 0);
 		});
 		player.getCooldowns().addCooldown(this, FIRE_COOLDOWN_TICKS);
 		return InteractionResultHolder.sidedSuccess(gunStack, level.isClientSide());
@@ -168,29 +181,25 @@ public class HarpoonGunItem extends Item implements GeoItem {
 			return;
 		}
 
-		this.hasAmmoForAnimation = hasAmmo(player);
-
-		CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putBoolean(HAS_AMMO_TAG, hasAmmo(player)));
+		this.loadedForAnimation = isLoaded(stack);
 
 		int reloadTicks = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getInt(RELOAD_TICKS_TAG);
 		if (reloadTicks <= 0) {
 			return;
 		}
 
-		boolean reloadPending = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getBoolean(RELOAD_PENDING_TAG);
-		if (reloadPending) {
-			CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
-				tag.putString("geckoAnim", "reload");
-				tag.putBoolean(RELOAD_PENDING_TAG, false);
-			});
-		}
-
 		CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
 			int remaining = Math.max(0, tag.getInt(RELOAD_TICKS_TAG) - 1);
 			tag.putInt(RELOAD_TICKS_TAG, remaining);
-			if (remaining == 0)
-				tag.putBoolean(RELOAD_PENDING_TAG, false);
 		});
+	}
+
+	private static boolean isLoaded(ItemStack gunStack) {
+		CustomData customData = gunStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
+		if (!customData.copyTag().contains(LOADED_TAG)) {
+			return true;
+		}
+		return customData.copyTag().getBoolean(LOADED_TAG);
 	}
 
 	private static boolean hasAmmo(Player player) {
