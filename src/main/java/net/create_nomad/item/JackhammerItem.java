@@ -42,18 +42,30 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.world.entity.HumanoidArm;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.world.InteractionHand;
 
 import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
+import net.neoforged.neoforge.client.IArmPoseTransformer;
+import net.neoforged.fml.common.asm.enumextension.EnumProxy;
 
 public class JackhammerItem extends PickaxeItem implements GeoItem {
 	private static final int MAX_VEIN_BLOCKS = 128;
 	private static final int BACKTANK_AIR_COST_PER_BLOCK = 1;
 	private static final TagKey<Block> C_ORES_TAG = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("c", "ores"));
 	private static final TagKey<Block> FORGE_ORES_TAG = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("forge", "ores"));
+	public static final EnumProxy<HumanoidModel.ArmPose> ARM_POSE = new EnumProxy<>(HumanoidModel.ArmPose.class, false, (IArmPoseTransformer) (model, entity, arm) -> {
+		if (arm == HumanoidArm.LEFT) {
+			model.leftArm.xRot = -1.35F + model.head.xRot;
+			model.leftArm.yRot = 0.22F;
+		} else {
+			model.rightArm.xRot = -1.35F + model.head.xRot;
+			model.rightArm.yRot = -0.22F;
+		}
+	});
 
 	private static final Tier TOOL_TIER = new Tier() {
 		@Override
@@ -97,6 +109,14 @@ public class JackhammerItem extends PickaxeItem implements GeoItem {
 	@Override
 		public void initializeClient(Consumer<IClientItemExtensions> consumer) {
 			consumer.accept(new IClientItemExtensions() {
+				@Override
+				public HumanoidModel.ArmPose getArmPose(LivingEntity entityLiving, InteractionHand hand, ItemStack itemStack) {
+					if (!itemStack.isEmpty() && entityLiving.getItemInHand(hand) == itemStack) {
+						return (HumanoidModel.ArmPose) ARM_POSE.getValue();
+					}
+					return HumanoidModel.ArmPose.EMPTY;
+				}
+
 				@Override
 				public boolean applyForgeHandTransform(PoseStack poseStack, LocalPlayer player, HumanoidArm arm, ItemStack itemInHand, float partialTick, float equipProcess, float swingProcess) {
 					float armSide = arm == HumanoidArm.RIGHT ? 1.0F : -1.0F;
