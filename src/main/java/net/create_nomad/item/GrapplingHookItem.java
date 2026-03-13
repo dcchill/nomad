@@ -25,6 +25,8 @@ import java.util.function.Consumer;
 
 import java.util.function.Consumer;
 
+import java.util.function.Consumer;
+
 import java.util.List;
 
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
@@ -51,6 +53,7 @@ public class GrapplingHookItem extends Item {
 		consumer.accept(new IClientItemExtensions() {
 			@Override
 			public boolean applyForgeHandTransform(PoseStack poseStack, LocalPlayer player, HumanoidArm arm, ItemStack itemInHand, float partialTick, float equipProcess, float swingProcess) {
+				// Keep this as a hand transform only; custom ArmPose enum extensions are not configured for this item.
 				float armSide = arm == HumanoidArm.RIGHT ? 1.0F : -1.0F;
 				poseStack.translate(armSide * 0.56F, -0.5F, -0.72F);
 				return true;
