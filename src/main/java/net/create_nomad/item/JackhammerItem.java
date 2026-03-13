@@ -105,24 +105,16 @@ public class JackhammerItem extends PickaxeItem implements GeoItem {
 	}
 
 	@Override
-		public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-			consumer.accept(new IClientItemExtensions() {
-				@Override
-				public HumanoidModel.ArmPose getArmPose(LivingEntity entityLiving, InteractionHand hand, ItemStack itemStack) {
-					if (!itemStack.isEmpty() && entityLiving.getItemInHand(hand) == itemStack) {
-						return (HumanoidModel.ArmPose) ARM_POSE.getValue();
-					}
-					return HumanoidModel.ArmPose.EMPTY;
-				}
-
-				@Override
-				public boolean applyForgeHandTransform(PoseStack poseStack, LocalPlayer player, HumanoidArm arm, ItemStack itemInHand, float partialTick, float equipProcess, float swingProcess) {
-					float armSide = arm == HumanoidArm.RIGHT ? 1.0F : -1.0F;
-					poseStack.translate(armSide * 0.56F, -0.52F, -0.72F);
-					return true;
-				}
-			});
-		}
+	public void initializeClient(Consumer<IClientItemExtensions> consumer) {
+		consumer.accept(new IClientItemExtensions() {
+			@Override
+			public boolean applyForgeHandTransform(PoseStack poseStack, LocalPlayer player, HumanoidArm arm, ItemStack itemInHand, float partialTick, float equipProcess, float swingProcess) {
+				float armSide = arm == HumanoidArm.RIGHT ? 1.0F : -1.0F;
+				poseStack.translate(armSide * 0.56F, -0.52F, -0.72F);
+				return true;
+			}
+		});
+	}
 
 
 	@Override
