@@ -18,6 +18,12 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.entity.HumanoidArm;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import com.mojang.blaze3d.vertex.PoseStack;
+import java.util.function.Consumer;
+
+import java.util.function.Consumer;
 
 import java.util.function.Consumer;
 
@@ -27,6 +33,15 @@ import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 
 public class GrapplingHookItem extends Item {
 	private static final int BACKTANK_AIR_COST_PER_USE = 1;
+	public static final EnumProxy<HumanoidModel.ArmPose> ARM_POSE = new EnumProxy<>(HumanoidModel.ArmPose.class, false, (IArmPoseTransformer) (model, entity, arm) -> {
+		if (arm == HumanoidArm.LEFT) {
+			model.leftArm.xRot = -1.4F + model.head.xRot;
+			model.leftArm.yRot = 0.2F;
+		} else {
+			model.rightArm.xRot = -1.4F + model.head.xRot;
+			model.rightArm.yRot = -0.2F;
+		}
+	});
 
 	public GrapplingHookItem() {
 		super(new Item.Properties().stacksTo(1).durability(512));

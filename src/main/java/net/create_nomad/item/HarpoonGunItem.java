@@ -160,7 +160,7 @@ public class HarpoonGunItem extends Item implements GeoItem {
 			projectile.setBaseDamage(SHOT_DAMAGE);
 			projectile.setKnockback(SHOT_KNOCKBACK);
 			projectile.setHarpoonPierceLevel(SHOT_PIERCING);
-			projectile.pickup = HarpoonEntity.Pickup.DISALLOWED;
+			projectile.pickup = HarpoonEntity.Pickup.ALLOWED;
 			level.addFreshEntity(projectile);
 			spawnSteamPuff((ServerLevel) level, player);
 		}

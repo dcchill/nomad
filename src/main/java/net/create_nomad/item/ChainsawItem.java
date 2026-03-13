@@ -10,6 +10,7 @@ import com.simibubi.create.content.equipment.armor.BacktankUtil;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
@@ -18,6 +19,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.DiggerItem;
 import net.minecraft.world.item.Item;
@@ -30,7 +32,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.client.IArmPoseTransformer;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.fml.common.asm.enumextension.EnumProxy;
 
 
 public class ChainsawItem extends AxeItem {
@@ -38,6 +42,15 @@ public class ChainsawItem extends AxeItem {
 	private static final int LEAF_SCAN_RANGE = 2;
 	private static final int LEAF_SCAN_HEIGHT = 16;
 	private static final int BACKTANK_AIR_COST_PER_LOG = 1;
+	public static final EnumProxy<HumanoidModel.ArmPose> ARM_POSE = new EnumProxy<>(HumanoidModel.ArmPose.class, false, (IArmPoseTransformer) (model, entity, arm) -> {
+		if (arm == HumanoidArm.LEFT) {
+			model.leftArm.xRot = -1.25F + model.head.xRot;
+			model.leftArm.yRot = 0.35F;
+		} else {
+			model.rightArm.xRot = -1.25F + model.head.xRot;
+			model.rightArm.yRot = -0.35F;
+		}
+	});
 
 	private static final Tier TOOL_TIER = new Tier() {
 		@Override
@@ -78,6 +91,14 @@ public class ChainsawItem extends AxeItem {
 	@Override
 	public void initializeClient(Consumer<IClientItemExtensions> consumer) {
 		consumer.accept(new IClientItemExtensions() {
+			@Override
+			public HumanoidModel.ArmPose getArmPose(LivingEntity entityLiving, InteractionHand hand, ItemStack itemStack) {
+				if (!itemStack.isEmpty() && entityLiving.getItemInHand(hand) == itemStack) {
+					return (HumanoidModel.ArmPose) ARM_POSE.getValue();
+				}
+				return HumanoidModel.ArmPose.EMPTY;
+			}
+
 			@Override
 			public boolean applyForgeHandTransform(PoseStack poseStack, LocalPlayer player, HumanoidArm arm, ItemStack itemInHand, float partialTick, float equipProcess, float swingProcess) {
 				float armSide = arm == HumanoidArm.RIGHT ? 1.0F : -1.0F;
