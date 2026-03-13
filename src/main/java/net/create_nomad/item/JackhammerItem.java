@@ -47,7 +47,6 @@ import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 
 public class JackhammerItem extends PickaxeItem implements GeoItem {
 	private static final int MAX_VEIN_BLOCKS = 128;
