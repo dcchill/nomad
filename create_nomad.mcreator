@@ -857,7 +857,7 @@
   "workspaceSettings": {
     "modid": "create_nomad",
     "modName": "Nomad",
-    "version": "0.1.0",
+    "version": "0.1.2",
     "description": "Adds more gadgets and storage to the create mod",
     "author": "Dcchill",
     "websiteURL": "https://github.com/dcchill/gearbound",
