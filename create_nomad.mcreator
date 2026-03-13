@@ -720,6 +720,32 @@
         ]
       },
       "path": "~/harpoon"
+    },
+    {
+      "name": "HarpoonRecipe",
+      "type": "recipe",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "harpoon_recipe",
+      "metadata": {
+        "files": [
+          "src/main/resources/data/create_nomad/recipe/harpoon_recipe.json"
+        ]
+      },
+      "path": "~/harpoon"
+    },
+    {
+      "name": "HarpoonGunRecipe",
+      "type": "recipe",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "harpoon_gun_recipe",
+      "metadata": {
+        "files": [
+          "src/main/resources/data/create_nomad/recipe/harpoon_gun_recipe.json"
+        ]
+      },
+      "path": "~/harpoon"
     }
   ],
   "variable_elements": [],
@@ -770,6 +796,8 @@
       "GrapplingHook",
       "Chainsaw",
       "Jackhammer",
+      "HarpoonGun",
+      "HarpoonItem",
       "TrackPack",
       "BrownBrassBackpackItem",
       "WhiteBrassBackpackItem",
@@ -787,9 +815,7 @@
       "BlueBrassBackpackItem",
       "PurpleBrassBackpackItem",
       "MagentaBrassBackpackItem",
-      "PinkBrassBackpackItem",
-      "HarpoonGun",
-      "HarpoonItem"
+      "PinkBrassBackpackItem"
     ]
   },
   "language_map": {
@@ -844,7 +870,7 @@
       "item.create_nomad.brown_brass_backpack": "Brown Brass Backpack",
       "create_nomad.ponder.backpack_auto_hotbar_pg2.header": "Customizing Backpacks",
       "item.create_nomad.harpoon_gun": "Harpoon Gun",
-      "item.create_nomad.harpoon_item": "Harpoon Item"
+      "item.create_nomad.harpoon_item": "Harpoon"
     }
   },
   "metadata": {

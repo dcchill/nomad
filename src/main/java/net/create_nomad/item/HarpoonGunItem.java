@@ -48,8 +48,8 @@ public class HarpoonGunItem extends Item implements GeoItem {
 	private static final int FIRE_COOLDOWN_TICKS = 10;
 	private static final int BACKTANK_AIR_COST_PER_SHOT = 10;
 	private static final float SHOT_POWER = 3.8f;
-	private static final double SHOT_DAMAGE = 18;
-	private static final int SHOT_KNOCKBACK = 2;
+	private static final double SHOT_DAMAGE = 6;
+	private static final int SHOT_KNOCKBACK = 0;
 	private static final int SHOT_PIERCING = 8;
 
 	private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -125,54 +125,107 @@ public class HarpoonGunItem extends Item implements GeoItem {
 	}
 
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
-		ItemStack gunStack = player.getItemInHand(hand);
-		boolean loaded = isLoaded(gunStack);
-		if (player.getCooldowns().isOnCooldown(this)) {
-			return InteractionResultHolder.fail(gunStack);
-		}
+public boolean isEnchantable(ItemStack stack) {
+	return true;
+}
+@Override
+public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+ItemStack gunStack = player.getItemInHand(hand);
+boolean loaded = isLoaded(gunStack);
 
-		if (!loaded) {
-			if (!hasAmmo(player)) {
-				return InteractionResultHolder.fail(gunStack);
-			}
 
-			if (!level.isClientSide) {
-				consumeAmmo(player);
-				CustomData.update(DataComponents.CUSTOM_DATA, gunStack, tag -> {
-					tag.putBoolean(LOADED_TAG, true);
-					tag.putString("geckoAnim", "reload");
-					tag.putInt(RELOAD_TICKS_TAG, RELOAD_TICKS);
-				});
-			}
+if (player.getCooldowns().isOnCooldown(this)) {
+	return InteractionResultHolder.fail(gunStack);
+}
 
-			player.getCooldowns().addCooldown(this, RELOAD_TICKS);
-			return InteractionResultHolder.sidedSuccess(gunStack, level.isClientSide());
-		}
+// Reload
+if (!loaded) {
+	if (!hasAmmo(player)) {
+		return InteractionResultHolder.fail(gunStack);
+	}
 
-		if (!tryConsumeBacktankAir(player, BACKTANK_AIR_COST_PER_SHOT)) {
-			return InteractionResultHolder.fail(gunStack);
-		}
-
-		if (!level.isClientSide) {
-			HarpoonEntity projectile = new HarpoonEntity(net.create_nomad.init.CreateNomadModEntities.HARPOON.get(), player, level, gunStack);
-			projectile.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, SHOT_POWER, 0.0F);
-			projectile.setBaseDamage(SHOT_DAMAGE);
-			projectile.setKnockback(SHOT_KNOCKBACK);
-			projectile.setHarpoonPierceLevel(SHOT_PIERCING);
-			projectile.pickup = HarpoonEntity.Pickup.DISALLOWED;
-			level.addFreshEntity(projectile);
-			spawnSteamPuff((ServerLevel) level, player);
-		}
+	if (!level.isClientSide) {
+		consumeAmmo(player);
 
 		CustomData.update(DataComponents.CUSTOM_DATA, gunStack, tag -> {
-			tag.putString("geckoAnim", "fired");
-			tag.putBoolean(LOADED_TAG, false);
-			tag.putInt(RELOAD_TICKS_TAG, 0);
+			tag.putBoolean(LOADED_TAG, true);
+			tag.putString("geckoAnim", "reload");
+			tag.putInt(RELOAD_TICKS_TAG, RELOAD_TICKS);
 		});
-		player.getCooldowns().addCooldown(this, FIRE_COOLDOWN_TICKS);
-		return InteractionResultHolder.sidedSuccess(gunStack, level.isClientSide());
 	}
+
+	player.getCooldowns().addCooldown(this, RELOAD_TICKS);
+	return InteractionResultHolder.sidedSuccess(gunStack, level.isClientSide());
+}
+
+// Fire
+if (!tryConsumeBacktankAir(player, BACKTANK_AIR_COST_PER_SHOT)) {
+	return InteractionResultHolder.fail(gunStack);
+}
+
+if (!level.isClientSide) {
+
+		int multishot = net.minecraft.world.item.enchantment.EnchantmentHelper
+			.getItemEnchantmentLevel(
+				level.registryAccess()
+					.registryOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT)
+					.getHolderOrThrow(net.minecraft.world.item.enchantment.Enchantments.MULTISHOT),
+				gunStack
+			);
+
+	int shots = multishot > 0 ? 3 : 1;
+
+	for (int i = 0; i < shots; i++) {
+
+		float spread = 0;
+		if (shots == 3) {
+			spread = (i - 1) * 10f; // -10, 0, +10 degrees
+		}
+
+		HarpoonEntity projectile = new HarpoonEntity(
+			net.create_nomad.init.CreateNomadModEntities.HARPOON.get(), player, level, gunStack);
+
+		projectile.shootFromRotation(
+			player,
+			player.getXRot(),
+			player.getYRot() + spread,
+			0.0F,
+			SHOT_POWER,
+			0.0F
+		);
+
+		int powerLevel = net.minecraft.world.item.enchantment.EnchantmentHelper
+			.getItemEnchantmentLevel(
+				level.registryAccess()
+					.registryOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT)
+					.getHolderOrThrow(net.minecraft.world.item.enchantment.Enchantments.POWER),
+				gunStack
+			);
+
+		double damage = SHOT_DAMAGE + (powerLevel * 1.5) + 0.5;
+
+		projectile.setBaseDamage(damage);
+		projectile.setKnockback(SHOT_KNOCKBACK);
+		projectile.setHarpoonPierceLevel(SHOT_PIERCING);
+		projectile.pickup = HarpoonEntity.Pickup.DISALLOWED;
+
+		level.addFreshEntity(projectile);
+	}
+
+	spawnSteamPuff((ServerLevel) level, player);
+}
+
+CustomData.update(DataComponents.CUSTOM_DATA, gunStack, tag -> {
+	tag.putString("geckoAnim", "fired");
+	tag.putBoolean(LOADED_TAG, false);
+	tag.putInt(RELOAD_TICKS_TAG, 0);
+});
+
+player.getCooldowns().addCooldown(this, FIRE_COOLDOWN_TICKS);
+
+return InteractionResultHolder.sidedSuccess(gunStack, level.isClientSide());
+
+}
 
 	@Override
 	public void inventoryTick(ItemStack stack, Level level, net.minecraft.world.entity.Entity entity, int slotId, boolean isSelected) {
