@@ -7,7 +7,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.projectile.ItemSupplier;
 import net.minecraft.world.entity.projectile.AbstractArrow;
@@ -21,13 +20,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.core.registries.BuiltInRegistries;
 
+import net.create_nomad.init.CreateNomadModItems;
 import net.create_nomad.init.CreateNomadModEntities;
 
 import javax.annotation.Nullable;
 
 @OnlyIn(value = Dist.CLIENT, _interface = ItemSupplier.class)
 public class HarpoonEntity extends AbstractArrow implements ItemSupplier {
-	public static final ItemStack PROJECTILE_ITEM = new ItemStack(Items.IRON_NUGGET);
+	public static final ItemStack PROJECTILE_ITEM = new ItemStack(CreateNomadModItems.HARPOON_ITEM.get());
 	private int knockback = 0;
 
 	public HarpoonEntity(EntityType<? extends HarpoonEntity> type, Level world) {
@@ -54,7 +54,7 @@ public class HarpoonEntity extends AbstractArrow implements ItemSupplier {
 
 	@Override
 	protected ItemStack getDefaultPickupItem() {
-		return new ItemStack(Items.IRON_NUGGET);
+		return new ItemStack(CreateNomadModItems.HARPOON_ITEM.get());
 	}
 
 	@Override

@@ -706,6 +706,20 @@
         ]
       },
       "path": "~/harpoon"
+    },
+    {
+      "name": "HarpoonItem",
+      "type": "item",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "harpoon_item",
+      "metadata": {
+        "files": [
+          "src/main/resources/assets/create_nomad/models/item/harpoon_item.json",
+          "src/main/java/net/create_nomad/item/HarpoonItemItem.java"
+        ]
+      },
+      "path": "~/harpoon"
     }
   ],
   "variable_elements": [],
@@ -774,7 +788,8 @@
       "PurpleBrassBackpackItem",
       "MagentaBrassBackpackItem",
       "PinkBrassBackpackItem",
-      "HarpoonGun"
+      "HarpoonGun",
+      "HarpoonItem"
     ]
   },
   "language_map": {
@@ -828,7 +843,8 @@
       "key.create_nomad.open_backpack": "Open Backpack On Back",
       "item.create_nomad.brown_brass_backpack": "Brown Brass Backpack",
       "create_nomad.ponder.backpack_auto_hotbar_pg2.header": "Customizing Backpacks",
-      "item.create_nomad.harpoon_gun": "Harpoon Gun"
+      "item.create_nomad.harpoon_gun": "Harpoon Gun",
+      "item.create_nomad.harpoon_item": "Harpoon Item"
     }
   },
   "metadata": {

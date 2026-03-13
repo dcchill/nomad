@@ -1,0 +1,7 @@
+{
+  "parent": "create_nomad:custom/harpoon_item",
+  "textures": {
+    "0": "create_nomad:block/harpoon_texture",
+    "particle": "create_nomad:item/harpoon_texture"
+  }
+}

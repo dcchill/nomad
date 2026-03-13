@@ -39,5 +39,6 @@ public class CreateNomadModTabs {
 				tabData.accept(CreateNomadModItems.MAGENTA_BRASS_BACKPACK_ITEM.get());
 				tabData.accept(CreateNomadModItems.PINK_BRASS_BACKPACK_ITEM.get());
 				tabData.accept(CreateNomadModItems.HARPOON_GUN.get());
+				tabData.accept(CreateNomadModItems.HARPOON_ITEM.get());
 			}).build());
 }

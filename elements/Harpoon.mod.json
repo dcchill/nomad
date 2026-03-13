@@ -3,7 +3,7 @@
   "_type": "projectile",
   "definition": {
     "projectileItem": {
-      "value": "Items.IRON_NUGGET"
+      "value": "CUSTOM:HarpoonItem"
     },
     "showParticles": false,
     "actionSound": {

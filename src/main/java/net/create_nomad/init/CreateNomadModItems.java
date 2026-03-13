@@ -23,6 +23,7 @@ import net.create_nomad.item.LimeBrassBackpackItemItem;
 import net.create_nomad.item.LightGrayBrassBackpackItemItem;
 import net.create_nomad.item.LightBlueBrassBackpackItemItem;
 import net.create_nomad.item.JackhammerItem;
+import net.create_nomad.item.HarpoonItemItem;
 import net.create_nomad.item.HarpoonGunItem;
 import net.create_nomad.item.GreenBrassBackpackItemItem;
 import net.create_nomad.item.GrayBrassBackpackItemItem;
@@ -58,6 +59,7 @@ public class CreateNomadModItems {
 	public static final DeferredItem<Item> WHITE_BRASS_BACKPACK_ITEM = REGISTRY.register("white_brass_backpack_item", WhiteBrassBackpackItemItem::new);
 	public static final DeferredItem<Item> YELLOW_BRASS_BACKPACK_ITEM = REGISTRY.register("yellow_brass_backpack_item", YellowBrassBackpackItemItem::new);
 	public static final DeferredItem<Item> HARPOON_GUN = REGISTRY.register("harpoon_gun", HarpoonGunItem::new);
+	public static final DeferredItem<Item> HARPOON_ITEM = REGISTRY.register("harpoon_item", HarpoonItemItem::new);
 
 	// Start of user code block custom items
 	// End of user code block custom items
