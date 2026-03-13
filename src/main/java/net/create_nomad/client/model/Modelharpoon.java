@@ -31,7 +31,8 @@ public class Modelharpoon<T extends Entity> extends EntityModel<T> {
 	public static LayerDefinition createBodyLayer() {
 		MeshDefinition meshdefinition = new MeshDefinition();
 		PartDefinition partdefinition = meshdefinition.getRoot();
-		PartDefinition harpoon = partdefinition.addOrReplaceChild("harpoon", CubeListBuilder.create().texOffs(0, 32).addBox(-1.99F, -0.99F, -6.7662F, 2.0F, 2.0F, 28.0F, new CubeDeformation(0.01F)), PartPose.offset(0.0F, 24.0F, -4.6219F));
+		PartDefinition harpoon = partdefinition.addOrReplaceChild("harpoon", CubeListBuilder.create().texOffs(0, 32).addBox(-1.99F, -0.99F, -6.7662F, 2.0F, 2.0F, 28.0F, new CubeDeformation(0.01F)),
+				PartPose.offsetAndRotation(-2.0F, 24.0F, -0.6219F, 0.0F, 1.5708F, 0.0F));
 		PartDefinition cube_r1 = harpoon.addOrReplaceChild("cube_r1", CubeListBuilder.create().texOffs(64, 0).addBox(-3.0F, -2.0F, -2.0F, 2.0F, 2.0F, 6.0F, new CubeDeformation(-0.01F)),
 				PartPose.offsetAndRotation(1.0F, 0.0624F, -4.1631F, 0.3927F, 0.0F, 0.0F));
 		PartDefinition cube_r2 = harpoon.addOrReplaceChild("cube_r2", CubeListBuilder.create().texOffs(64, 0).addBox(-3.0F, -2.0F, -2.0F, 2.0F, 2.0F, 6.0F, new CubeDeformation(-0.01F)),
@@ -40,11 +41,10 @@ public class Modelharpoon<T extends Entity> extends EntityModel<T> {
 	}
 
 	@Override
-	public void setupAnim(T entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
-	}
-
-	@Override
 	public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, int rgb) {
 		harpoon.render(poseStack, vertexConsumer, packedLight, packedOverlay, rgb);
+	}
+
+	public void setupAnim(T entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
 	}
 }
