@@ -47,7 +47,6 @@ import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 
 public class JackhammerItem extends PickaxeItem implements GeoItem {
 	private static final int MAX_VEIN_BLOCKS = 128;
@@ -95,16 +94,17 @@ public class JackhammerItem extends PickaxeItem implements GeoItem {
 	}
 
 	@Override
-		public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-			consumer.accept(new IClientItemExtensions() {
-				@Override
-				public boolean applyForgeHandTransform(PoseStack poseStack, LocalPlayer player, HumanoidArm arm, ItemStack itemInHand, float partialTick, float equipProcess, float swingProcess) {
-					float armSide = arm == HumanoidArm.RIGHT ? 1.0F : -1.0F;
-					poseStack.translate(armSide * 0.56F, -0.52F, -0.72F);
-					return true;
-				}
-			});
-		}
+	public void initializeClient(Consumer<IClientItemExtensions> consumer) {
+		consumer.accept(new IClientItemExtensions() {
+			@Override
+			public boolean applyForgeHandTransform(PoseStack poseStack, LocalPlayer player, HumanoidArm arm, ItemStack itemInHand, float partialTick, float equipProcess, float swingProcess) {
+				// Keep this as a hand transform only; custom ArmPose enum extensions are not configured for this item.
+				float armSide = arm == HumanoidArm.RIGHT ? 1.0F : -1.0F;
+				poseStack.translate(armSide * 0.56F, -0.52F, -0.72F);
+				return true;
+			}
+		});
+	}
 
 
 	@Override
