@@ -1,0 +1,22 @@
+{
+  "_fv": 79,
+  "_type": "projectile",
+  "definition": {
+    "projectileItem": {
+      "value": "Items.IRON_NUGGET"
+    },
+    "showParticles": false,
+    "actionSound": {
+      "value": "entity.arrow.shoot"
+    },
+    "igniteFire": false,
+    "disableGravity": false,
+    "power": 2.0,
+    "damage": 15.0,
+    "knockback": 0,
+    "entityModel": "Modelharpoon",
+    "customModelTexture": "harpoon_texture.png",
+    "modelWidth": 0.5,
+    "modelHeight": 0.5
+  }
+}

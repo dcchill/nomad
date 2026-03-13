@@ -47,5 +47,6 @@
   "tooltip.create_nomad.trackpack.description_1": "Automatically refills stacks of tracks in your hotbar.",
   "key.create_nomad.open_backpack": "Open Backpack On Back",
   "item.create_nomad.brown_brass_backpack": "Brown Brass Backpack",
-  "create_nomad.ponder.backpack_auto_hotbar_pg2.header": "Customizing Backpacks"
+  "create_nomad.ponder.backpack_auto_hotbar_pg2.header": "Customizing Backpacks",
+  "item.create_nomad.harpoon_gun": "Harpoon Gun"
 }

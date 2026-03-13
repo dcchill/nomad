@@ -1,0 +1,6 @@
+{
+  "parent": "create_nomad:displaysettings/harpoon_gun",
+  "textures": {
+    "layer0": "create_nomad:item/harpoon_texture"
+  }
+}

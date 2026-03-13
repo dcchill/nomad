@@ -11,6 +11,7 @@ logoFile="logo.png"
 credits="Dcchill"
 authors="Dcchill"
 description="Adds more gadgets and storage to the create mod"
+enumExtensions="META-INF/enumextensions.json"
 
 # Start of user code block mod configuration
 # End of user code block mod configuration

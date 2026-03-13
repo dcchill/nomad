@@ -676,6 +676,36 @@
           "src/main/java/net/create_nomad/network/OpenBackpackMessage.java"
         ]
       }
+    },
+    {
+      "name": "HarpoonGun",
+      "type": "animateditem",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "harpoon_gun",
+      "metadata": {
+        "files": [
+          "src/main/resources/assets/create_nomad/models/item/harpoon_gun.json",
+          "src/main/java/net/create_nomad/item/model/HarpoonGunItemModel.java",
+          "src/main/java/net/create_nomad/item/HarpoonGunItem.java",
+          "src/main/java/net/create_nomad/item/renderer/HarpoonGunItemRenderer.java"
+        ]
+      },
+      "path": "~/harpoon"
+    },
+    {
+      "name": "Harpoon",
+      "type": "projectile",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "harpoon",
+      "metadata": {
+        "files": [
+          "src/main/java/net/create_nomad/client/renderer/HarpoonRenderer.java",
+          "src/main/java/net/create_nomad/entity/HarpoonEntity.java"
+        ]
+      },
+      "path": "~/harpoon"
     }
   ],
   "variable_elements": [],
@@ -743,7 +773,8 @@
       "BlueBrassBackpackItem",
       "PurpleBrassBackpackItem",
       "MagentaBrassBackpackItem",
-      "PinkBrassBackpackItem"
+      "PinkBrassBackpackItem",
+      "HarpoonGun"
     ]
   },
   "language_map": {
@@ -796,7 +827,8 @@
       "tooltip.create_nomad.trackpack.description_1": "Automatically refills stacks of tracks in your hotbar.",
       "key.create_nomad.open_backpack": "Open Backpack On Back",
       "item.create_nomad.brown_brass_backpack": "Brown Brass Backpack",
-      "create_nomad.ponder.backpack_auto_hotbar_pg2.header": "Customizing Backpacks"
+      "create_nomad.ponder.backpack_auto_hotbar_pg2.header": "Customizing Backpacks",
+      "item.create_nomad.harpoon_gun": "Harpoon Gun"
     }
   },
   "metadata": {
@@ -808,6 +840,7 @@
       "src/main/resources/pack.mcmeta",
       "src/main/java/net/create_nomad/init/CreateNomadModModels.java",
       "src/main/java/net/create_nomad/init/CreateNomadModTabs.java",
+      "src/main/resources/META-INF/enumextensions.json",
       "src/main/java/net/create_nomad/utils/AnimUtils.java",
       "src/main/java/net/create_nomad/init/ItemAnimationFactory.java",
       "src/main/java/net/create_nomad/init/CreateNomadModCuriosCompat.java",
@@ -822,7 +855,9 @@
       "src/main/java/net/create_nomad/init/CreateNomadModBrewingRecipes.java",
       "src/main/java/net/create_nomad/init/CreateNomadModBlocks.java",
       "src/main/java/net/create_nomad/init/CreateNomadModBlockEntities.java",
-      "src/main/java/net/create_nomad/init/CreateNomadModItems.java"
+      "src/main/java/net/create_nomad/init/CreateNomadModItems.java",
+      "src/main/java/net/create_nomad/init/CreateNomadModEntities.java",
+      "src/main/java/net/create_nomad/init/CreateNomadModEntityRenderers.java"
     ]
   },
   "foldersRoot": {
@@ -850,6 +885,10 @@
       },
       {
         "name": "curios",
+        "children": []
+      },
+      {
+        "name": "harpoon",
         "children": []
       }
     ]
