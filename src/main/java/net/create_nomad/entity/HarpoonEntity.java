@@ -13,6 +13,7 @@ import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.util.RandomSource;
@@ -92,23 +93,32 @@ public class HarpoonEntity extends AbstractArrow implements ItemSupplier {
 		if (this.inGround)
 			this.discard();
 	}
-	@Override
+@Override
 	protected void onHitEntity(EntityHitResult result) {
-		int pierceHitsBeforeImpact = this.remainingPierceHits;
-		Vec3 velocityBeforeHit = this.getDeltaMovement();
-		super.onHitEntity(result);
-		if (pierceHitsBeforeImpact > 0) {
-			this.remainingPierceHits--;
-			if (!this.isAlive()) {
-				this.unsetRemoved();
+		if (this.remainingPierceHits > 0) {
+			Vec3 velocityBeforeHit = this.getDeltaMovement();
+			Entity target = result.getEntity();
+			Entity owner = this.getOwner();
+			DamageSource damageSource = this.damageSources().arrow(this, owner == null ? this : owner);
+			boolean hurt = target.hurt(damageSource, (float) this.getBaseDamage());
+			if (hurt && target instanceof LivingEntity livingEntity) {
+				doPostHurtEffects(livingEntity);
+				doKnockback(livingEntity, damageSource);
 			}
+			this.remainingPierceHits--;
 			this.inGround = false;
 			double speed = velocityBeforeHit.length();
 			if (speed > 0.0) {
-				this.setDeltaMovement(velocityBeforeHit.normalize().scale(speed * 0.9));
+				Vec3 newVelocity = velocityBeforeHit.normalize().scale(speed * 0.9);
+				this.setDeltaMovement(newVelocity);
+				this.setPos(this.getX() + newVelocity.x * 0.1, this.getY() + newVelocity.y * 0.1, this.getZ() + newVelocity.z * 0.1);
 			}
+			return;
 		}
+
+		super.onHitEntity(result);
 	}
+
 
 
 
