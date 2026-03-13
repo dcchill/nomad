@@ -43,6 +43,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 
 public class HarpoonGunItem extends Item implements GeoItem {
 	private static final String RELOAD_TICKS_TAG = "harpoonReloadTicks";
+	private static final String RELOAD_PENDING_TAG = "harpoonReloadPending";
 	private static final String HAS_AMMO_TAG = "hasHarpoonAmmo";
 	private static final int RELOAD_TICKS = 20;
 	private static final int FIRE_COOLDOWN_TICKS = RELOAD_TICKS;
@@ -154,6 +155,7 @@ public class HarpoonGunItem extends Item implements GeoItem {
 		CustomData.update(DataComponents.CUSTOM_DATA, gunStack, tag -> {
 			tag.putString("geckoAnim", "fired");
 			tag.putInt(RELOAD_TICKS_TAG, RELOAD_TICKS);
+			tag.putBoolean(RELOAD_PENDING_TAG, true);
 		});
 		player.getCooldowns().addCooldown(this, FIRE_COOLDOWN_TICKS);
 		return InteractionResultHolder.sidedSuccess(gunStack, level.isClientSide());
@@ -175,12 +177,19 @@ public class HarpoonGunItem extends Item implements GeoItem {
 			return;
 		}
 
+		boolean reloadPending = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getBoolean(RELOAD_PENDING_TAG);
+		if (reloadPending) {
+			CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
+				tag.putString("geckoAnim", "reload");
+				tag.putBoolean(RELOAD_PENDING_TAG, false);
+			});
+		}
+
 		CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
 			int remaining = Math.max(0, tag.getInt(RELOAD_TICKS_TAG) - 1);
 			tag.putInt(RELOAD_TICKS_TAG, remaining);
-			if (remaining == 0 && hasAmmo(player)) {
-				tag.putString("geckoAnim", "reload");
-			}
+			if (remaining == 0)
+				tag.putBoolean(RELOAD_PENDING_TAG, false);
 		});
 	}
 
