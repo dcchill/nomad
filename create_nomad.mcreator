@@ -680,8 +680,8 @@
     {
       "name": "HarpoonGun",
       "type": "animateditem",
-      "compiles": true,
-      "locked_code": false,
+      "compiles": false,
+      "locked_code": true,
       "registry_name": "harpoon_gun",
       "metadata": {
         "files": [
@@ -696,8 +696,8 @@
     {
       "name": "Harpoon",
       "type": "projectile",
-      "compiles": true,
-      "locked_code": false,
+      "compiles": false,
+      "locked_code": true,
       "registry_name": "harpoon",
       "metadata": {
         "files": [
@@ -711,7 +711,7 @@
       "name": "HarpoonItem",
       "type": "item",
       "compiles": true,
-      "locked_code": false,
+      "locked_code": true,
       "registry_name": "harpoon_item",
       "metadata": {
         "files": [
