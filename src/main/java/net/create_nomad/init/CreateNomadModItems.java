@@ -14,6 +14,7 @@ import net.minecraft.world.item.BlockItem;
 import net.create_nomad.item.YellowBrassBackpackItemItem;
 import net.create_nomad.item.WhiteBrassBackpackItemItem;
 import net.create_nomad.item.TrackPackItem;
+import net.create_nomad.item.SanderItem;
 import net.create_nomad.item.RedBrassBackpackItemItem;
 import net.create_nomad.item.PurpleBrassBackpackItemItem;
 import net.create_nomad.item.PinkBrassBackpackItemItem;
@@ -60,6 +61,7 @@ public class CreateNomadModItems {
 	public static final DeferredItem<Item> YELLOW_BRASS_BACKPACK_ITEM = REGISTRY.register("yellow_brass_backpack_item", YellowBrassBackpackItemItem::new);
 	public static final DeferredItem<Item> HARPOON_GUN = REGISTRY.register("harpoon_gun", HarpoonGunItem::new);
 	public static final DeferredItem<Item> HARPOON_ITEM = REGISTRY.register("harpoon_item", HarpoonItemItem::new);
+	public static final DeferredItem<Item> SANDER = REGISTRY.register("sander", SanderItem::new);
 
 	// Start of user code block custom items
 	// End of user code block custom items
