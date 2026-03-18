@@ -1,7 +1,13 @@
 {
   "format_version": "1.9.0",
   "credit": "Made with Blockbench",
-  "parent": "sander",
+  "textures": {
+    "0": "create_nomad:block/extendo_grip",
+    "1": "create_nomad:block/mechanical_press_pole",
+    "2": "create_nomad:block/sandpaper_anim",
+    "3": "create_nomad:block/stripped_dark_oak_log",
+    "particle": "minecraft:item/paper"
+  },
   "elements": [
     {
       "from": [

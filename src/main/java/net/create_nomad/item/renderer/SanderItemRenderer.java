@@ -8,6 +8,7 @@ import com.simibubi.create.content.equipment.sandPaper.SandPaperItemRenderer;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel;
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer;
 
+import net.create_nomad.CreateNomadMod;
 import net.createmod.catnip.animation.AnimationTickHolder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -21,7 +22,9 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
 public class SanderItemRenderer extends SandPaperItemRenderer {
-	private static final ModelResourceLocation ACCELERATOR_MODEL = ModelResourceLocation.inventory(ResourceLocation.fromNamespaceAndPath(net.create_nomad.CreateNomadMod.MODID, "sander_accelerator"));
+	public static final ResourceLocation ACCELERATOR_MODEL_ID = ResourceLocation.fromNamespaceAndPath(CreateNomadMod.MODID,
+			"custom/sander_accelerator");
+	private static final ModelResourceLocation ACCELERATOR_MODEL = ModelResourceLocation.standalone(ACCELERATOR_MODEL_ID);
 	private static final float ACCELERATOR_ROTATION_SPEED = -12.0f;
 
 	@Override
@@ -78,15 +81,14 @@ public class SanderItemRenderer extends SandPaperItemRenderer {
 			}
 		}
 
-		BakedModel originalModel = model.getOriginalModel();
-		renderer.render(originalModel, light);
+		renderer.render(model.getOriginalModel(), light);
 
 		BakedModel acceleratorModel = minecraft.getModelManager().getModel(ACCELERATOR_MODEL);
 		float rotation = (AnimationTickHolder.getTicks() + partialTicks) * ACCELERATOR_ROTATION_SPEED;
 		poseStack.pushPose();
-		poseStack.translate(0.5F, 0.5F, 0.5F);
+		poseStack.translate(0.5F, 0.46875F, -0.078125F);
 		poseStack.mulPose(Axis.XP.rotationDegrees(rotation));
-		poseStack.translate(-0.5F, -0.5F, -0.5F);
+		poseStack.translate(-0.5F, -0.46875F, 0.078125F);
 		renderer.render(acceleratorModel, light);
 		poseStack.popPose();
 
