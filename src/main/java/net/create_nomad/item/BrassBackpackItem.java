@@ -52,12 +52,21 @@ public class BrassBackpackItem extends BlockItem {
         }
     }
 
-    @Override
-    public Component getName(ItemStack stack) {
-        String name = color.getName();
-        name = name.substring(0, 1).toUpperCase() + name.substring(1);
-        return Component.literal(name + " Brass Backpack");
-    }
+	@Override
+	public Component getName(ItemStack stack) {
+	    String name = color.getName().replace("_", " ");
+	
+	    String[] words = name.split(" ");
+	    StringBuilder formatted = new StringBuilder();
+	
+	    for (String word : words) {
+	        formatted.append(Character.toUpperCase(word.charAt(0)))
+	                 .append(word.substring(1))
+	                 .append(" ");
+	    }
+	
+	    return Component.literal(formatted.toString().trim() + " Brass Backpack");
+	}
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
