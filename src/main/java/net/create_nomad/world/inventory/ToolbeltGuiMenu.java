@@ -110,22 +110,6 @@ public class ToolbeltGuiMenu extends AbstractContainerMenu implements CreateNoma
 				this.addSlot(createPlayerSlot(inv, col + (row + 1) * 9, 8 + col * 18, 84 + row * 18));
 			}
 		}
-
-		// Hotbar
-		for (int col = 0; col < 9; ++col) {
-			this.addSlot(createPlayerSlot(inv, col, 8 + col * 18, 142));
-		}
-	}
-
-	private void loadFromItem() {
-		if (boundStack.isEmpty() || !(world instanceof ServerLevel serverLevel)) {
-			return;
-		}
-
-		ItemStackHandler loaded = ToolbeltDataUtils.loadHandler(boundStack, serverLevel.registryAccess());
-		for (int slot = 0; slot < internal.getSlots(); slot++) {
-			internal.setStackInSlot(slot, loaded.getStackInSlot(slot));
-		}
 	}
 
 	private void refreshBoundStack() {
