@@ -52,7 +52,7 @@ public record ToolbeltSelectionMessage(int selectedSlot) implements CustomPacket
                 return;
             }
 
-            ToolbeltDataUtils.setSelectedSlot(equippedToolbelt, message.selectedSlot);
+            ToolbeltDataUtils.syncSelectedTool(context.player(), message.selectedSlot);
         }).exceptionally(error -> {
             context.connection().disconnect(Component.literal(error.getMessage()));
             return null;

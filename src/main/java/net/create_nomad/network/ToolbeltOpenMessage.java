@@ -53,7 +53,7 @@ public record ToolbeltOpenMessage(int eventType, int pressedms) implements Custo
 		}
 
 		if (type == 0 && entity instanceof ServerPlayer serverPlayer) {
-			ToolbeltItem.openEquippedToolbelt(serverPlayer);
+			ToolbeltItem.openPreferredToolbelt(serverPlayer);
 		}
 	}
 
