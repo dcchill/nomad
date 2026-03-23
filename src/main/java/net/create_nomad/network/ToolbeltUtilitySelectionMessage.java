@@ -14,6 +14,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
 import net.create_nomad.CreateNomadMod;
+import net.create_nomad.util.ToolbeltDataUtils;
 
 @EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD)
 public record ToolbeltUtilitySelectionMessage(boolean utilitySelected) implements CustomPacketPayload {
@@ -39,11 +40,17 @@ public record ToolbeltUtilitySelectionMessage(boolean utilitySelected) implement
             return;
         }
 
-        context.enqueueWork(() -> context.player().getPersistentData().putBoolean(PLAYER_TAG, message.utilitySelected))
-                .exceptionally(error -> {
-                    context.connection().disconnect(Component.literal(error.getMessage()));
-                    return null;
-                });
+        context.enqueueWork(() -> {
+            context.player().getPersistentData().putBoolean(PLAYER_TAG, message.utilitySelected);
+            if (message.utilitySelected) {
+                ToolbeltDataUtils.activateSelectedTool(context.player());
+                return;
+            }
+            ToolbeltDataUtils.deactivateSelectedTool(context.player());
+        }).exceptionally(error -> {
+            context.connection().disconnect(Component.literal(error.getMessage()));
+            return null;
+        });
     }
 
     @SubscribeEvent
