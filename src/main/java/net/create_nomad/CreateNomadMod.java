@@ -64,6 +64,7 @@ public class CreateNomadMod {
 		CreateNomadModTabs.REGISTRY.register(modEventBus);
 
 		CreateNomadModMenus.REGISTRY.register(modEventBus);
+		net.create_nomad.init.CreateNomadToolbeltMenu.register(modEventBus);
 
 		// Start of user code block mod init
 		// End of user code block mod init

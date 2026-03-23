@@ -134,7 +134,7 @@ public final class ToolbeltHotbarOverlay {
             guiGraphics.renderOutline(x - 1, y - 1, 26, 26, 0xFFF4F6DA);
         }
 
-        ItemStack selectedTool = ToolbeltDataUtils.getSelectedStack(toolbelt);
+        ItemStack selectedTool = ToolbeltDataUtils.getSelectedStack(toolbelt, player.level().registryAccess());
         if (!selectedTool.isEmpty()) {
             guiGraphics.renderItem(selectedTool, x + 4, y + 4);
             guiGraphics.renderItemDecorations(minecraft.font, selectedTool, x + 4, y + 4);
