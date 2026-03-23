@@ -1,5 +1,8 @@
 package net.create_nomad.item;
 
+import io.netty.buffer.Unpooled;
+
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -15,9 +18,13 @@ import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.items.IItemHandler;
 
 import net.create_nomad.CreateNomadMod;
-import net.create_nomad.world.inventory.ToolbeltMenu;
+import net.create_nomad.world.inventory.ToolbeltGuiMenu;
 
 public class ToolbeltItem extends Item {
+	private static final byte MAIN_HAND_SOURCE = 0;
+	private static final byte OFF_HAND_SOURCE = 1;
+	private static final byte EQUIPPED_SOURCE = 2;
+
 	public ToolbeltItem() {
 		super(new Item.Properties().stacksTo(1));
 	}
@@ -25,24 +32,36 @@ public class ToolbeltItem extends Item {
 	@Override
 	public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
 		ItemStack stack = player.getItemInHand(hand);
-		if (hand != InteractionHand.MAIN_HAND) {
-			return InteractionResultHolder.pass(stack);
-		}
 		if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
-			int handSlotIndex = player.getInventory().selected;
-			serverPlayer.openMenu(new MenuProvider() {
-				@Override
-				public Component getDisplayName() {
-					return Component.translatable("item.create_nomad.toolbelt");
-				}
-
-				@Override
-				public AbstractContainerMenu createMenu(int id, Inventory inventory, Player openingPlayer) {
-					return new ToolbeltMenu(id, inventory, handSlotIndex);
-				}
-			});
+			openToolbelt(serverPlayer, hand == InteractionHand.MAIN_HAND ? MAIN_HAND_SOURCE : OFF_HAND_SOURCE, stack.getDisplayName());
 		}
 		return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
+	}
+
+	public static void openEquippedToolbelt(ServerPlayer serverPlayer) {
+		ItemStack stack = findEquippedToolbelt(serverPlayer);
+		if (stack.isEmpty()) {
+			return;
+		}
+
+		openToolbelt(serverPlayer, EQUIPPED_SOURCE, stack.getDisplayName());
+	}
+
+	private static void openToolbelt(ServerPlayer serverPlayer, byte source, Component displayName) {
+		serverPlayer.openMenu(new MenuProvider() {
+			@Override
+			public Component getDisplayName() {
+				return displayName;
+			}
+
+			@Override
+			public AbstractContainerMenu createMenu(int id, Inventory inventory, Player openingPlayer) {
+				FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+				buf.writeBlockPos(openingPlayer.blockPosition());
+				buf.writeByte(source);
+				return new ToolbeltGuiMenu(id, inventory, buf);
+			}
+		});
 	}
 
 	public static ItemStack findEquippedToolbelt(Player player) {
