@@ -38,6 +38,7 @@ public class ToolbeltGuiMenu extends AbstractContainerMenu implements CreateNoma
 			return super.put(key, value);
 		}
 	};
+
 	public final Level world;
 	public final Player entity;
 	public int x;
@@ -46,6 +47,7 @@ public class ToolbeltGuiMenu extends AbstractContainerMenu implements CreateNoma
 
 	private final Map<Integer, Slot> customSlots = new HashMap<>();
 	private final ItemStackHandler internal;
+
 	private byte source = EQUIPPED_SOURCE;
 	private ItemStack boundStack = ItemStack.EMPTY;
 	private int boundPlayerSlot = -1;
@@ -56,6 +58,7 @@ public class ToolbeltGuiMenu extends AbstractContainerMenu implements CreateNoma
 		this.world = inv.player.level();
 		this.internal = new ItemStackHandler(ToolbeltDataUtils.SLOT_COUNT);
 
+		// Read extra data
 		if (extraData != null) {
 			var pos = extraData.readBlockPos();
 			this.x = pos.getX();
@@ -69,6 +72,7 @@ public class ToolbeltGuiMenu extends AbstractContainerMenu implements CreateNoma
 		refreshBoundStack();
 		loadFromItem();
 
+		// Toolbelt slots
 		for (int slot = 0; slot < ToolbeltDataUtils.SLOT_COUNT; slot++) {
 			final int index = slot;
 			this.customSlots.put(slot, this.addSlot(new SlotItemHandler(internal, slot, 61 + slot * 18, 35) {
@@ -86,23 +90,25 @@ public class ToolbeltGuiMenu extends AbstractContainerMenu implements CreateNoma
 				public void setChanged() {
 					super.setChanged();
 					ToolbeltDataUtils.sanitizeHandler(ToolbeltGuiMenu.this.internal);
+
 					refreshBoundStack();
-					if (!boundStack.isEmpty() && !ToolbeltInventoryRules.canStoreInToolbelt(getItem()) && ToolbeltDataUtils.getSelectedSlot(boundStack) == index) {
+
+					if (!boundStack.isEmpty()
+							&& !ToolbeltInventoryRules.canStoreInToolbelt(getItem())
+							&& ToolbeltDataUtils.getSelectedSlot(boundStack) == index) {
 						ToolbeltDataUtils.setSelectedSlot(boundStack, 0);
 					}
+
 					saveToItem();
 				}
 			}));
 		}
 
+		// Player inventory (3 rows)
 		for (int row = 0; row < 3; ++row) {
 			for (int col = 0; col < 9; ++col) {
 				this.addSlot(createPlayerSlot(inv, col + (row + 1) * 9, 8 + col * 18, 84 + row * 18));
 			}
-		}
-
-		for (int col = 0; col < 9; ++col) {
-			this.addSlot(createPlayerSlot(inv, col, 8 + col * 18, 142));
 		}
 	}
 
@@ -119,9 +125,7 @@ public class ToolbeltGuiMenu extends AbstractContainerMenu implements CreateNoma
 
 	private void resolveBoundPlayerSlot() {
 		boundPlayerSlot = -1;
-		if (boundStack.isEmpty()) {
-			return;
-		}
+		if (boundStack.isEmpty()) return;
 
 		for (int slot = 0; slot < entity.getInventory().items.size(); slot++) {
 			if (entity.getInventory().items.get(slot) == boundStack) {
@@ -138,18 +142,6 @@ public class ToolbeltGuiMenu extends AbstractContainerMenu implements CreateNoma
 				return getContainerSlot() != boundPlayerSlot && super.mayPickup(player);
 			}
 		};
-	}
-
-	private void loadFromItem() {
-		refreshBoundStack();
-		if (boundStack.isEmpty() || !(world instanceof ServerLevel serverLevel)) {
-			return;
-		}
-
-		ItemStackHandler loaded = ToolbeltDataUtils.loadHandler(boundStack, serverLevel.registryAccess());
-		for (int slot = 0; slot < internal.getSlots(); slot++) {
-			internal.setStackInSlot(slot, loaded.getStackInSlot(slot));
-		}
 	}
 
 	private void saveToItem() {
@@ -170,14 +162,17 @@ public class ToolbeltGuiMenu extends AbstractContainerMenu implements CreateNoma
 	public ItemStack quickMoveStack(Player playerIn, int index) {
 		ItemStack itemstack = ItemStack.EMPTY;
 		Slot slot = this.slots.get(index);
+
 		if (slot != null && slot.hasItem()) {
 			ItemStack itemstack1 = slot.getItem();
 			itemstack = itemstack1.copy();
+
 			if (index < ToolbeltDataUtils.SLOT_COUNT) {
 				if (!this.moveItemStackTo(itemstack1, ToolbeltDataUtils.SLOT_COUNT, this.slots.size(), true)) {
 					return ItemStack.EMPTY;
 				}
-			} else if (!ToolbeltInventoryRules.canStoreInToolbelt(itemstack1) || !this.moveItemStackTo(itemstack1, 0, ToolbeltDataUtils.SLOT_COUNT, false)) {
+			} else if (!ToolbeltInventoryRules.canStoreInToolbelt(itemstack1)
+					|| !this.moveItemStackTo(itemstack1, 0, ToolbeltDataUtils.SLOT_COUNT, false)) {
 				return ItemStack.EMPTY;
 			}
 
@@ -194,12 +189,14 @@ public class ToolbeltGuiMenu extends AbstractContainerMenu implements CreateNoma
 	@Override
 	public void clicked(int slotId, int dragType, ClickType clickType, Player player) {
 		refreshBoundStack();
+
 		if (slotId >= 0) {
 			Slot slot = this.slots.get(slotId);
 			if (slot.container == player.getInventory() && slot.getContainerSlot() == boundPlayerSlot) {
 				return;
 			}
 		}
+
 		super.clicked(slotId, dragType, clickType, player);
 	}
 
@@ -207,7 +204,9 @@ public class ToolbeltGuiMenu extends AbstractContainerMenu implements CreateNoma
 	public void removed(Player playerIn) {
 		super.removed(playerIn);
 		saveToItem();
-		if (playerIn instanceof ServerPlayer serverPlayer && (!serverPlayer.isAlive() || serverPlayer.hasDisconnected())) {
+
+		if (playerIn instanceof ServerPlayer serverPlayer
+				&& (!serverPlayer.isAlive() || serverPlayer.hasDisconnected())) {
 			for (int slot = 0; slot < internal.getSlots(); ++slot) {
 				if (internal instanceof IItemHandlerModifiable modifiable) {
 					modifiable.setStackInSlot(slot, ItemStack.EMPTY);

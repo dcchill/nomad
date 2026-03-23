@@ -16,7 +16,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.KeyMapping;
 
 import net.create_nomad.network.OpenBackpackMessage;
-import net.create_nomad.network.ToolbeltOpenMessage;
 
 @EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD, value = {Dist.CLIENT})
 public class CreateNomadModKeyMappings {
@@ -34,19 +33,7 @@ public class CreateNomadModKeyMappings {
 		}
 	};
 	public static final KeyMapping TOOLBELT_FOCUS = new KeyMapping("key.create_nomad.toolbelt_focus", GLFW.GLFW_KEY_LEFT_CONTROL, "key.categories.misc");
-	public static final KeyMapping TOOLBELT_OPEN = new KeyMapping("key.create_nomad.toolbelt_open", GLFW.GLFW_KEY_U, "key.categories.misc") {
-		private boolean isDownOld = false;
-
-		@Override
-		public void setDown(boolean isDown) {
-			super.setDown(isDown);
-			if (isDownOld != isDown && isDown) {
-				PacketDistributor.sendToServer(new ToolbeltOpenMessage(0, 0));
-				ToolbeltOpenMessage.pressAction(Minecraft.getInstance().player, 0, 0);
-			}
-			isDownOld = isDown;
-		}
-	};
+	public static final KeyMapping TOOLBELT_OPEN = new KeyMapping("key.create_nomad.toolbelt_open", GLFW.GLFW_KEY_U, "key.categories.misc");
 
 	@SubscribeEvent
 	public static void registerKeyMappings(RegisterKeyMappingsEvent event) {
@@ -61,7 +48,6 @@ public class CreateNomadModKeyMappings {
 		public static void onClientTick(ClientTickEvent.Post event) {
 			if (Minecraft.getInstance().screen == null) {
 				OPEN_BACKPACK.consumeClick();
-				TOOLBELT_OPEN.consumeClick();
 			}
 		}
 	}

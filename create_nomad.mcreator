@@ -776,7 +776,7 @@
       "name": "ToolbeltGui",
       "type": "gui",
       "compiles": true,
-      "locked_code": false,
+      "locked_code": true,
       "registry_name": "toolbelt_gui",
       "metadata": {
         "files": [
@@ -790,7 +790,7 @@
       "name": "ToolbeltFocus",
       "type": "keybind",
       "compiles": true,
-      "locked_code": false,
+      "locked_code": true,
       "registry_name": "toolbelt_focus",
       "metadata": {
         "files": [
@@ -803,7 +803,7 @@
       "name": "ToolbeltOpen",
       "type": "keybind",
       "compiles": true,
-      "locked_code": false,
+      "locked_code": true,
       "registry_name": "toolbelt_open",
       "metadata": {
         "files": [
