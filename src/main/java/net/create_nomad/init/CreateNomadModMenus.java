@@ -15,6 +15,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.client.Minecraft;
 
+import net.create_nomad.world.inventory.ToolbeltGuiMenu;
 import net.create_nomad.world.inventory.BrassBackpackGUIMenu;
 import net.create_nomad.network.MenuStateUpdateMessage;
 import net.create_nomad.CreateNomadMod;
@@ -24,6 +25,7 @@ import java.util.Map;
 public class CreateNomadModMenus {
 	public static final DeferredRegister<MenuType<?>> REGISTRY = DeferredRegister.create(Registries.MENU, CreateNomadMod.MODID);
 	public static final DeferredHolder<MenuType<?>, MenuType<BrassBackpackGUIMenu>> BRASS_BACKPACK_GUI = REGISTRY.register("brass_backpack_gui", () -> IMenuTypeExtension.create(BrassBackpackGUIMenu::new));
+	public static final DeferredHolder<MenuType<?>, MenuType<ToolbeltGuiMenu>> TOOLBELT_GUI = REGISTRY.register("toolbelt_gui", () -> IMenuTypeExtension.create(ToolbeltGuiMenu::new));
 
 	public interface MenuAccessor {
 		Map<String, Object> getMenuState();

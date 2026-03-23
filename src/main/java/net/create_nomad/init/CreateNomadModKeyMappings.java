@@ -32,10 +32,12 @@ public class CreateNomadModKeyMappings {
 			isDownOld = isDown;
 		}
 	};
+	public static final KeyMapping TOOLBELT_FOCUS = new KeyMapping("key.create_nomad.toolbelt_focus", GLFW.GLFW_KEY_LEFT_CONTROL, "key.categories.misc");
 
 	@SubscribeEvent
 	public static void registerKeyMappings(RegisterKeyMappingsEvent event) {
 		event.register(OPEN_BACKPACK);
+		event.register(TOOLBELT_FOCUS);
 	}
 
 	@EventBusSubscriber({Dist.CLIENT})

@@ -771,6 +771,33 @@
         "files": []
       },
       "path": "~/belt"
+    },
+    {
+      "name": "ToolbeltGui",
+      "type": "gui",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "toolbelt_gui",
+      "metadata": {
+        "files": [
+          "src/main/java/net/create_nomad/world/inventory/ToolbeltGuiMenu.java",
+          "src/main/java/net/create_nomad/client/gui/ToolbeltGuiScreen.java"
+        ]
+      },
+      "path": "~/belt"
+    },
+    {
+      "name": "ToolbeltFocus",
+      "type": "keybind",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "toolbelt_focus",
+      "metadata": {
+        "files": [
+          "src/main/java/net/create_nomad/network/ToolbeltFocusMessage.java"
+        ]
+      },
+      "path": "~/belt"
     }
   ],
   "variable_elements": [],
@@ -898,7 +925,9 @@
       "item.create_nomad.harpoon_gun": "Harpoon Gun",
       "item.create_nomad.harpoon_item": "Harpoon",
       "tooltip.create_nomad.harpoon_gun.description_2": "Uses backtank air to fire a harpoon.  Harpoons are high piercing and reusable projectiles that deal high damage.",
-      "item.create_nomad.toolbelt": "Toolbelt"
+      "item.create_nomad.toolbelt": "Toolbelt",
+      "gui.create_nomad.toolbelt_gui.label_toolbelt": "Toolbelt",
+      "key.create_nomad.toolbelt_focus": "Toolbelt Focus"
     }
   },
   "metadata": {
