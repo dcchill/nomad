@@ -2,6 +2,7 @@ package net.create_nomad.item.renderer;
 
 import software.bernie.geckolib.renderer.GeoItemRenderer;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
+import software.bernie.geckolib.cache.object.GeoBone;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -12,8 +13,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.create_nomad.item.model.HarpoonGunItemModel;
 import net.create_nomad.item.HarpoonGunItem;
 
-import java.util.Set;
-import java.util.HashSet;
+import java.util.Optional;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -28,17 +28,16 @@ public class HarpoonGunItemRenderer extends GeoItemRenderer<HarpoonGunItem> {
 		return RenderType.entityTranslucent(getTextureLocation(animatable));
 	}
 
-	private static final float SCALE_RECIPROCAL = 1.0f / 16.0f;
 	protected boolean renderArms = false;
 	protected MultiBufferSource currentBuffer;
 	protected RenderType renderType;
 	public ItemDisplayContext transformType;
 	protected HarpoonGunItem animatable;
-	private final Set<String> hiddenBones = new HashSet<>();
-	private final Set<String> suppressedBones = new HashSet<>();
+	private ItemStack currentItemStack = ItemStack.EMPTY;
 
 	@Override
 	public void renderByItem(ItemStack stack, ItemDisplayContext transformType, PoseStack matrixStack, MultiBufferSource bufferIn, int combinedLightIn, int p_239207_6_) {
+		this.currentItemStack = stack;
 		this.transformType = transformType;
 		super.renderByItem(stack, transformType, matrixStack, bufferIn, combinedLightIn, p_239207_6_);
 	}
@@ -49,6 +48,8 @@ public class HarpoonGunItemRenderer extends GeoItemRenderer<HarpoonGunItem> {
 		this.currentBuffer = renderTypeBuffer;
 		this.renderType = type;
 		this.animatable = animatable;
+		Optional<GeoBone> harpoonBone = model.getBone("harpoon");
+		harpoonBone.ifPresent(bone -> bone.setHidden(!HarpoonGunItem.isLoaded(this.currentItemStack)));
 		super.actuallyRender(matrixStackIn, animatable, model, type, renderTypeBuffer, vertexBuilder, isRenderer, partialTicks, packedLightIn, packedOverlayIn, color);
 		if (this.renderArms) {
 			this.renderArms = false;
