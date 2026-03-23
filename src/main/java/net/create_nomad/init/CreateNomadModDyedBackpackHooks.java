@@ -1,14 +1,14 @@
 package net.create_nomad.init;
 
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.items.wrapper.SidedInvWrapper;
-import net.neoforged.neoforge.registries.DeferredBlock;
-import net.neoforged.neoforge.registries.DeferredHolder;
-import net.neoforged.neoforge.registries.DeferredRegister;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.EventBusSubscriber;
+import net.minecraftforge.capabilities.Capabilities;
+import net.minecraftforge.capabilities.RegisterCapabilitiesEvent;
+import net.minecraftforge.items.wrapper.SidedInvWrapper;
+import net.minecraftforge.registries.DeferredBlock;
+import net.minecraftforge.registries.DeferredHolder;
+import net.minecraftforge.registries.DeferredRegister;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.WorldlyContainer;
@@ -106,7 +106,7 @@ public class CreateNomadModDyedBackpackHooks {
 	}
 
 	private static void registerCapability(RegisterCapabilitiesEvent event, String blockEntityId) {
-		BuiltInRegistries.BLOCK_ENTITY_TYPE.getOptional(ResourceLocation.fromNamespaceAndPath(CreateNomadMod.MODID, blockEntityId))
+		BuiltInRegistries.BLOCK_ENTITY_TYPE.getOptional(new ResourceLocation(CreateNomadMod.MODID, blockEntityId))
 				.ifPresent(type -> event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, type, (blockEntity, side) -> new SidedInvWrapper((WorldlyContainer) blockEntity, side)));
 	}
 

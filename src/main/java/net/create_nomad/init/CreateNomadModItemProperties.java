@@ -6,10 +6,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.EventBusSubscriber;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
 @EventBusSubscriber(modid = CreateNomadMod.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class CreateNomadModItemProperties {
@@ -17,7 +17,7 @@ public class CreateNomadModItemProperties {
 	public static void registerItemProperties(FMLClientSetupEvent event) {
 		event.enqueueWork(() -> ItemProperties.register(
 				CreateNomadModItems.CHAINSAW.get(),
-				ResourceLocation.fromNamespaceAndPath(CreateNomadMod.MODID, "mining"),
+				new ResourceLocation(CreateNomadMod.MODID, "mining"),
 				CreateNomadModItemProperties::getMiningAnimationPhase));
 	}
 

@@ -30,7 +30,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 
 
 public class ChainsawItem extends AxeItem {
@@ -102,8 +102,8 @@ public class ChainsawItem extends AxeItem {
 
 
 	@Override
-	public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-		super.appendHoverText(stack, context, tooltip, flag);
+	public void appendHoverText(ItemStack stack, Level level, List<Component> tooltip, TooltipFlag flag) {
+		super.appendHoverText(stack, level, tooltip, flag);
 
 		if (Screen.hasShiftDown()) {
 			tooltip.add(Component.translatable("tooltip.create_nomad.chainsaw.description_1").withStyle(ChatFormatting.WHITE));
@@ -244,7 +244,7 @@ public class ChainsawItem extends AxeItem {
 			return false;
 		}
 
-		ItemStack backtank = backtanksWithAir.getFirst();
+		ItemStack backtank = backtanksWithAir.get(0);
 		if (BacktankUtil.getAir(backtank) < airCost) {
 			return false;
 		}

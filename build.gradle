@@ -1,48 +1,52 @@
-plugins {
-    id 'eclipse'
-    id 'net.neoforged.moddev' version '2.0.95'
+buildscript {
+    repositories {
+        maven { url = 'https://maven.minecraftforge.net' }
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:6.0.36'
+    }
 }
 
+plugins {
+    id 'eclipse'
+    id 'idea'
+    id 'maven-publish'
+}
+
+apply plugin: 'net.minecraftforge.gradle'
+
 version = '1.0'
-base.archivesName = "modid"
+base.archivesName = 'modid'
+group = 'net.create_nomad'
 
-apply from: "custom.gradle"
+apply from: 'custom.gradle'
+apply from: 'mcreator.gradle'
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
-neoForge {
-    version = "21.1.190"
+minecraft {
+    mappings channel: 'official', version: '1.20.1'
+    copyIdeResources = true
 
     runs {
-        client {
-            client()
-
-            def mcreatorJvmOptions = System.getenv('MCREATOR_JVM_OPTIONS')
-            if (mcreatorJvmOptions) {
-                mcreatorJvmOptions.split("\\s+").findAll { it.trim() }.each { arg ->
-                    jvmArgument(arg)
+        configureEach {
+            workingDirectory project.file('run')
+            property 'forge.logging.markers', 'REGISTRIES'
+            property 'forge.logging.console.level', 'debug'
+            mods {
+                create_nomad {
+                    source sourceSets.main
                 }
             }
         }
-        server {
-            server()
-        }
 
-        configureEach {
-            systemProperty 'forge.logging.markers', 'REGISTRIES'
-            logLevel = org.slf4j.event.Level.DEBUG
-        }
-    }
-
-    mods {
-        mcreator {
-            sourceSet sourceSets.main
-        }
+        client {}
+        server {}
     }
 }
 
 tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+    options.encoding = 'UTF-8'
 }
-
 apply from: 'mcreator.gradle'

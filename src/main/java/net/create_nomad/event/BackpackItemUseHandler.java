@@ -1,7 +1,7 @@
 package net.create_nomad.event;
 
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.common.NeoForge;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.InteractionHand;

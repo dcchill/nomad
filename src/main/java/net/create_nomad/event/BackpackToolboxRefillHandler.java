@@ -1,9 +1,8 @@
 package net.create_nomad.event;
 
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.EventBusSubscriber;
+import net.minecraftforge.event.tick.PlayerTickEvent;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
@@ -25,7 +24,7 @@ import net.create_nomad.util.BackpackItemAssociations;
 @EventBusSubscriber(modid = CreateNomadMod.MODID)
 public class BackpackToolboxRefillHandler {
     private static final TagKey<Item> BACKPACKS_TAG = TagKey.create(net.minecraft.core.registries.Registries.ITEM,
-            ResourceLocation.fromNamespaceAndPath(CreateNomadMod.MODID, "backpacks"));
+            new ResourceLocation(CreateNomadMod.MODID, "backpacks"));
     private static final String BINDING_TAG = "gearboundBackpackBinding";
     private static final int HOTBAR_SLOTS = 9;
     private static final int REFILL_RADIUS = 32;
@@ -66,7 +65,7 @@ public class BackpackToolboxRefillHandler {
 
             current.grow(extracted.getCount());
             if (player instanceof ServerPlayer serverPlayer)
-                PacketDistributor.sendToPlayer(serverPlayer, new BackpackRefillHighlightMessage(slot, false));
+                CreateNomadMod.sendToPlayer(serverPlayer, new BackpackRefillHighlightMessage(slot, false));
             changed = true;
         }
 

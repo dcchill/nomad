@@ -12,21 +12,17 @@ import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animatable.client.GeoRenderProvider;
 import software.bernie.geckolib.animatable.GeoItem;
 
-import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
-import net.neoforged.neoforge.client.IArmPoseTransformer;
-import net.neoforged.fml.common.asm.enumextension.EnumProxy;
+import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.level.Level;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
@@ -34,6 +30,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.model.HumanoidModel;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.ChatFormatting;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.client.gui.screens.Screen;
@@ -90,8 +87,8 @@ public class HarpoonGunItem extends Item implements GeoItem {
 		});
 	}
 	@Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
+    public void appendHoverText(ItemStack stack, Level level, List<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, level, tooltip, flag);
 
         if (Screen.hasShiftDown()) {
             tooltip.add(Component.translatable("tooltip.create_nomad.backpack.description_1").withStyle(ChatFormatting.WHITE));
@@ -102,13 +99,6 @@ public class HarpoonGunItem extends Item implements GeoItem {
                     .withStyle(ChatFormatting.GRAY));
         }
     }
-	public static final EnumProxy<HumanoidModel.ArmPose> ARM_POSE = new EnumProxy<>(HumanoidModel.ArmPose.class, false, (IArmPoseTransformer) (model, entity, arm) -> {
-		if (arm == HumanoidArm.LEFT) {
-			model.leftArm.xRot = -45F + model.head.xRot;
-		} else {
-			model.rightArm.xRot = -45F + model.head.xRot;
-		}
-	});
 
 	@Override
 	public void initializeClient(Consumer<IClientItemExtensions> consumer) {
@@ -118,7 +108,7 @@ public class HarpoonGunItem extends Item implements GeoItem {
 			public HumanoidModel.ArmPose getArmPose(LivingEntity entityLiving, InteractionHand hand, ItemStack itemStack) {
 				if (!itemStack.isEmpty()) {
 					if (entityLiving.getUsedItemHand() == hand) {
-						return (HumanoidModel.ArmPose) ARM_POSE.getValue();
+						return HumanoidModel.ArmPose.BOW_AND_ARROW;
 					}
 				}
 				return HumanoidModel.ArmPose.EMPTY;
@@ -216,12 +206,7 @@ public class HarpoonGunItem extends Item implements GeoItem {
 
 		if (!level.isClientSide) {
 			int multishot = net.minecraft.world.item.enchantment.EnchantmentHelper
-				.getItemEnchantmentLevel(
-					level.registryAccess()
-						.registryOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT)
-						.getHolderOrThrow(net.minecraft.world.item.enchantment.Enchantments.MULTISHOT),
-					gunStack
-				);
+				.getItemEnchantmentLevel(net.minecraft.world.item.enchantment.Enchantments.MULTISHOT, gunStack);
 
 			int shots = multishot > 0 ? 3 : 1;
 
@@ -244,12 +229,7 @@ public class HarpoonGunItem extends Item implements GeoItem {
 				);
 
 				int powerLevel = net.minecraft.world.item.enchantment.EnchantmentHelper
-					.getItemEnchantmentLevel(
-						level.registryAccess()
-							.registryOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT)
-							.getHolderOrThrow(net.minecraft.world.item.enchantment.Enchantments.POWER),
-						gunStack
-					);
+					.getItemEnchantmentLevel(net.minecraft.world.item.enchantment.Enchantments.POWER, gunStack);
 
 				double damage = SHOT_DAMAGE + (powerLevel * 1.5) + 0.5;
 
@@ -285,30 +265,28 @@ public class HarpoonGunItem extends Item implements GeoItem {
 			return;
 		}
 
-		CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
-			int remaining = Math.max(0, tag.getInt(ACTION_TICKS_TAG) - 1);
-			tag.putInt(ACTION_TICKS_TAG, remaining);
-		});
+		CompoundTag tag = stack.getOrCreateTag();
+		int remaining = Math.max(0, tag.getInt(ACTION_TICKS_TAG) - 1);
+		tag.putInt(ACTION_TICKS_TAG, remaining);
 	}
 
 	public static boolean isLoaded(ItemStack gunStack) {
-		CustomData customData = gunStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
-		if (!customData.copyTag().contains(LOADED_TAG)) {
+		CompoundTag customData = gunStack.getOrCreateTag();
+		if (!customData.contains(LOADED_TAG)) {
 			return true;
 		}
-		return customData.copyTag().getBoolean(LOADED_TAG);
+		return customData.getBoolean(LOADED_TAG);
 	}
 
 	private static int getActionTicks(ItemStack gunStack) {
-		return gunStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getInt(ACTION_TICKS_TAG);
+		return gunStack.getOrCreateTag().getInt(ACTION_TICKS_TAG);
 	}
 
 	private static void setActionState(ItemStack gunStack, boolean loaded, int actionTicks, String animationName) {
-		CustomData.update(DataComponents.CUSTOM_DATA, gunStack, tag -> {
-			tag.putBoolean(LOADED_TAG, loaded);
-			tag.putInt(ACTION_TICKS_TAG, actionTicks);
-			tag.putString(GECKO_ANIM_TAG, animationName);
-		});
+		CompoundTag tag = gunStack.getOrCreateTag();
+		tag.putBoolean(LOADED_TAG, loaded);
+		tag.putInt(ACTION_TICKS_TAG, actionTicks);
+		tag.putString(GECKO_ANIM_TAG, animationName);
 	}
 
 	private static boolean hasAmmo(Player player) {
@@ -360,7 +338,7 @@ public class HarpoonGunItem extends Item implements GeoItem {
 			return false;
 		}
 
-		ItemStack backtank = backtanksWithAir.getFirst();
+		ItemStack backtank = backtanksWithAir.get(0);
 		if (BacktankUtil.getAir(backtank) < airCost) {
 			return false;
 		}

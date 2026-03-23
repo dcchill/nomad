@@ -1,6 +1,5 @@
 package net.create_nomad.util;
 
-import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
@@ -16,10 +15,10 @@ public class BackpackInventorySavedData extends SavedData {
 	private final Map<UUID, CompoundTag> backpacks = new HashMap<>();
 
 	public static BackpackInventorySavedData get(ServerLevel level) {
-		return level.getServer().overworld().getDataStorage().computeIfAbsent(new Factory<>(BackpackInventorySavedData::new, BackpackInventorySavedData::load), DATA_NAME);
+		return level.getServer().overworld().getDataStorage().computeIfAbsent(BackpackInventorySavedData::load, BackpackInventorySavedData::new, DATA_NAME);
 	}
 
-	private static BackpackInventorySavedData load(CompoundTag tag, HolderLookup.Provider lookupProvider) {
+	private static BackpackInventorySavedData load(CompoundTag tag) {
 		BackpackInventorySavedData data = new BackpackInventorySavedData();
 		CompoundTag root = tag.getCompound(ROOT_KEY);
 		for (String key : root.getAllKeys()) {
@@ -33,7 +32,7 @@ public class BackpackInventorySavedData extends SavedData {
 	}
 
 	@Override
-	public CompoundTag save(CompoundTag tag, HolderLookup.Provider lookupProvider) {
+	public CompoundTag save(CompoundTag tag) {
 		CompoundTag root = new CompoundTag();
 		for (Map.Entry<UUID, CompoundTag> entry : backpacks.entrySet()) {
 			root.put(entry.getKey().toString(), entry.getValue().copy());

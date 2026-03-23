@@ -1,46 +1,28 @@
 repositories {
-maven {
-  name = "Illusive Soulworks maven"
-  url = "https://maven.theillusivec4.top/"
+  maven {
+    name = 'Illusive Soulworks maven'
+    url = 'https://maven.theillusivec4.top/'
   }
-}
-
-dependencies {
-  runtimeOnly "top.theillusivec4.curios:curios-neoforge:9.5.1+1.21.1"
-  compileOnly "top.theillusivec4.curios:curios-neoforge:9.5.1+1.21.1:api"
-}
-
-
-repositories {
   maven {
       url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
   }
-}
-
-dependencies {
-  implementation 'software.bernie.geckolib:geckolib-neoforge-1.21.1:4.7.6'
-}
-
-
-repositories {
-  maven {
-    name = "Progwml6's maven"
-    url = "https://dvs1.progwml6.com/files/maven/"
-  }
   maven {
     name = "Jared's maven"
-    url = "https://maven.blamejared.com/"
+    url = 'https://maven.blamejared.com/'
   }
   maven {
-    name = "ModMaven"
-    url = "https://modmaven.dev"
+    name = 'ModMaven'
+    url = 'https://modmaven.dev'
   }
 }
 
 dependencies {
-    compileOnly("mezz.jei:jei-1.21.1-common-api:19.21.0.247")
-    compileOnly("mezz.jei:jei-1.21.1-neoforge-api:19.21.0.247")
-    runtimeOnly("mezz.jei:jei-1.21.1-neoforge:19.21.0.247")
+  implementation fg.deobf('top.theillusivec4.curios:curios-forge:5.3.4+1.20.1')
+  compileOnly fg.deobf('top.theillusivec4.curios:curios-forge:5.3.4+1.20.1:api')
+
+  implementation fg.deobf('software.bernie.geckolib:geckolib-forge-1.20.1:4.7.6')
+
+  compileOnly fg.deobf('mezz.jei:jei-1.20.1-common-api:15.20.0.105')
+  compileOnly fg.deobf('mezz.jei:jei-1.20.1-forge-api:15.20.0.105')
+  runtimeOnly fg.deobf('mezz.jei:jei-1.20.1-forge:15.20.0.105')
 }
-
-

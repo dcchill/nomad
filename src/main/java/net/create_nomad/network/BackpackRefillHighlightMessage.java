@@ -1,54 +1,47 @@
 package net.create_nomad.network;
 
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.PacketFlow;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.network.NetworkEvent;
 
 import net.create_nomad.CreateNomadMod;
 import net.create_nomad.util.BackpackRefillHighlightState;
 
-@EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD)
-public record BackpackRefillHighlightMessage(int slot, boolean fromTrackpack) implements CustomPacketPayload {
-    public static final Type<BackpackRefillHighlightMessage> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(CreateNomadMod.MODID, "backpack_refill_highlight"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, BackpackRefillHighlightMessage> STREAM_CODEC = StreamCodec.of(BackpackRefillHighlightMessage::write, BackpackRefillHighlightMessage::read);
+import java.util.function.Supplier;
 
-    private static void write(FriendlyByteBuf buffer, BackpackRefillHighlightMessage message) {
-        buffer.writeVarInt(message.slot);
-        buffer.writeBoolean(message.fromTrackpack);
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
+public class BackpackRefillHighlightMessage {
+    private final int slot;
+    private final boolean fromTrackpack;
+
+    public BackpackRefillHighlightMessage(int slot, boolean fromTrackpack) {
+        this.slot = slot;
+        this.fromTrackpack = fromTrackpack;
     }
 
-    private static BackpackRefillHighlightMessage read(FriendlyByteBuf buffer) {
-        return new BackpackRefillHighlightMessage(buffer.readVarInt(), buffer.readBoolean());
+    public BackpackRefillHighlightMessage(net.minecraft.network.FriendlyByteBuf buffer) {
+        this(buffer.readVarInt(), buffer.readBoolean());
     }
 
-    @Override
-    public Type<BackpackRefillHighlightMessage> type() {
-        return TYPE;
+    public void buffer(net.minecraft.network.FriendlyByteBuf buffer) {
+        buffer.writeVarInt(slot);
+        buffer.writeBoolean(fromTrackpack);
     }
 
-    public static void handle(final BackpackRefillHighlightMessage message, final IPayloadContext context) {
-        if (context.flow() != PacketFlow.CLIENTBOUND) {
-            return;
-        }
-
+    public static void handler(BackpackRefillHighlightMessage message, Supplier<NetworkEvent.Context> contextSupplier) {
+        NetworkEvent.Context context = contextSupplier.get();
         context.enqueueWork(() -> {
             if (message.fromTrackpack)
                 BackpackRefillHighlightState.markTrackpackSlot(message.slot);
             else
                 BackpackRefillHighlightState.markBackpackSlot(message.slot);
         });
+        context.setPacketHandled(true);
     }
 
     @SubscribeEvent
     public static void registerMessage(FMLCommonSetupEvent event) {
-        CreateNomadMod.addNetworkMessage(TYPE, STREAM_CODEC, BackpackRefillHighlightMessage::handle);
+        event.enqueueWork(() -> CreateNomadMod.addNetworkMessage(BackpackRefillHighlightMessage.class, BackpackRefillHighlightMessage::buffer, BackpackRefillHighlightMessage::new, BackpackRefillHighlightMessage::handler));
     }
 }

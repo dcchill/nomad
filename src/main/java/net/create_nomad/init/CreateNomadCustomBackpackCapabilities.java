@@ -1,10 +1,10 @@
 package net.create_nomad.init;
 
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.items.wrapper.SidedInvWrapper;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.EventBusSubscriber;
+import net.minecraftforge.capabilities.Capabilities;
+import net.minecraftforge.capabilities.RegisterCapabilitiesEvent;
+import net.minecraftforge.items.wrapper.SidedInvWrapper;
 
 import net.minecraft.world.WorldlyContainer;
 
@@ -16,7 +16,7 @@ public class CreateNomadCustomBackpackCapabilities {
 	}
 
 	private static void register(RegisterCapabilitiesEvent event,
-			net.neoforged.neoforge.registries.DeferredHolder<net.minecraft.world.level.block.entity.BlockEntityType<?>, net.minecraft.world.level.block.entity.BlockEntityType<?>> holder) {
+			net.minecraftforge.registries.DeferredHolder<net.minecraft.world.level.block.entity.BlockEntityType<?>, net.minecraft.world.level.block.entity.BlockEntityType<?>> holder) {
 		event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, holder.get(), (blockEntity, side) -> new SidedInvWrapper((WorldlyContainer) blockEntity, side));
 	}
 }

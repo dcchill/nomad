@@ -4,8 +4,8 @@ import top.theillusivec4.curios.api.type.capability.ICurio;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.CuriosCapability;
 
-import net.neoforged.neoforge.registries.DeferredHolder;
-import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.minecraftforge.registries.DeferredHolder;
+import net.minecraftforge.capabilities.RegisterCapabilitiesEvent;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.resources.ResourceLocation;

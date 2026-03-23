@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="[4,)"
+loaderVersion="[47,)"
 license="Not specified"
 
 [[mods]]
@@ -11,22 +11,21 @@ logoFile="logo.png"
 credits="Dcchill"
 authors="Dcchill"
 description="Adds more gadgets and storage to the create mod"
-enumExtensions="META-INF/enumextensions.json"
 
 # Start of user code block mod configuration
 # End of user code block mod configuration
 
 [[dependencies.create_nomad]]
-    modId="neoforge"
+    modId="forge"
     type="required"
-    versionRange="[21.1.190,)"
+    versionRange="[47.2.0,)"
     ordering="AFTER"
     side="BOTH"
 
 [[dependencies.create_nomad]]
     modId="minecraft"
     type="required"
-    versionRange="[1.21.1]"
+    versionRange="[1.20.1]"
     ordering="AFTER"
     side="BOTH"
 

@@ -1,10 +1,9 @@
 package net.create_nomad.event;
 
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.EventBusSubscriber;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -14,7 +13,7 @@ import net.create_nomad.CreateNomadMod;
 
 @EventBusSubscriber(modid = CreateNomadMod.MODID)
 public class BackpackDyeCraftingHandler {
-	private static final TagKey<Item> BACKPACKS_TAG = TagKey.create(net.minecraft.core.registries.Registries.ITEM, ResourceLocation.fromNamespaceAndPath(CreateNomadMod.MODID, "backpacks"));
+	private static final TagKey<Item> BACKPACKS_TAG = TagKey.create(net.minecraft.core.registries.Registries.ITEM, new ResourceLocation(CreateNomadMod.MODID, "backpacks"));
 
 	private BackpackDyeCraftingHandler() {
 	}
@@ -30,11 +29,10 @@ public class BackpackDyeCraftingHandler {
 			if (!ingredientStack.is(BACKPACKS_TAG))
 				continue;
 
-			var customData = ingredientStack.get(DataComponents.CUSTOM_DATA);
-			if (customData == null)
+			if (!ingredientStack.hasTag())
 				continue;
 
-			craftedStack.set(DataComponents.CUSTOM_DATA, customData);
+			craftedStack.setTag(ingredientStack.getTag().copy());
 			return;
 		}
 	}

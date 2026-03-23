@@ -1,17 +1,15 @@
 package net.create_nomad.procedures;
 
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomModelData;
 import net.minecraft.world.phys.Vec3;
 
 import net.create_nomad.init.CreateNomadModItems;
 
 public class GrapplingHookItemInHandTickProcedure {
 
-    private static final CustomModelData FIRED_MODEL_DATA = new CustomModelData(1);
+    private static final String CUSTOM_MODEL_DATA_TAG = "CustomModelData";
 
     public static void execute(Entity entity) {
         if (!(entity instanceof Player player))
@@ -29,17 +27,17 @@ public class GrapplingHookItemInHandTickProcedure {
 
 		if (holdingMain) {
 		    if (grappling) {
-		        mainHand.set(DataComponents.CUSTOM_MODEL_DATA, FIRED_MODEL_DATA);
+		        mainHand.getOrCreateTag().putInt(CUSTOM_MODEL_DATA_TAG, 1);
 		    } else {
-		        mainHand.remove(DataComponents.CUSTOM_MODEL_DATA);
+		        if (mainHand.hasTag()) mainHand.getTag().remove(CUSTOM_MODEL_DATA_TAG);
 		    }
 		}
 		
 		if (holdingOff) {
 		    if (grappling) {
-		        offHand.set(DataComponents.CUSTOM_MODEL_DATA, FIRED_MODEL_DATA);
+		        offHand.getOrCreateTag().putInt(CUSTOM_MODEL_DATA_TAG, 1);
 		    } else {
-		        offHand.remove(DataComponents.CUSTOM_MODEL_DATA);
+		        if (offHand.hasTag()) offHand.getTag().remove(CUSTOM_MODEL_DATA_TAG);
 		    }
 		}
 
@@ -92,9 +90,9 @@ public class GrapplingHookItemInHandTickProcedure {
 
     private static void updateHookModel(ItemStack stack, boolean fired) {
         if (fired) {
-            stack.set(DataComponents.CUSTOM_MODEL_DATA, FIRED_MODEL_DATA);
+            stack.getOrCreateTag().putInt(CUSTOM_MODEL_DATA_TAG, 1);
         } else {
-            stack.remove(DataComponents.CUSTOM_MODEL_DATA);
+            if (stack.hasTag()) stack.getTag().remove(CUSTOM_MODEL_DATA_TAG);
         }
     }
 }

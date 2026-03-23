@@ -128,7 +128,7 @@ public class LimeBrassBackpackBlock extends Block implements EntityBlock {
 
 	private static Item resolveBackpackItem(BlockState state) {
 		ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock());
-		ResourceLocation itemId = ResourceLocation.fromNamespaceAndPath(blockId.getNamespace(), blockId.getPath() + "_item");
+		ResourceLocation itemId = new ResourceLocation(blockId.getNamespace(), blockId.getPath() + "_item");
 		Item item = BuiltInRegistries.ITEM.get(itemId);
 		return item == Items.AIR ? state.getBlock().asItem() : item;
 	}

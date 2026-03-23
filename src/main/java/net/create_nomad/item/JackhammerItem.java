@@ -5,7 +5,6 @@ import com.simibubi.create.content.equipment.armor.BacktankUtil;
 import net.create_nomad.item.renderer.JackhammerItemRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
@@ -17,7 +16,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.PickaxeItem;
 import net.minecraft.world.item.Tier;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -37,23 +35,24 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 
-import java.util.function.Consumer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.world.entity.HumanoidArm;
-import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraft.client.player.LocalPlayer;
 
 import java.util.ArrayDeque;
+import net.minecraft.nbt.CompoundTag;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
 public class JackhammerItem extends PickaxeItem implements GeoItem {
+	private static final String GECKO_ANIM_TAG = "geckoAnim";
 	private static final int MAX_VEIN_BLOCKS = 128;
 	private static final int BACKTANK_AIR_COST_PER_BLOCK = 1;
-	private static final TagKey<Block> C_ORES_TAG = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("c", "ores"));
-	private static final TagKey<Block> FORGE_ORES_TAG = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("forge", "ores"));
+	private static final TagKey<Block> C_ORES_TAG = TagKey.create(Registries.BLOCK, new ResourceLocation("c", "ores"));
+	private static final TagKey<Block> FORGE_ORES_TAG = TagKey.create(Registries.BLOCK, new ResourceLocation("forge", "ores"));
 
 	private static final Tier TOOL_TIER = new Tier() {
 		@Override
@@ -108,8 +107,8 @@ public class JackhammerItem extends PickaxeItem implements GeoItem {
 
 
 	@Override
-	public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-		super.appendHoverText(stack, context, tooltip, flag);
+	public void appendHoverText(ItemStack stack, Level level, List<Component> tooltip, TooltipFlag flag) {
+		super.appendHoverText(stack, level, tooltip, flag);
 
 		if (Screen.hasShiftDown()) {
 			tooltip.add(Component.translatable("tooltip.create_nomad.jackhammer.description_1").withStyle(ChatFormatting.WHITE));
@@ -162,7 +161,7 @@ public class JackhammerItem extends PickaxeItem implements GeoItem {
 
 	@Override
 	public boolean onEntitySwing(ItemStack stack, LivingEntity entity) {
-		CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putString("geckoAnim", "mining"));
+		getOrCreateCustomData(stack).putString(GECKO_ANIM_TAG, "mining");
 		return true;
 	}
 
@@ -284,12 +283,16 @@ public class JackhammerItem extends PickaxeItem implements GeoItem {
 			return false;
 		}
 
-		ItemStack backtank = backtanksWithAir.getFirst();
+		ItemStack backtank = backtanksWithAir.get(0);
 		if (BacktankUtil.getAir(backtank) < airCost) {
 			return false;
 		}
 
 		BacktankUtil.consumeAir(player, backtank, airCost);
 		return true;
+	}
+
+	private static CompoundTag getOrCreateCustomData(ItemStack stack) {
+		return stack.getOrCreateTag();
 	}
 }

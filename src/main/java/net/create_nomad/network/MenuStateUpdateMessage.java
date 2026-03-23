@@ -1,73 +1,70 @@
 package net.create_nomad.network;
 
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.bus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.NetworkEvent;
 
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.network.protocol.PacketFlow;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.client.Minecraft;
 
-import net.create_nomad.init.CreateNomadModScreens;
-import net.create_nomad.init.CreateNomadModMenus;
 import net.create_nomad.CreateNomadMod;
+import net.create_nomad.init.CreateNomadModMenus;
+import net.create_nomad.init.CreateNomadModScreens;
 
-@EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD)
-public record MenuStateUpdateMessage(int elementType, String name, Object elementState) implements CustomPacketPayload {
+import java.util.function.Supplier;
 
-	public static final Type<MenuStateUpdateMessage> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(CreateNomadMod.MODID, "guistate_update"));
-	public static final StreamCodec<RegistryFriendlyByteBuf, MenuStateUpdateMessage> STREAM_CODEC = StreamCodec.of(MenuStateUpdateMessage::write, MenuStateUpdateMessage::read);
-	public static void write(FriendlyByteBuf buffer, MenuStateUpdateMessage message) {
-		buffer.writeInt(message.elementType);
-		buffer.writeUtf(message.name);
-		if (message.elementType == 0) {
-			buffer.writeUtf((String) message.elementState);
-		} else if (message.elementType == 1) {
-			buffer.writeBoolean((boolean) message.elementState);
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
+public class MenuStateUpdateMessage {
+	private final int elementType;
+	private final String name;
+	private final Object elementState;
+
+	public MenuStateUpdateMessage(int elementType, String name, Object elementState) {
+		this.elementType = elementType;
+		this.name = name;
+		this.elementState = elementState;
+	}
+
+	public MenuStateUpdateMessage(net.minecraft.network.FriendlyByteBuf buffer) {
+		this.elementType = buffer.readInt();
+		this.name = buffer.readUtf();
+		this.elementState = this.elementType == 1 ? buffer.readBoolean() : buffer.readUtf();
+	}
+
+	public void buffer(net.minecraft.network.FriendlyByteBuf buffer) {
+		buffer.writeInt(elementType);
+		buffer.writeUtf(name);
+		if (elementType == 1) {
+			buffer.writeBoolean((boolean) elementState);
+		} else {
+			buffer.writeUtf(String.valueOf(elementState));
 		}
 	}
 
-	public static MenuStateUpdateMessage read(FriendlyByteBuf buffer) {
-		int elementType = buffer.readInt();
-		String name = buffer.readUtf();
-		Object elementState = null;
-		if (elementType == 0) {
-			elementState = buffer.readUtf();
-		} else if (elementType == 1) {
-			elementState = buffer.readBoolean();
-		}
-		return new MenuStateUpdateMessage(elementType, name, elementState);
-	}
-
-	@Override
-	public Type<MenuStateUpdateMessage> type() {
-		return TYPE;
-	}
-
-	public static void handleMenuState(final MenuStateUpdateMessage message, final IPayloadContext context) {
-		if (message.name.length() > 256 || message.elementState instanceof String string && string.length() > 8192)
+	public static void handler(MenuStateUpdateMessage message, Supplier<NetworkEvent.Context> contextSupplier) {
+		NetworkEvent.Context context = contextSupplier.get();
+		if (message.name.length() > 256 || message.elementState instanceof String string && string.length() > 8192) {
+			context.setPacketHandled(true);
 			return;
+		}
 		context.enqueueWork(() -> {
-			if (context.player().containerMenu instanceof CreateNomadModMenus.MenuAccessor menu) {
+			if (context.getSender() != null) {
+				if (context.getSender().containerMenu instanceof CreateNomadModMenus.MenuAccessor menu) {
+					menu.getMenuState().put(message.elementType + ":" + message.name, message.elementState);
+				}
+			} else if (Minecraft.getInstance().player != null && Minecraft.getInstance().player.containerMenu instanceof CreateNomadModMenus.MenuAccessor menu) {
 				menu.getMenuState().put(message.elementType + ":" + message.name, message.elementState);
-				if (context.flow() == PacketFlow.CLIENTBOUND && Minecraft.getInstance().screen instanceof CreateNomadModScreens.ScreenAccessor accessor) {
+				if (Minecraft.getInstance().screen instanceof CreateNomadModScreens.ScreenAccessor accessor) {
 					accessor.updateMenuState(message.elementType, message.name, message.elementState);
 				}
 			}
-		}).exceptionally(e -> {
-			context.connection().disconnect(Component.literal(e.getMessage()));
-			return null;
 		});
+		context.setPacketHandled(true);
 	}
 
 	@SubscribeEvent
 	public static void registerMessage(FMLCommonSetupEvent event) {
-		CreateNomadMod.addNetworkMessage(MenuStateUpdateMessage.TYPE, MenuStateUpdateMessage.STREAM_CODEC, MenuStateUpdateMessage::handleMenuState);
+		event.enqueueWork(() -> CreateNomadMod.addNetworkMessage(MenuStateUpdateMessage.class, MenuStateUpdateMessage::buffer, MenuStateUpdateMessage::new, MenuStateUpdateMessage::handler));
 	}
 }

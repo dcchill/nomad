@@ -1,7 +1,6 @@
 package net.create_nomad.item;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -13,7 +12,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.level.Level;
 
@@ -70,8 +68,8 @@ public class TrackPackItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
+    public void appendHoverText(ItemStack stack, Level level, List<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, level, tooltip, flag);
         int count = getStoredCount(stack);
         if (count <= 0) {
             tooltip.add(Component.translatable("tooltip.create_nomad.track_pack.empty").withStyle(ChatFormatting.DARK_GRAY));
@@ -237,15 +235,14 @@ public class TrackPackItem extends Item {
         }
 
         if (tag.isEmpty()) {
-            stack.remove(DataComponents.CUSTOM_DATA);
+            stack.setTag(null);
         } else {
-            stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+            stack.setTag(tag);
         }
     }
 
     private static CompoundTag getDataTag(ItemStack stack) {
-        CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
-        return customData == null ? new CompoundTag() : customData.copyTag();
+        return stack.hasTag() ? stack.getTag().copy() : new CompoundTag();
     }
 
     private static void playInsertSound(Level level, Player player) {

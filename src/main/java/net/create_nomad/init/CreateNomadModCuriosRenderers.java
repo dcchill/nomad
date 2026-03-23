@@ -2,7 +2,7 @@ package net.create_nomad.init;
 
 import top.theillusivec4.curios.api.client.CuriosRendererRegistry;
 
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
 import net.create_nomad.client.renderer.YellowBrassBackpackCuriosRenderer;
 import net.create_nomad.client.renderer.WhiteBrassBackpackCuriosRenderer;

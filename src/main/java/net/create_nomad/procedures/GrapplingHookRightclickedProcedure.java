@@ -1,12 +1,10 @@
 package net.create_nomad.procedures;
 
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomModelData;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
@@ -14,7 +12,7 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
 public class GrapplingHookRightclickedProcedure {
-	private static final CustomModelData FIRED_MODEL_DATA = new CustomModelData(1);
+	private static final String CUSTOM_MODEL_DATA_TAG = "CustomModelData";
 
 	public static boolean execute(Entity entity, ItemStack stack) {
 		if (!(entity instanceof Player player))
@@ -43,7 +41,7 @@ public class GrapplingHookRightclickedProcedure {
 			player.getPersistentData().putDouble("gearbound_anchor_y", target.y);
 			player.getPersistentData().putDouble("gearbound_anchor_z", target.z);
 
-			stack.set(DataComponents.CUSTOM_MODEL_DATA, FIRED_MODEL_DATA);
+			stack.getOrCreateTag().putInt(CUSTOM_MODEL_DATA_TAG, 1);
 
 			// Play whoosh sound
 			level.playSound(
@@ -62,7 +60,7 @@ public class GrapplingHookRightclickedProcedure {
 			player.getPersistentData().putBoolean("gearbound_grappling", false);
 			player.getPersistentData().putDouble("gearbound_grapple_progress", 0.0);
 
-			stack.remove(DataComponents.CUSTOM_MODEL_DATA);
+			if (stack.hasTag()) stack.getTag().remove(CUSTOM_MODEL_DATA_TAG);
 		}
 
 		return false;

@@ -3,10 +3,9 @@ package net.create_nomad.event;
 import net.create_nomad.CreateNomadMod;
 import net.create_nomad.item.TrackPackItem;
 import net.create_nomad.network.BackpackRefillHighlightMessage;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.EventBusSubscriber;
+import net.minecraftforge.event.tick.PlayerTickEvent;
 
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -39,7 +38,7 @@ public class TrackPackRailRefillHandler {
             int moved = refillFromAnyTrackPack(inventory, slot, candidate, needed);
             if (moved > 0) {
                 if (slot < 9 && player instanceof ServerPlayer serverPlayer)
-                    PacketDistributor.sendToPlayer(serverPlayer, new BackpackRefillHighlightMessage(slot, true));
+                    CreateNomadMod.sendToPlayer(serverPlayer, new BackpackRefillHighlightMessage(slot, true));
                 changed = true;
             }
         }

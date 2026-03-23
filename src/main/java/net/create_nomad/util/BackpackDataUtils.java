@@ -1,12 +1,11 @@
 package net.create_nomad.util;
 
-import net.neoforged.neoforge.items.ItemStackHandler;
+import net.minecraftforge.items.ItemStackHandler;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 
 import java.util.UUID;
@@ -41,19 +40,17 @@ public final class BackpackDataUtils {
 		ItemStackHandler handler = new ItemStackHandler(slots);
 		UUID id = getOrCreateBackpackId(stack);
 		CompoundTag inventoryTag = BackpackInventorySavedData.get(level).getInventory(id);
-		handler.deserializeNBT(level.registryAccess(), inventoryTag);
+		handler.deserializeNBT(inventoryTag);
 		return handler;
 	}
 
 	public static void saveHandlerToItem(ItemStackHandler handler, ItemStack stack, ServerLevel level) {
 		UUID id = getOrCreateBackpackId(stack);
-		BackpackInventorySavedData.get(level).setInventory(id, handler.serializeNBT(level.registryAccess()));
+		BackpackInventorySavedData.get(level).setInventory(id, handler.serializeNBT());
 	}
 
 	private static UUID getOrCreateBackpackId(ItemStack stack) {
-		CompoundTag customTag = stack.has(net.minecraft.core.component.DataComponents.CUSTOM_DATA)
-				? stack.get(net.minecraft.core.component.DataComponents.CUSTOM_DATA).copyTag()
-				: new CompoundTag();
+		CompoundTag customTag = stack.getOrCreateTag();
 
 		UUID id;
 		if (customTag.hasUUID(BACKPACK_ID_KEY)) {
@@ -61,7 +58,7 @@ public final class BackpackDataUtils {
 		} else {
 			id = UUID.randomUUID();
 			customTag.putUUID(BACKPACK_ID_KEY, id);
-			stack.set(net.minecraft.core.component.DataComponents.CUSTOM_DATA, CustomData.of(customTag));
+			stack.setTag(customTag);
 		}
 
 		return id;

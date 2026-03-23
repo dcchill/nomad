@@ -26,8 +26,8 @@ public class GrapplingHookItem extends Item {
 	}
 
 	@Override
-	public void appendHoverText(ItemStack itemstack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-		super.appendHoverText(itemstack, context, tooltip, flag);
+	public void appendHoverText(ItemStack itemstack, Level level, List<Component> tooltip, TooltipFlag flag) {
+		super.appendHoverText(itemstack, level, tooltip, flag);
 
 		if (Screen.hasShiftDown()) {
 			tooltip.add(Component.translatable("tooltip.create_nomad.grappling_hook.description_1").withStyle(ChatFormatting.WHITE));
@@ -65,7 +65,7 @@ public class GrapplingHookItem extends Item {
 			return false;
 		}
 
-		ItemStack backtank = backtanksWithAir.getFirst();
+		ItemStack backtank = backtanksWithAir.get(0);
 		if (BacktankUtil.getAir(backtank) < airCost) {
 			return false;
 		}

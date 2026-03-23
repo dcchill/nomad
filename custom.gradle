@@ -3,14 +3,12 @@ repositories {
         dirs 'libs'
     }
 
-    maven { url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/" }
-    maven { url = "https://maven.createmod.net" }
+    maven { url = 'https://maven.createmod.net' }
 }
 
 dependencies {
-    compileOnly name: "create-1.21.1-6.0.6"
-    runtimeOnly name: "create-1.21.1-6.0.6"
+    minecraft 'net.minecraftforge:forge:1.20.1-47.2.0'
 
-    compileOnly "net.createmod.ponder:Ponder-NeoForge-1.21.1:1.0.56"
-    runtimeOnly "net.createmod.ponder:Ponder-NeoForge-1.21.1:1.0.56"
+    implementation fg.deobf('com.simibubi.create:create-1.20.1:6.0.4-86')
+    implementation fg.deobf('net.createmod.ponder:Ponder-Forge-1.20.1:1.0.38')
 }

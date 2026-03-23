@@ -11,17 +11,17 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.common.EventBusSubscriber;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 
 @EventBusSubscriber(modid = "create_nomad", value = Dist.CLIENT)
 public class GrappleRenderer {
 
     private static final ResourceLocation CHAIN_TEXTURE =
-            ResourceLocation.fromNamespaceAndPath("create_nomad", "textures/entities/grapple_chain.png");
+            new ResourceLocation("create_nomad", "textures/entities/grapple_chain.png");
 
     @SubscribeEvent
     public static void onRenderLevel(RenderLevelStageEvent event) {

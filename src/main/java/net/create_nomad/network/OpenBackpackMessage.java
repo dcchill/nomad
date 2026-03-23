@@ -1,50 +1,47 @@
 package net.create_nomad.network;
 
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.bus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.network.NetworkEvent;
 
-import net.minecraft.world.level.Level;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.network.protocol.PacketFlow;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.RegistryFriendlyByteBuf;
 
-import net.create_nomad.procedures.OpenBackpackOnKeyPressedProcedure;
 import net.create_nomad.CreateNomadMod;
+import net.create_nomad.procedures.OpenBackpackOnKeyPressedProcedure;
 
-@EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD)
-public record OpenBackpackMessage(int eventType, int pressedms) implements CustomPacketPayload {
-	public static final Type<OpenBackpackMessage> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(CreateNomadMod.MODID, "key_open_backpack"));
-	public static final StreamCodec<RegistryFriendlyByteBuf, OpenBackpackMessage> STREAM_CODEC = StreamCodec.of((RegistryFriendlyByteBuf buffer, OpenBackpackMessage message) -> {
-		buffer.writeInt(message.eventType);
-		buffer.writeInt(message.pressedms);
-	}, (RegistryFriendlyByteBuf buffer) -> new OpenBackpackMessage(buffer.readInt(), buffer.readInt()));
+import java.util.function.Supplier;
 
-	@Override
-	public Type<OpenBackpackMessage> type() {
-		return TYPE;
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
+public class OpenBackpackMessage {
+	private final int eventType;
+	private final int pressedms;
+
+	public OpenBackpackMessage(int eventType, int pressedms) {
+		this.eventType = eventType;
+		this.pressedms = pressedms;
 	}
 
-	public static void handleData(final OpenBackpackMessage message, final IPayloadContext context) {
-		if (context.flow() == PacketFlow.SERVERBOUND) {
-			context.enqueueWork(() -> {
-				pressAction(context.player(), message.eventType, message.pressedms);
-			}).exceptionally(e -> {
-				context.connection().disconnect(Component.literal(e.getMessage()));
-				return null;
-			});
-		}
+	public OpenBackpackMessage(net.minecraft.network.FriendlyByteBuf buffer) {
+		this(buffer.readInt(), buffer.readInt());
+	}
+
+	public void buffer(net.minecraft.network.FriendlyByteBuf buffer) {
+		buffer.writeInt(eventType);
+		buffer.writeInt(pressedms);
+	}
+
+	public static void handler(OpenBackpackMessage message, Supplier<NetworkEvent.Context> contextSupplier) {
+		NetworkEvent.Context context = contextSupplier.get();
+		context.enqueueWork(() -> pressAction(context.getSender(), message.eventType, message.pressedms));
+		context.setPacketHandled(true);
 	}
 
 	public static void pressAction(Player entity, int type, int pressedms) {
+		if (entity == null) return;
 		Level world = entity.level();
-		// security measure to prevent arbitrary chunk generation
 		if (!world.hasChunkAt(entity.blockPosition()))
 			return;
 		if (type == 0 && entity instanceof ServerPlayer serverPlayer) {
@@ -54,6 +51,6 @@ public record OpenBackpackMessage(int eventType, int pressedms) implements Custo
 
 	@SubscribeEvent
 	public static void registerMessage(FMLCommonSetupEvent event) {
-		CreateNomadMod.addNetworkMessage(OpenBackpackMessage.TYPE, OpenBackpackMessage.STREAM_CODEC, OpenBackpackMessage::handleData);
+		event.enqueueWork(() -> CreateNomadMod.addNetworkMessage(OpenBackpackMessage.class, OpenBackpackMessage::buffer, OpenBackpackMessage::new, OpenBackpackMessage::handler));
 	}
 }

@@ -1,57 +1,62 @@
 package net.create_nomad;
 
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.network.simple.SimpleChannel;
 
-import net.neoforged.neoforge.network.registration.PayloadRegistrar;
-import net.neoforged.neoforge.network.handling.IPayloadHandler;
-import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.event.tick.ServerTickEvent;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.capabilities.EntityCapability;
-import net.neoforged.fml.util.thread.SidedThreadGroups;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.ModList;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.bus.api.IEventBus;
-
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.util.Tuple;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 
-import net.create_nomad.init.CreateNomadModTabs;
-import net.create_nomad.init.CreateNomadModSounds;
-import net.create_nomad.init.CreateNomadModMenus;
-import net.create_nomad.init.CreateNomadModItems;
-import net.create_nomad.init.CreateNomadModEntities;
-import net.create_nomad.init.CreateNomadModCuriosRenderers;
-import net.create_nomad.init.CreateNomadModCuriosCompat;
-import net.create_nomad.init.CreateNomadModBlocks;
 import net.create_nomad.init.CreateNomadModBlockEntities;
+import net.create_nomad.init.CreateNomadModBlocks;
+import net.create_nomad.init.CreateNomadModCuriosCompat;
+import net.create_nomad.init.CreateNomadModCuriosRenderers;
+import net.create_nomad.init.CreateNomadModItems;
+import net.create_nomad.init.CreateNomadModMenus;
+import net.create_nomad.init.CreateNomadModSounds;
+import net.create_nomad.init.CreateNomadModTabs;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.Map;
-import java.util.List;
-import java.util.HashMap;
-import java.util.Collection;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-@Mod("create_nomad")
+@Mod(CreateNomadMod.MODID)
 public class CreateNomadMod {
 	public static final Logger LOGGER = LogManager.getLogger(CreateNomadMod.class);
 	public static final String MODID = "create_nomad";
+	private static final String NETWORK_PROTOCOL = "1";
+	private static final SimpleChannel NETWORK = NetworkRegistry.newSimpleChannel(new ResourceLocation(MODID, "main"), () -> NETWORK_PROTOCOL, NETWORK_PROTOCOL::equals, NETWORK_PROTOCOL::equals);
+	private static final AtomicInteger MESSAGE_ID = new AtomicInteger();
+	private static final Collection<WorkEntry> WORK_QUEUE = new ConcurrentLinkedQueue<>();
+	private static final TagKey<Item> CURIOS_TAG = TagKey.create(net.minecraft.core.registries.Registries.ITEM, new ResourceLocation("curios", "back"));
+
+	public CreateNomadMod() {
+		this(FMLJavaModLoadingContext.get().getModEventBus());
+	}
 
 	public CreateNomadMod(IEventBus modEventBus) {
-		// Start of user code block mod constructor
-		// End of user code block mod constructor
-		NeoForge.EVENT_BUS.register(this);
-		modEventBus.addListener(this::registerNetworking);
+		MinecraftForge.EVENT_BUS.register(this);
 		if (ModList.get().isLoaded("curios")) {
 			modEventBus.addListener(CreateNomadModCuriosCompat::registerCapabilities);
 			modEventBus.addListener(CreateNomadModCuriosRenderers::registerRenderers);
@@ -60,67 +65,59 @@ public class CreateNomadMod {
 		CreateNomadModBlocks.REGISTRY.register(modEventBus);
 		CreateNomadModBlockEntities.REGISTRY.register(modEventBus);
 		CreateNomadModItems.REGISTRY.register(modEventBus);
-		CreateNomadModEntities.REGISTRY.register(modEventBus);
 		CreateNomadModTabs.REGISTRY.register(modEventBus);
-
 		CreateNomadModMenus.REGISTRY.register(modEventBus);
-
-		// Start of user code block mod init
-		// End of user code block mod init
 	}
 
-	// Start of user code block mod methods
-	// End of user code block mod methods
-	private static boolean networkingRegistered = false;
-	private static final Map<CustomPacketPayload.Type<?>, NetworkMessage<?>> MESSAGES = new HashMap<>();
-
-	private record NetworkMessage<T extends CustomPacketPayload>(StreamCodec<? extends FriendlyByteBuf, T> reader, IPayloadHandler<T> handler) {
+	public static <T> void addNetworkMessage(Class<T> type, BiConsumer<T, net.minecraft.network.FriendlyByteBuf> encoder,
+			Function<net.minecraft.network.FriendlyByteBuf, T> decoder,
+			BiConsumer<T, Supplier<net.minecraftforge.network.NetworkEvent.Context>> handler) {
+		NETWORK.registerMessage(MESSAGE_ID.getAndIncrement(), type, encoder, decoder, handler);
 	}
 
-	public static <T extends CustomPacketPayload> void addNetworkMessage(CustomPacketPayload.Type<T> id, StreamCodec<? extends FriendlyByteBuf, T> reader, IPayloadHandler<T> handler) {
-		if (networkingRegistered)
-			throw new IllegalStateException("Cannot register new network messages after networking has been registered");
-		MESSAGES.put(id, new NetworkMessage<>(reader, handler));
+	public static void sendToServer(Object message) {
+		NETWORK.sendToServer(message);
 	}
 
-	@SuppressWarnings({"rawtypes", "unchecked"})
-	private void registerNetworking(final RegisterPayloadHandlersEvent event) {
-		final PayloadRegistrar registrar = event.registrar(MODID);
-		MESSAGES.forEach((id, networkMessage) -> registrar.playBidirectional(id, ((NetworkMessage) networkMessage).reader(), ((NetworkMessage) networkMessage).handler()));
-		networkingRegistered = true;
+	public static void sendToPlayer(net.minecraft.server.level.ServerPlayer player, Object message) {
+		NETWORK.send(PacketDistributor.PLAYER.with(() -> player), message);
 	}
 
-	private static final Collection<Tuple<Runnable, Integer>> workQueue = new ConcurrentLinkedQueue<>();
+	private record WorkEntry(Runnable action, int ticksRemaining) {
+	}
 
 	public static void queueServerWork(int tick, Runnable action) {
-		if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER)
-			workQueue.add(new Tuple<>(action, tick));
+		WORK_QUEUE.add(new WorkEntry(action, tick));
 	}
 
 	@SubscribeEvent
-	public void tick(ServerTickEvent.Post event) {
-		List<Tuple<Runnable, Integer>> actions = new ArrayList<>();
-		workQueue.forEach(work -> {
-			work.setB(work.getB() - 1);
-			if (work.getB() == 0)
-				actions.add(work);
-		});
-		actions.forEach(e -> e.getA().run());
-		workQueue.removeAll(actions);
+	public void tick(TickEvent.ServerTickEvent event) {
+		if (event.phase != TickEvent.Phase.END) {
+			return;
+		}
+		List<WorkEntry> actions = new ArrayList<>();
+		for (WorkEntry work : WORK_QUEUE) {
+			WorkEntry updated = new WorkEntry(work.action(), work.ticksRemaining() - 1);
+			WORK_QUEUE.remove(work);
+			if (updated.ticksRemaining() <= 0) {
+				actions.add(updated);
+			} else {
+				WORK_QUEUE.add(updated);
+			}
+		}
+		actions.forEach(entry -> entry.action().run());
 	}
 
 	public static class CuriosApiHelper {
-		private static final EntityCapability<IItemHandler, Void> CURIOS_INVENTORY = EntityCapability.createVoid(ResourceLocation.fromNamespaceAndPath("curios", "item_handler"), IItemHandler.class);
-
 		public static IItemHandler getCuriosInventory(Player player) {
 			if (ModList.get().isLoaded("curios")) {
-				return player.getCapability(CURIOS_INVENTORY);
+				return top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player).map(handler -> (IItemHandler) handler).orElse(null);
 			}
 			return null;
 		}
 
 		public static boolean isCurioItem(ItemStack itemstack) {
-			return BuiltInRegistries.ITEM.getTagNames().filter(tagKey -> tagKey.location().getNamespace().equals("curios")).anyMatch(itemstack::is);
+			return itemstack.is(CURIOS_TAG);
 		}
 	}
 }

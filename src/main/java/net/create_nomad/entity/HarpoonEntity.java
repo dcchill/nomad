@@ -1,7 +1,7 @@
 package net.create_nomad.entity;
 
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
 
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.Level;
@@ -31,7 +31,8 @@ import javax.annotation.Nullable;
 public class HarpoonEntity extends AbstractArrow implements ItemSupplier {
 	public static final ItemStack PROJECTILE_ITEM = new ItemStack(CreateNomadModItems.HARPOON_ITEM.get());
 	private int knockback = 0;
-	private int remainingPierceHits = 0;
+
+	private int remainingPierceHits = 0;
 
 	public HarpoonEntity(EntityType<? extends HarpoonEntity> type, Level world) {
 		super(type, world);
@@ -40,13 +41,13 @@ public class HarpoonEntity extends AbstractArrow implements ItemSupplier {
 	public HarpoonEntity(EntityType<? extends HarpoonEntity> type, double x, double y, double z, Level world, @Nullable ItemStack firedFromWeapon) {
 		super(type, x, y, z, world, PROJECTILE_ITEM, firedFromWeapon);
 		if (firedFromWeapon != null)
-			setKnockback(EnchantmentHelper.getItemEnchantmentLevel(world.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.KNOCKBACK), firedFromWeapon));
+			setKnockback(EnchantmentHelper.getItemEnchantmentLevel(Enchantments.KNOCKBACK, firedFromWeapon));
 	}
 
 	public HarpoonEntity(EntityType<? extends HarpoonEntity> type, LivingEntity entity, Level world, @Nullable ItemStack firedFromWeapon) {
 		super(type, entity, world, PROJECTILE_ITEM, firedFromWeapon);
 		if (firedFromWeapon != null)
-			setKnockback(EnchantmentHelper.getItemEnchantmentLevel(world.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.KNOCKBACK), firedFromWeapon));
+			setKnockback(EnchantmentHelper.getItemEnchantmentLevel(Enchantments.KNOCKBACK, firedFromWeapon));
 	}
 
 	@Override
@@ -69,11 +70,6 @@ public class HarpoonEntity extends AbstractArrow implements ItemSupplier {
 	public void setKnockback(int knockback) {
 		this.knockback = knockback;
 	}
-	public void setHarpoonPierceLevel(int level) {
-		this.remainingPierceHits = Math.max(0, level);
-	}
-
-
 	@Override
 	protected void doKnockback(LivingEntity livingEntity, DamageSource damageSource) {
 		if (knockback > 0.0) {
@@ -93,35 +89,41 @@ public class HarpoonEntity extends AbstractArrow implements ItemSupplier {
 		if (this.inGround)
 			this.discard();
 	}
-@Override
-	protected void onHitEntity(EntityHitResult result) {
-		if (this.remainingPierceHits > 0) {
-			Vec3 velocityBeforeHit = this.getDeltaMovement();
-			Entity target = result.getEntity();
-			Entity owner = this.getOwner();
-			DamageSource damageSource = this.damageSources().arrow(this, owner == null ? this : owner);
-			boolean hurt = target.hurt(damageSource, (float) this.getBaseDamage());
-			if (hurt && target instanceof LivingEntity livingEntity) {
-				doPostHurtEffects(livingEntity);
-				doKnockback(livingEntity, damageSource);
-			}
-			this.remainingPierceHits--;
-			this.inGround = false;
-			double speed = velocityBeforeHit.length();
-			if (speed > 0.0) {
-				Vec3 newVelocity = velocityBeforeHit.normalize().scale(speed * 0.9);
-				this.setDeltaMovement(newVelocity);
-				this.setPos(this.getX() + newVelocity.x * 0.1, this.getY() + newVelocity.y * 0.1, this.getZ() + newVelocity.z * 0.1);
-			}
-			return;
-		}
-
-		super.onHitEntity(result);
+	public static HarpoonEntity shoot(Level world, LivingEntity entity, RandomSource source) {
+		return shoot(world, entity, source, 2f, 15, 0);
 	}
 
+	public static HarpoonEntity shoot(Level world, LivingEntity entity, RandomSource source, float pullingPower) {
+		return shoot(world, entity, source, pullingPower * 2f, 15, 0);
+	}
 
+	public static HarpoonEntity shoot(Level world, LivingEntity entity, RandomSource random, float power, double damage, int knockback) {
+		HarpoonEntity entityarrow = new HarpoonEntity(CreateNomadModEntities.HARPOON.get(), entity, world, null);
+		entityarrow.shoot(entity.getViewVector(1).x, entity.getViewVector(1).y, entity.getViewVector(1).z, power * 2, 0);
+		entityarrow.setSilent(true);
+		entityarrow.setCritArrow(false);
+		entityarrow.setBaseDamage(damage);
+		entityarrow.setKnockback(knockback);
+		world.addFreshEntity(entityarrow);
+		world.playSound(null, entity.getX(), entity.getY(), entity.getZ(), BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("entity.arrow.shoot")), SoundSource.PLAYERS, 1, 1f / (random.nextFloat() * 0.5f + 1) + (power / 2));
+		return entityarrow;
+	}
 
-
+	public static HarpoonEntity shoot(LivingEntity entity, LivingEntity target) {
+		HarpoonEntity entityarrow = new HarpoonEntity(CreateNomadModEntities.HARPOON.get(), entity, entity.level(), null);
+		double dx = target.getX() - entity.getX();
+		double dy = target.getY() + target.getEyeHeight() - 1.1;
+		double dz = target.getZ() - entity.getZ();
+		entityarrow.shoot(dx, dy - entityarrow.getY() + Math.hypot(dx, dz) * 0.2F, dz, 2f * 2, 12.0F);
+		entityarrow.setSilent(true);
+		entityarrow.setBaseDamage(20);
+		entityarrow.setKnockback(0);
+		entityarrow.setCritArrow(false);
+		entity.level().addFreshEntity(entityarrow);
+		entity.level().playSound(null, entity.getX(), entity.getY(), entity.getZ(), BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("entity.arrow.shoot")), SoundSource.PLAYERS, 1, 1f / (RandomSource.create().nextFloat() * 0.5f + 1));
+		return entityarrow;
+	}
+}
 
 	public static HarpoonEntity shoot(Level world, LivingEntity entity, RandomSource source) {
 		return shoot(world, entity, source, 2f, 15, 0);

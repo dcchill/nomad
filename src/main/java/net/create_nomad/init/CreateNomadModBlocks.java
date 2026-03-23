@@ -3,8 +3,8 @@
  */
 package net.create_nomad.init;
 
-import net.neoforged.neoforge.registries.DeferredRegister;
-import net.neoforged.neoforge.registries.DeferredBlock;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.DeferredBlock;
 
 import net.minecraft.world.level.block.Block;
 
