@@ -10,34 +10,36 @@ import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.core.component.DataComponents;
 
+import net.create_nomad.item.HarpoonGunItem;
 import net.create_nomad.item.JackhammerItem;
 
 @EventBusSubscriber
 public class ItemAnimationFactory {
 	@SubscribeEvent
 	public static void animatedItems(PlayerTickEvent.Post event) {
-		String animation = "";
 		ItemStack mainhandItem = event.getEntity().getMainHandItem().copy();
 		ItemStack offhandItem = event.getEntity().getOffhandItem().copy();
 		if (mainhandItem.getItem() instanceof GeoItem || offhandItem.getItem() instanceof GeoItem) {
-			if (mainhandItem.getItem() instanceof JackhammerItem animatable) {
-				animation = mainhandItem.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getString("geckoAnim");
-				if (!animation.isEmpty()) {
-					CustomData.update(DataComponents.CUSTOM_DATA, event.getEntity().getMainHandItem(), tag -> tag.putString("geckoAnim", ""));
-					if (event.getEntity().level().isClientSide()) {
-						((JackhammerItem) event.getEntity().getMainHandItem().getItem()).animationprocedure = animation;
-					}
-				}
-			}
-			if (offhandItem.getItem() instanceof JackhammerItem animatable) {
-				animation = offhandItem.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getString("geckoAnim");
-				if (!animation.isEmpty()) {
-					CustomData.update(DataComponents.CUSTOM_DATA, event.getEntity().getOffhandItem(), tag -> tag.putString("geckoAnim", ""));
-					if (event.getEntity().level().isClientSide()) {
-						((JackhammerItem) event.getEntity().getOffhandItem().getItem()).animationprocedure = animation;
-					}
-				}
-			}
+			applyAnimation(event.getEntity().getMainHandItem(), mainhandItem, event.getEntity().level().isClientSide());
+			applyAnimation(event.getEntity().getOffhandItem(), offhandItem, event.getEntity().level().isClientSide());
+		}
+	}
+
+	private static void applyAnimation(ItemStack liveStack, ItemStack copiedStack, boolean isClientSide) {
+		String animation = copiedStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getString("geckoAnim");
+		if (animation.isEmpty()) {
+			return;
+		}
+
+		CustomData.update(DataComponents.CUSTOM_DATA, liveStack, tag -> tag.putString("geckoAnim", ""));
+		if (!isClientSide) {
+			return;
+		}
+
+		if (liveStack.getItem() instanceof JackhammerItem jackhammerItem) {
+			jackhammerItem.animationprocedure = animation;
+		} else if (liveStack.getItem() instanceof HarpoonGunItem harpoonGunItem) {
+			harpoonGunItem.animationprocedure = animation;
 		}
 	}
 }
