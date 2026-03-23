@@ -57,6 +57,7 @@ public class HarpoonGunItem extends Item implements GeoItem {
 	private static final int SHOT_PIERCING = 8;
 
 	private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
+	public String animationprocedure = "empty";
 
 	public HarpoonGunItem() {
 		super(new Item.Properties().stacksTo(1).rarity(Rarity.COMMON));
