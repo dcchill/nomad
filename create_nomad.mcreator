@@ -746,6 +746,20 @@
         ]
       },
       "path": "~/harpoon"
+    },
+    {
+      "name": "Toolbelt",
+      "type": "item",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "toolbelt",
+      "metadata": {
+        "files": [
+          "src/main/java/net/create_nomad/item/ToolbeltItem.java",
+          "src/main/resources/assets/create_nomad/models/item/toolbelt.json"
+        ]
+      },
+      "path": "~/belt"
     }
   ],
   "variable_elements": [],
@@ -815,7 +829,8 @@
       "BlueBrassBackpackItem",
       "PurpleBrassBackpackItem",
       "MagentaBrassBackpackItem",
-      "PinkBrassBackpackItem"
+      "PinkBrassBackpackItem",
+      "Toolbelt"
     ]
   },
   "language_map": {
@@ -871,7 +886,8 @@
       "create_nomad.ponder.backpack_auto_hotbar_pg2.header": "Customizing Backpacks",
       "item.create_nomad.harpoon_gun": "Harpoon Gun",
       "item.create_nomad.harpoon_item": "Harpoon",
-      "tooltip.create_nomad.harpoon_gun.description_2": "Uses backtank air to fire a harpoon.  Harpoons are high piercing and reusable projectiles that deal high damage."
+      "tooltip.create_nomad.harpoon_gun.description_2": "Uses backtank air to fire a harpoon.  Harpoons are high piercing and reusable projectiles that deal high damage.",
+      "item.create_nomad.toolbelt": "Toolbelt"
     }
   },
   "metadata": {
@@ -932,6 +948,10 @@
       },
       {
         "name": "harpoon",
+        "children": []
+      },
+      {
+        "name": "belt",
         "children": []
       }
     ]
