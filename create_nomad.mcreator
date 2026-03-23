@@ -760,6 +760,17 @@
         ]
       },
       "path": "~/belt"
+    },
+    {
+      "name": "ToolbeltBauble",
+      "type": "curiosbauble",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "toolbelt_bauble",
+      "metadata": {
+        "files": []
+      },
+      "path": "~/belt"
     }
   ],
   "variable_elements": [],
@@ -902,8 +913,10 @@
       "src/main/resources/META-INF/enumextensions.json",
       "src/main/java/net/create_nomad/utils/AnimUtils.java",
       "src/main/java/net/create_nomad/init/ItemAnimationFactory.java",
+      "src/main/resources/data/create_nomad/curios/slots/belt.json",
       "src/main/java/net/create_nomad/init/CreateNomadModCuriosCompat.java",
       "src/main/resources/data/create_nomad/curios/slots/back.json",
+      "src/main/resources/data/curios/tags/item/belt.json",
       "src/main/resources/data/curios/tags/item/back.json",
       "src/main/java/net/create_nomad/init/CreateNomadModCuriosRenderers.java",
       "src/main/resources/data/create_nomad/curios/entities/slots.json",
