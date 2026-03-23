@@ -189,5 +189,16 @@ public class CreateNomadModCuriosCompat {
 				return new SoundInfo(DeferredHolder.create(Registries.SOUND_EVENT, ResourceLocation.parse("create_nomad:backpack_equip")).value(), 1, 1);
 			}
 		}, CreateNomadModItems.CYAN_BRASS_BACKPACK_ITEM.get());
+		event.registerItem(CuriosCapability.ITEM, (stack, context) -> new ICurio() {
+			@Override
+			public ItemStack getStack() {
+				return stack;
+			}
+
+			@Override
+			public SoundInfo getEquipSound(SlotContext slotContext) {
+				return new SoundInfo(DeferredHolder.create(Registries.SOUND_EVENT, ResourceLocation.parse("create_nomad:backpack_equip")).value(), 1, 1);
+			}
+		}, CreateNomadModItems.TOOLBELT.get());
 	}
 }
