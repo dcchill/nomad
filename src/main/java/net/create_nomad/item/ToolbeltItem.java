@@ -38,13 +38,23 @@ public class ToolbeltItem extends Item {
 		return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
 	}
 
-	public static void openEquippedToolbelt(ServerPlayer serverPlayer) {
-		ItemStack stack = findEquippedToolbelt(serverPlayer);
-		if (stack.isEmpty()) {
+	public static void openPreferredToolbelt(ServerPlayer serverPlayer) {
+		ItemStack mainHand = serverPlayer.getMainHandItem();
+		if (mainHand.getItem() instanceof ToolbeltItem) {
+			openToolbelt(serverPlayer, MAIN_HAND_SOURCE, mainHand.getDisplayName());
 			return;
 		}
 
-		openToolbelt(serverPlayer, EQUIPPED_SOURCE, stack.getDisplayName());
+		ItemStack offHand = serverPlayer.getOffhandItem();
+		if (offHand.getItem() instanceof ToolbeltItem) {
+			openToolbelt(serverPlayer, OFF_HAND_SOURCE, offHand.getDisplayName());
+			return;
+		}
+
+		ItemStack equipped = findEquippedToolbelt(serverPlayer);
+		if (!equipped.isEmpty()) {
+			openToolbelt(serverPlayer, EQUIPPED_SOURCE, equipped.getDisplayName());
+		}
 	}
 
 	private static void openToolbelt(ServerPlayer serverPlayer, byte source, Component displayName) {
