@@ -1,0 +1,9 @@
+{
+  "_fv": 79,
+  "_type": "keybind",
+  "definition": {
+    "triggerKey": "U",
+    "keyBindingName": "Toolbelt Open",
+    "keyBindingCategoryKey": "misc"
+  }
+}

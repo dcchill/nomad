@@ -53,5 +53,6 @@
   "tooltip.create_nomad.harpoon_gun.description_2": "Uses backtank air to fire a harpoon.  Harpoons are high piercing and reusable projectiles that deal high damage.",
   "item.create_nomad.toolbelt": "Toolbelt",
   "gui.create_nomad.toolbelt_gui.label_toolbelt": "Toolbelt",
-  "key.create_nomad.toolbelt_focus": "Toolbelt Focus"
+  "key.create_nomad.toolbelt_focus": "Toolbelt Focus",
+  "key.create_nomad.toolbelt_open": "Toolbelt Open"
 }

@@ -33,11 +33,13 @@ public class CreateNomadModKeyMappings {
 		}
 	};
 	public static final KeyMapping TOOLBELT_FOCUS = new KeyMapping("key.create_nomad.toolbelt_focus", GLFW.GLFW_KEY_LEFT_CONTROL, "key.categories.misc");
+	public static final KeyMapping TOOLBELT_OPEN = new KeyMapping("key.create_nomad.toolbelt_open", GLFW.GLFW_KEY_U, "key.categories.misc");
 
 	@SubscribeEvent
 	public static void registerKeyMappings(RegisterKeyMappingsEvent event) {
 		event.register(OPEN_BACKPACK);
 		event.register(TOOLBELT_FOCUS);
+		event.register(TOOLBELT_OPEN);
 	}
 
 	@EventBusSubscriber({Dist.CLIENT})
