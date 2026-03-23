@@ -44,6 +44,33 @@ public final class ToolbeltUtilityHandler {
 	}
 
 	@SubscribeEvent
+	public static void onRightClickItem(PlayerInteractEvent.RightClickItem event) {
+		if (event.getHand() != InteractionHand.MAIN_HAND || !event.getEntity().getPersistentData().getBoolean(ToolbeltUtilitySelectionMessage.PLAYER_TAG)) {
+			return;
+		}
+
+		ItemStack toolbelt = ToolbeltItem.findEquippedToolbelt(event.getEntity());
+		if (toolbelt.isEmpty()) {
+			return;
+		}
+
+		ItemStack utilityTool = ToolbeltDataUtils.getSelectedStack(toolbelt, event.getEntity().level().registryAccess());
+		if (utilityTool.isEmpty()) {
+			return;
+		}
+
+		var useResult = utilityTool.use(event.getLevel(), event.getEntity(), event.getHand());
+		InteractionResult result = useResult.getResult();
+		if (result.consumesAction()) {
+			ItemStackHandler handler = ToolbeltDataUtils.loadHandler(toolbelt, event.getEntity().level().registryAccess());
+			handler.setStackInSlot(ToolbeltDataUtils.getSelectedSlot(toolbelt), useResult.getObject());
+			ToolbeltDataUtils.saveHandler(toolbelt, handler, event.getEntity().level().registryAccess());
+			event.setCancellationResult(result);
+			event.setCanceled(true);
+		}
+	}
+
+	@SubscribeEvent
 	public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
 		if (event.getHand() != InteractionHand.MAIN_HAND || !event.getEntity().getPersistentData().getBoolean(ToolbeltUtilitySelectionMessage.PLAYER_TAG)) {
 			return;

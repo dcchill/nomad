@@ -40,17 +40,28 @@ public final class ToolbeltHotbarOverlay {
 			return;
 		}
 
-		if (ToolbeltItem.findEquippedToolbelt(minecraft.player).isEmpty()) {
+		ItemStack toolbelt = ToolbeltItem.findEquippedToolbelt(minecraft.player);
+		if (toolbelt.isEmpty()) {
 			setUtilitySelected(false);
 			lastHotbarSlot = minecraft.player.getInventory().selected;
 			return;
 		}
 
+		if (minecraft.screen == null) {
+			while (CreateNomadModKeyMappings.TOOLBELT_FOCUS.consumeClick()) {
+				lastHotbarSlot = minecraft.player.getInventory().selected;
+				setUtilitySelected(true);
+			}
+		}
+
 		int selected = minecraft.player.getInventory().selected;
-		if (lastHotbarSlot != -1 && lastHotbarSlot != selected) {
+		if (utilitySelected && selected != lastHotbarSlot) {
 			setUtilitySelected(false);
 		}
-		lastHotbarSlot = selected;
+
+		if (!utilitySelected) {
+			lastHotbarSlot = selected;
+		}
 	}
 
 	@SubscribeEvent
@@ -71,28 +82,18 @@ public final class ToolbeltHotbarOverlay {
 			return;
 		}
 
+		if (!utilitySelected) {
+			return;
+		}
+
 		if (CreateNomadModKeyMappings.TOOLBELT_FOCUS.isDown()) {
 			cycleToolbeltSelection(toolbelt, delta > 0 ? -1 : 1);
 			event.setCanceled(true);
 			return;
 		}
 
-		int hotbarSlot = player.getInventory().selected;
-		if (!utilitySelected) {
-			if (hotbarSlot == 8 && delta < 0) {
-				setUtilitySelected(true);
-				event.setCanceled(true);
-			} else if (hotbarSlot == 0 && delta > 0) {
-				setUtilitySelected(true);
-				event.setCanceled(true);
-			}
-			return;
-		}
-
 		setUtilitySelected(false);
-		player.getInventory().selected = delta < 0 ? 0 : 8;
 		lastHotbarSlot = player.getInventory().selected;
-		event.setCanceled(true);
 	}
 
 	private static void cycleToolbeltSelection(ItemStack toolbelt, int direction) {
