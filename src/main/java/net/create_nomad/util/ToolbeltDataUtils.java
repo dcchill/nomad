@@ -20,7 +20,7 @@ public final class ToolbeltDataUtils {
         ItemStackHandler handler = new ItemStackHandler(SLOT_COUNT);
         CompoundTag customTag = getCustomTag(stack);
         if (customTag.contains(INVENTORY_KEY, Tag.TAG_COMPOUND)) {
-            handler.deserializeNBT(stack.registryAccess(), customTag.getCompound(INVENTORY_KEY));
+            handler.deserializeNBT(customTag.getCompound(INVENTORY_KEY));
         }
         sanitizeHandler(handler);
         return handler;
@@ -28,7 +28,7 @@ public final class ToolbeltDataUtils {
 
     public static void saveHandler(ItemStack stack, ItemStackHandler handler) {
         sanitizeHandler(handler);
-        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.put(INVENTORY_KEY, handler.serializeNBT(stack.registryAccess())));
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.put(INVENTORY_KEY, handler.serializeNBT()));
     }
 
     public static int getSelectedSlot(ItemStack stack) {
