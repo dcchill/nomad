@@ -1,6 +1,7 @@
 package net.create_nomad.item;
 
 import com.simibubi.create.content.equipment.armor.BacktankUtil;
+import software.bernie.geckolib.animatable.SingletonGeoAnimatable;
 import software.bernie.geckolib.util.GeckoLibUtil;
 import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.animation.PlayState;
@@ -42,8 +43,11 @@ import java.util.List;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 public class HarpoonGunItem extends Item implements GeoItem {
-	private static final String RELOAD_TICKS_TAG = "harpoonReloadTicks";
+	private static final String ACTION_TICKS_TAG = "harpoonActionTicks";
 	private static final String LOADED_TAG = "harpoonLoaded";
+	private static final RawAnimation IDLE_ANIMATION = RawAnimation.begin().thenLoop("idle");
+	private static final RawAnimation RELOAD_ANIMATION = RawAnimation.begin().thenPlay("reload");
+	private static final RawAnimation FIRED_ANIMATION = RawAnimation.begin().thenPlay("fired");
 	private static final int RELOAD_TICKS = 20;
 	private static final int FIRE_COOLDOWN_TICKS = 10;
 	private static final int BACKTANK_AIR_COST_PER_SHOT = 10;
@@ -53,11 +57,10 @@ public class HarpoonGunItem extends Item implements GeoItem {
 	private static final int SHOT_PIERCING = 8;
 
 	private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-	public String animationprocedure = "empty";
-	private boolean loadedForAnimation = true;
 
 	public HarpoonGunItem() {
 		super(new Item.Properties().stacksTo(1).rarity(Rarity.COMMON));
+		SingletonGeoAnimatable.registerSyncedAnimatable(this);
 	}
 
 	@Override
@@ -113,146 +116,140 @@ public class HarpoonGunItem extends Item implements GeoItem {
 	}
 
 	private PlayState idlePredicate(AnimationState event) {
-		if (this.animationprocedure.equals("empty")) {
-			if (this.loadedForAnimation) {
-				event.getController().setAnimation(RawAnimation.begin().thenLoop("idle"));
-			} else {
-				event.getController().setAnimation(RawAnimation.begin().thenLoop("idle_no_harpoon"));
-			}
-			return PlayState.CONTINUE;
-		}
-		return PlayState.STOP;
+		event.getController().setAnimation(IDLE_ANIMATION);
+		return PlayState.CONTINUE;
 	}
 
 	@Override
-public boolean isEnchantable(ItemStack stack) {
-	return true;
-}
-@Override
-public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
-ItemStack gunStack = player.getItemInHand(hand);
-boolean loaded = isLoaded(gunStack);
-
-
-if (player.getCooldowns().isOnCooldown(this)) {
-	return InteractionResultHolder.fail(gunStack);
-}
-
-// Reload
-if (!loaded) {
-	if (!hasAmmo(player)) {
-		return InteractionResultHolder.fail(gunStack);
+	public boolean isEnchantable(ItemStack stack) {
+		return true;
 	}
 
-	if (!level.isClientSide) {
-		consumeAmmo(player);
+	@Override
+	public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+		ItemStack gunStack = player.getItemInHand(hand);
+		boolean loaded = isLoaded(gunStack);
 
-		CustomData.update(DataComponents.CUSTOM_DATA, gunStack, tag -> {
-			tag.putBoolean(LOADED_TAG, true);
-			tag.putString("geckoAnim", "reload");
-			tag.putInt(RELOAD_TICKS_TAG, RELOAD_TICKS);
-		});
-	}
-
-	player.getCooldowns().addCooldown(this, RELOAD_TICKS);
-	return InteractionResultHolder.sidedSuccess(gunStack, level.isClientSide());
-}
-
-// Fire
-if (!tryConsumeBacktankAir(player, BACKTANK_AIR_COST_PER_SHOT)) {
-	return InteractionResultHolder.fail(gunStack);
-}
-
-if (!level.isClientSide) {
-
-		int multishot = net.minecraft.world.item.enchantment.EnchantmentHelper
-			.getItemEnchantmentLevel(
-				level.registryAccess()
-					.registryOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT)
-					.getHolderOrThrow(net.minecraft.world.item.enchantment.Enchantments.MULTISHOT),
-				gunStack
-			);
-
-	int shots = multishot > 0 ? 3 : 1;
-
-	for (int i = 0; i < shots; i++) {
-
-		float spread = 0;
-		if (shots == 3) {
-			spread = (i - 1) * 10f; // -10, 0, +10 degrees
+		if (getActionTicks(gunStack) > 0) {
+			return InteractionResultHolder.fail(gunStack);
 		}
 
-		HarpoonEntity projectile = new HarpoonEntity(
-			net.create_nomad.init.CreateNomadModEntities.HARPOON.get(), player, level, gunStack);
+		// Reload
+		if (!loaded) {
+			if (!hasAmmo(player)) {
+				return InteractionResultHolder.fail(gunStack);
+			}
 
-		projectile.shootFromRotation(
-			player,
-			player.getXRot(),
-			player.getYRot() + spread,
-			0.0F,
-			SHOT_POWER,
-			0.0F
-		);
+			if (!level.isClientSide) {
+				consumeAmmo(player);
 
-		int powerLevel = net.minecraft.world.item.enchantment.EnchantmentHelper
-			.getItemEnchantmentLevel(
-				level.registryAccess()
-					.registryOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT)
-					.getHolderOrThrow(net.minecraft.world.item.enchantment.Enchantments.POWER),
-				gunStack
-			);
+				CustomData.update(DataComponents.CUSTOM_DATA, gunStack, tag -> {
+					tag.putBoolean(LOADED_TAG, true);
+					tag.putInt(ACTION_TICKS_TAG, RELOAD_TICKS);
+				});
 
-		double damage = SHOT_DAMAGE + (powerLevel * 1.5) + 0.5;
+				if (level instanceof ServerLevel serverLevel) {
+					triggerAnim(player, GeoItem.getOrAssignId(gunStack, serverLevel), "reloadController", "reload");
+				}
+			}
 
-		projectile.setBaseDamage(damage);
-		projectile.setKnockback(SHOT_KNOCKBACK);
-		projectile.setHarpoonPierceLevel(SHOT_PIERCING);
-		projectile.pickup = HarpoonEntity.Pickup.DISALLOWED;
+			return InteractionResultHolder.sidedSuccess(gunStack, level.isClientSide());
+		}
 
-		level.addFreshEntity(projectile);
+		// Fire
+		if (!tryConsumeBacktankAir(player, BACKTANK_AIR_COST_PER_SHOT)) {
+			return InteractionResultHolder.fail(gunStack);
+		}
+
+		if (!level.isClientSide) {
+			int multishot = net.minecraft.world.item.enchantment.EnchantmentHelper
+				.getItemEnchantmentLevel(
+					level.registryAccess()
+						.registryOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT)
+						.getHolderOrThrow(net.minecraft.world.item.enchantment.Enchantments.MULTISHOT),
+					gunStack
+				);
+
+			int shots = multishot > 0 ? 3 : 1;
+
+			for (int i = 0; i < shots; i++) {
+				float spread = 0;
+				if (shots == 3) {
+					spread = (i - 1) * 10f; // -10, 0, +10 degrees
+				}
+
+				HarpoonEntity projectile = new HarpoonEntity(
+					net.create_nomad.init.CreateNomadModEntities.HARPOON.get(), player, level, gunStack);
+
+				projectile.shootFromRotation(
+					player,
+					player.getXRot(),
+					player.getYRot() + spread,
+					0.0F,
+					SHOT_POWER,
+					0.0F
+				);
+
+				int powerLevel = net.minecraft.world.item.enchantment.EnchantmentHelper
+					.getItemEnchantmentLevel(
+						level.registryAccess()
+							.registryOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT)
+							.getHolderOrThrow(net.minecraft.world.item.enchantment.Enchantments.POWER),
+						gunStack
+					);
+
+				double damage = SHOT_DAMAGE + (powerLevel * 1.5) + 0.5;
+
+				projectile.setBaseDamage(damage);
+				projectile.setKnockback(SHOT_KNOCKBACK);
+				projectile.setHarpoonPierceLevel(SHOT_PIERCING);
+				projectile.pickup = HarpoonEntity.Pickup.DISALLOWED;
+
+				level.addFreshEntity(projectile);
+			}
+
+			spawnSteamPuff((ServerLevel) level, player);
+		}
+
+		CustomData.update(DataComponents.CUSTOM_DATA, gunStack, tag -> {
+			tag.putBoolean(LOADED_TAG, false);
+			tag.putInt(ACTION_TICKS_TAG, FIRE_COOLDOWN_TICKS);
+		});
+
+		if (level instanceof ServerLevel serverLevel) {
+			triggerAnim(player, GeoItem.getOrAssignId(gunStack, serverLevel), "fireController", "fired");
+		}
+
+		return InteractionResultHolder.sidedSuccess(gunStack, level.isClientSide());
 	}
-
-	spawnSteamPuff((ServerLevel) level, player);
-}
-
-CustomData.update(DataComponents.CUSTOM_DATA, gunStack, tag -> {
-	tag.putString("geckoAnim", "fired");
-	tag.putBoolean(LOADED_TAG, false);
-	tag.putInt(RELOAD_TICKS_TAG, 0);
-});
-
-player.getCooldowns().addCooldown(this, FIRE_COOLDOWN_TICKS);
-
-return InteractionResultHolder.sidedSuccess(gunStack, level.isClientSide());
-
-}
 
 	@Override
 	public void inventoryTick(ItemStack stack, Level level, net.minecraft.world.entity.Entity entity, int slotId, boolean isSelected) {
 		super.inventoryTick(stack, level, entity, slotId, isSelected);
-		if (!(entity instanceof Player player)) {
+		if (!(entity instanceof Player)) {
 			return;
 		}
 
-		this.loadedForAnimation = isLoaded(stack);
-
-		int reloadTicks = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getInt(RELOAD_TICKS_TAG);
-		if (reloadTicks <= 0) {
+		if (level.isClientSide) {
 			return;
 		}
 
 		CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
-			int remaining = Math.max(0, tag.getInt(RELOAD_TICKS_TAG) - 1);
-			tag.putInt(RELOAD_TICKS_TAG, remaining);
+			int remaining = Math.max(0, tag.getInt(ACTION_TICKS_TAG) - 1);
+			tag.putInt(ACTION_TICKS_TAG, remaining);
 		});
 	}
 
-	private static boolean isLoaded(ItemStack gunStack) {
+	public static boolean isLoaded(ItemStack gunStack) {
 		CustomData customData = gunStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
 		if (!customData.copyTag().contains(LOADED_TAG)) {
 			return true;
 		}
 		return customData.copyTag().getBoolean(LOADED_TAG);
+	}
+
+	private static int getActionTicks(ItemStack gunStack) {
+		return gunStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getInt(ACTION_TICKS_TAG);
 	}
 
 	private static boolean hasAmmo(Player player) {
@@ -320,31 +317,17 @@ return InteractionResultHolder.sidedSuccess(gunStack, level.isClientSide());
 		level.sendParticles(ParticleTypes.CLOUD, x, y, z, 10, 0.08, 0.08, 0.08, 0.03);
 	}
 
-	String prevAnim = "empty";
-
-	private PlayState procedurePredicate(AnimationState event) {
-		if (!this.animationprocedure.equals("empty") && event.getController().getAnimationState() == AnimationController.State.STOPPED || (!this.animationprocedure.equals(prevAnim) && !this.animationprocedure.equals("empty"))) {
-			if (!this.animationprocedure.equals(prevAnim))
-				event.getController().forceAnimationReset();
-			event.getController().setAnimation(RawAnimation.begin().thenPlay(this.animationprocedure));
-			if (event.getController().getAnimationState() == AnimationController.State.STOPPED) {
-				this.animationprocedure = "empty";
-				event.getController().forceAnimationReset();
-			}
-		} else if (this.animationprocedure.equals("empty")) {
-			prevAnim = "empty";
-			return PlayState.STOP;
-		}
-		prevAnim = this.animationprocedure;
-		return PlayState.CONTINUE;
-	}
-
 	@Override
 	public void registerControllers(AnimatableManager.ControllerRegistrar data) {
-		AnimationController procedureController = new AnimationController(this, "procedureController", 0, this::procedurePredicate);
-		data.add(procedureController);
 		AnimationController idleController = new AnimationController(this, "idleController", 0, this::idlePredicate);
+		AnimationController reloadController = new AnimationController(this, "reloadController", 0, state -> PlayState.STOP)
+			.triggerableAnim("reload", RELOAD_ANIMATION);
+		AnimationController fireController = new AnimationController(this, "fireController", 0, state -> PlayState.STOP)
+			.triggerableAnim("fired", FIRED_ANIMATION);
+
 		data.add(idleController);
+		data.add(reloadController);
+		data.add(fireController);
 	}
 
 	@Override
