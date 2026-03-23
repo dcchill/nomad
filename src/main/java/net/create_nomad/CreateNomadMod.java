@@ -30,6 +30,7 @@ import net.create_nomad.init.CreateNomadModSounds;
 import net.create_nomad.init.CreateNomadModMenus;
 import net.create_nomad.init.CreateNomadModItems;
 import net.create_nomad.init.CreateNomadModEntities;
+import net.create_nomad.init.CreateNomadModDyedBackpackHooks;
 import net.create_nomad.init.CreateNomadModCuriosRenderers;
 import net.create_nomad.init.CreateNomadModCuriosCompat;
 import net.create_nomad.init.CreateNomadModBlocks;
@@ -62,10 +63,11 @@ public class CreateNomadMod {
 		CreateNomadModItems.REGISTRY.register(modEventBus);
 		CreateNomadModEntities.REGISTRY.register(modEventBus);
 		CreateNomadModTabs.REGISTRY.register(modEventBus);
-
 		CreateNomadModMenus.REGISTRY.register(modEventBus);
-
 		// Start of user code block mod init
+		CreateNomadModDyedBackpackHooks.register(modEventBus);
+		net.create_nomad.init.CreateNomadToolbeltMenu.register(modEventBus);
+		//Needed
 		// End of user code block mod init
 	}
 
