@@ -2,6 +2,7 @@ package net.create_nomad.util;
 
 import net.neoforged.neoforge.items.ItemStackHandler;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -16,19 +17,19 @@ public final class ToolbeltDataUtils {
     private ToolbeltDataUtils() {
     }
 
-    public static ItemStackHandler loadHandler(ItemStack stack) {
+    public static ItemStackHandler loadHandler(ItemStack stack, HolderLookup.Provider lookupProvider) {
         ItemStackHandler handler = new ItemStackHandler(SLOT_COUNT);
         CompoundTag customTag = getCustomTag(stack);
         if (customTag.contains(INVENTORY_KEY, Tag.TAG_COMPOUND)) {
-            handler.deserializeNBT(customTag.getCompound(INVENTORY_KEY));
+            handler.deserializeNBT(lookupProvider, customTag.getCompound(INVENTORY_KEY));
         }
         sanitizeHandler(handler);
         return handler;
     }
 
-    public static void saveHandler(ItemStack stack, ItemStackHandler handler) {
+    public static void saveHandler(ItemStack stack, ItemStackHandler handler, HolderLookup.Provider lookupProvider) {
         sanitizeHandler(handler);
-        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.put(INVENTORY_KEY, handler.serializeNBT()));
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.put(INVENTORY_KEY, handler.serializeNBT(lookupProvider)));
     }
 
     public static int getSelectedSlot(ItemStack stack) {
@@ -45,15 +46,15 @@ public final class ToolbeltDataUtils {
         CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putInt(SELECTED_SLOT_KEY, clamped));
     }
 
-    public static ItemStack getSelectedStack(ItemStack stack) {
-        ItemStackHandler handler = loadHandler(stack);
+    public static ItemStack getSelectedStack(ItemStack stack, HolderLookup.Provider lookupProvider) {
+        ItemStackHandler handler = loadHandler(stack, lookupProvider);
         return handler.getStackInSlot(getSelectedSlot(stack));
     }
 
-    public static void setSelectedStack(ItemStack stack, ItemStack selectedStack) {
-        ItemStackHandler handler = loadHandler(stack);
+    public static void setSelectedStack(ItemStack stack, ItemStack selectedStack, HolderLookup.Provider lookupProvider) {
+        ItemStackHandler handler = loadHandler(stack, lookupProvider);
         handler.setStackInSlot(getSelectedSlot(stack), selectedStack);
-        saveHandler(stack, handler);
+        saveHandler(stack, handler, lookupProvider);
     }
 
     public static void sanitizeHandler(ItemStackHandler handler) {

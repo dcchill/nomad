@@ -27,7 +27,7 @@ public final class ToolbeltUtilityHandler {
             return;
         }
 
-        ItemStack utilityTool = ToolbeltDataUtils.getSelectedStack(toolbelt);
+        ItemStack utilityTool = ToolbeltDataUtils.getSelectedStack(toolbelt, event.getEntity().level().registryAccess());
         if (utilityTool.isEmpty()) {
             return;
         }
@@ -51,7 +51,7 @@ public final class ToolbeltUtilityHandler {
             return;
         }
 
-        ItemStack utilityTool = ToolbeltDataUtils.getSelectedStack(toolbelt);
+        ItemStack utilityTool = ToolbeltDataUtils.getSelectedStack(toolbelt, event.getEntity().level().registryAccess());
         if (utilityTool.isEmpty()) {
             return;
         }
@@ -59,9 +59,9 @@ public final class ToolbeltUtilityHandler {
         UseOnContext context = new UseOnContext(event.getEntity(), event.getHand(), event.getHitVec());
         InteractionResult result = utilityTool.useOn(context);
         if (result.consumesAction()) {
-            ItemStackHandler handler = ToolbeltDataUtils.loadHandler(toolbelt);
+            ItemStackHandler handler = ToolbeltDataUtils.loadHandler(toolbelt, event.getEntity().level().registryAccess());
             handler.setStackInSlot(ToolbeltDataUtils.getSelectedSlot(toolbelt), utilityTool);
-            ToolbeltDataUtils.saveHandler(toolbelt, handler);
+            ToolbeltDataUtils.saveHandler(toolbelt, handler, event.getEntity().level().registryAccess());
             event.setCancellationResult(result);
             event.setCanceled(true);
         }

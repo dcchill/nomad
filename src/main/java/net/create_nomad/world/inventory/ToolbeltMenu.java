@@ -10,7 +10,7 @@ import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-import net.create_nomad.init.CreateNomadModMenus;
+import net.create_nomad.init.CreateNomadToolbeltMenu;
 import net.create_nomad.util.ToolbeltDataUtils;
 import net.create_nomad.util.ToolbeltInventoryRules;
 
@@ -21,11 +21,11 @@ public class ToolbeltMenu extends AbstractContainerMenu {
     private final ItemStackHandler internal;
 
     public ToolbeltMenu(int id, Inventory inventory, int handSlotIndex) {
-        super(CreateNomadModMenus.TOOLBELT_MENU.get(), id);
+        super(CreateNomadToolbeltMenu.TOOLBELT_MENU.get(), id);
         this.player = inventory.player;
         this.handSlotIndex = handSlotIndex;
         this.boundStack = inventory.getItem(handSlotIndex);
-        this.internal = ToolbeltDataUtils.loadHandler(boundStack);
+        this.internal = ToolbeltDataUtils.loadHandler(boundStack, this.player.level().registryAccess());
 
         for (int slot = 0; slot < ToolbeltDataUtils.SLOT_COUNT; slot++) {
             final int index = slot;
@@ -49,7 +49,7 @@ public class ToolbeltMenu extends AbstractContainerMenu {
                 public void setChanged() {
                     super.setChanged();
                     if (!boundStack.isEmpty()) {
-                        ToolbeltDataUtils.saveHandler(boundStack, internal);
+                        ToolbeltDataUtils.saveHandler(boundStack, internal, ToolbeltMenu.this.player.level().registryAccess());
                         if (ToolbeltDataUtils.getSelectedSlot(boundStack) == index && !ToolbeltInventoryRules.canStoreInToolbelt(getItem())) {
                             ToolbeltDataUtils.setSelectedSlot(boundStack, 0);
                         }
@@ -123,7 +123,7 @@ public class ToolbeltMenu extends AbstractContainerMenu {
     public void removed(Player player) {
         super.removed(player);
         if (!boundStack.isEmpty()) {
-            ToolbeltDataUtils.saveHandler(boundStack, internal);
+            ToolbeltDataUtils.saveHandler(boundStack, internal, player.level().registryAccess());
         }
     }
 }
