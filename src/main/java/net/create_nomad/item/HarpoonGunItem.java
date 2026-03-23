@@ -33,6 +33,11 @@ import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.model.HumanoidModel;
 
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.client.gui.screens.Screen;
+
 import net.create_nomad.init.CreateNomadModItems;
 import net.create_nomad.entity.HarpoonEntity;
 import net.create_nomad.item.renderer.HarpoonGunItemRenderer;
@@ -51,11 +56,11 @@ public class HarpoonGunItem extends Item implements GeoItem {
 	private static final RawAnimation FIRED_ANIMATION = RawAnimation.begin().thenPlay("fired");
 	private static final int RELOAD_TICKS = 20;
 	private static final int FIRE_COOLDOWN_TICKS = 10;
-	private static final int BACKTANK_AIR_COST_PER_SHOT = 10;
+	private static final int BACKTANK_AIR_COST_PER_SHOT = 5;
 	private static final float SHOT_POWER = 3.8f;
-	private static final double SHOT_DAMAGE = 6;
+	private static final double SHOT_DAMAGE = 15;
 	private static final int SHOT_KNOCKBACK = 0;
-	private static final int SHOT_PIERCING = 8;
+	private static final int SHOT_PIERCING = 20;
 
 	private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 	public String animationprocedure = "empty";
@@ -84,7 +89,19 @@ public class HarpoonGunItem extends Item implements GeoItem {
 			}
 		});
 	}
+	@Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, tooltip, flag);
 
+        if (Screen.hasShiftDown()) {
+            tooltip.add(Component.translatable("tooltip.create_nomad.backpack.description_1").withStyle(ChatFormatting.WHITE));
+            tooltip.add(Component.translatable("tooltip.create_nomad.harpoon_gun.description_2").withStyle(ChatFormatting.GOLD));
+        } else {
+            tooltip.add(Component.translatable("tooltip.create_nomad.shift_for_info",
+                    Component.translatable("key.keyboard.left.shift").withStyle(ChatFormatting.YELLOW))
+                    .withStyle(ChatFormatting.GRAY));
+        }
+    }
 	public static final EnumProxy<HumanoidModel.ArmPose> ARM_POSE = new EnumProxy<>(HumanoidModel.ArmPose.class, false, (IArmPoseTransformer) (model, entity, arm) -> {
 		if (arm == HumanoidArm.LEFT) {
 			model.leftArm.xRot = -45F + model.head.xRot;

@@ -49,5 +49,6 @@
   "item.create_nomad.brown_brass_backpack": "Brown Brass Backpack",
   "create_nomad.ponder.backpack_auto_hotbar_pg2.header": "Customizing Backpacks",
   "item.create_nomad.harpoon_gun": "Harpoon Gun",
-  "item.create_nomad.harpoon_item": "Harpoon"
+  "item.create_nomad.harpoon_item": "Harpoon",
+  "tooltip.create_nomad.harpoon_gun.description_2": "Uses backtank air to fire a harpoon.  Harpoons are high piercing and reusable projectiles that deal high damage."
 }
