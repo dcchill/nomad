@@ -45,6 +45,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 public class HarpoonGunItem extends Item implements GeoItem {
 	private static final String ACTION_TICKS_TAG = "harpoonActionTicks";
 	private static final String LOADED_TAG = "harpoonLoaded";
+	private static final String GECKO_ANIM_TAG = "geckoAnim";
 	private static final RawAnimation IDLE_ANIMATION = RawAnimation.begin().thenLoop("idle");
 	private static final RawAnimation RELOAD_ANIMATION = RawAnimation.begin().thenPlay("reload");
 	private static final RawAnimation FIRED_ANIMATION = RawAnimation.begin().thenPlay("fired");
@@ -58,6 +59,7 @@ public class HarpoonGunItem extends Item implements GeoItem {
 
 	private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 	public String animationprocedure = "empty";
+	private String previousAnimation = "empty";
 
 	public HarpoonGunItem() {
 		super(new Item.Properties().stacksTo(1).rarity(Rarity.COMMON));
@@ -117,8 +119,45 @@ public class HarpoonGunItem extends Item implements GeoItem {
 	}
 
 	private PlayState idlePredicate(AnimationState event) {
-		event.getController().setAnimation(IDLE_ANIMATION);
+		if (this.animationprocedure.equals("empty")) {
+			event.getController().setAnimation(IDLE_ANIMATION);
+			return PlayState.CONTINUE;
+		}
+		return PlayState.STOP;
+	}
+
+	private PlayState procedurePredicate(AnimationState event) {
+		boolean hasActiveAnimation = !this.animationprocedure.equals("empty");
+		boolean animationChanged = !this.animationprocedure.equals(this.previousAnimation);
+		boolean controllerStopped = event.getController().getAnimationState() == AnimationController.State.STOPPED;
+
+		if (hasActiveAnimation && (controllerStopped || animationChanged)) {
+			if (animationChanged) {
+				event.getController().forceAnimationReset();
+			}
+			event.getController().setAnimation(getProcedureAnimation(this.animationprocedure));
+		} else if (!hasActiveAnimation) {
+			this.previousAnimation = "empty";
+			return PlayState.STOP;
+		}
+
+		if (controllerStopped) {
+			this.animationprocedure = "empty";
+			event.getController().forceAnimationReset();
+			this.previousAnimation = "empty";
+			return PlayState.STOP;
+		}
+
+		this.previousAnimation = this.animationprocedure;
 		return PlayState.CONTINUE;
+	}
+
+	private static RawAnimation getProcedureAnimation(String animationName) {
+		return switch (animationName) {
+			case "reload" -> RELOAD_ANIMATION;
+			case "fired" -> FIRED_ANIMATION;
+			default -> RawAnimation.begin().thenPlay(animationName);
+		};
 	}
 
 	@Override
@@ -131,11 +170,10 @@ public class HarpoonGunItem extends Item implements GeoItem {
 		ItemStack gunStack = player.getItemInHand(hand);
 		boolean loaded = isLoaded(gunStack);
 
-		if (getActionTicks(gunStack) > 0) {
+		if (getActionTicks(gunStack) > 0 || player.getCooldowns().isOnCooldown(this)) {
 			return InteractionResultHolder.fail(gunStack);
 		}
 
-		// Reload
 		if (!loaded) {
 			if (!hasAmmo(player)) {
 				return InteractionResultHolder.fail(gunStack);
@@ -143,21 +181,18 @@ public class HarpoonGunItem extends Item implements GeoItem {
 
 			if (!level.isClientSide) {
 				consumeAmmo(player);
+			}
 
-				CustomData.update(DataComponents.CUSTOM_DATA, gunStack, tag -> {
-					tag.putBoolean(LOADED_TAG, true);
-					tag.putInt(ACTION_TICKS_TAG, RELOAD_TICKS);
-				});
+			setActionState(gunStack, true, RELOAD_TICKS, "reload");
+			player.getCooldowns().addCooldown(this, RELOAD_TICKS);
 
-				if (level instanceof ServerLevel serverLevel) {
-					triggerAnim(player, GeoItem.getOrAssignId(gunStack, serverLevel), "reloadController", "reload");
-				}
+			if (level instanceof ServerLevel serverLevel) {
+				triggerAnim(player, GeoItem.getOrAssignId(gunStack, serverLevel), "procedureController", "reload");
 			}
 
 			return InteractionResultHolder.sidedSuccess(gunStack, level.isClientSide());
 		}
 
-		// Fire
 		if (!tryConsumeBacktankAir(player, BACKTANK_AIR_COST_PER_SHOT)) {
 			return InteractionResultHolder.fail(gunStack);
 		}
@@ -176,7 +211,7 @@ public class HarpoonGunItem extends Item implements GeoItem {
 			for (int i = 0; i < shots; i++) {
 				float spread = 0;
 				if (shots == 3) {
-					spread = (i - 1) * 10f; // -10, 0, +10 degrees
+					spread = (i - 1) * 10f;
 				}
 
 				HarpoonEntity projectile = new HarpoonEntity(
@@ -212,13 +247,11 @@ public class HarpoonGunItem extends Item implements GeoItem {
 			spawnSteamPuff((ServerLevel) level, player);
 		}
 
-		CustomData.update(DataComponents.CUSTOM_DATA, gunStack, tag -> {
-			tag.putBoolean(LOADED_TAG, false);
-			tag.putInt(ACTION_TICKS_TAG, FIRE_COOLDOWN_TICKS);
-		});
+		setActionState(gunStack, false, FIRE_COOLDOWN_TICKS, "fired");
+		player.getCooldowns().addCooldown(this, FIRE_COOLDOWN_TICKS);
 
 		if (level instanceof ServerLevel serverLevel) {
-			triggerAnim(player, GeoItem.getOrAssignId(gunStack, serverLevel), "fireController", "fired");
+			triggerAnim(player, GeoItem.getOrAssignId(gunStack, serverLevel), "procedureController", "fired");
 		}
 
 		return InteractionResultHolder.sidedSuccess(gunStack, level.isClientSide());
@@ -251,6 +284,14 @@ public class HarpoonGunItem extends Item implements GeoItem {
 
 	private static int getActionTicks(ItemStack gunStack) {
 		return gunStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getInt(ACTION_TICKS_TAG);
+	}
+
+	private static void setActionState(ItemStack gunStack, boolean loaded, int actionTicks, String animationName) {
+		CustomData.update(DataComponents.CUSTOM_DATA, gunStack, tag -> {
+			tag.putBoolean(LOADED_TAG, loaded);
+			tag.putInt(ACTION_TICKS_TAG, actionTicks);
+			tag.putString(GECKO_ANIM_TAG, animationName);
+		});
 	}
 
 	private static boolean hasAmmo(Player player) {
@@ -321,14 +362,12 @@ public class HarpoonGunItem extends Item implements GeoItem {
 	@Override
 	public void registerControllers(AnimatableManager.ControllerRegistrar data) {
 		AnimationController idleController = new AnimationController(this, "idleController", 0, this::idlePredicate);
-		AnimationController reloadController = new AnimationController(this, "reloadController", 0, state -> PlayState.STOP)
-			.triggerableAnim("reload", RELOAD_ANIMATION);
-		AnimationController fireController = new AnimationController(this, "fireController", 0, state -> PlayState.STOP)
+		AnimationController procedureController = new AnimationController(this, "procedureController", 0, this::procedurePredicate)
+			.triggerableAnim("reload", RELOAD_ANIMATION)
 			.triggerableAnim("fired", FIRED_ANIMATION);
 
 		data.add(idleController);
-		data.add(reloadController);
-		data.add(fireController);
+		data.add(procedureController);
 	}
 
 	@Override
