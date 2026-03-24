@@ -2,9 +2,15 @@ package net.create_nomad.client.gui;
 
 import net.minecraft.world.level.Level;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.GuiGraphics;
 
@@ -41,7 +47,10 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
 	@Override
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		super.render(guiGraphics, mouseX, mouseY, partialTicks);
-		this.renderTooltip(guiGraphics, mouseX, mouseY);
+		ItemStack previewStack = this.getHoveredCabinetSchematic();
+		if (previewStack.isEmpty()) {
+			this.renderTooltip(guiGraphics, mouseX, mouseY);
+		}
 	}
 
 	@Override
@@ -64,7 +73,76 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
 
 	@Override
 	protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-		guiGraphics.drawString(this.font, Component.translatable("gui.create_nomad.filing_cabinet_gui.label_schematic_placeholder"), 78, 70, -12829636, false);
+		ItemStack previewStack = this.getHoveredCabinetSchematic();
+		if (previewStack.isEmpty()) {
+			return;
+		}
+		CompoundTag schematicData = previewStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+
+		guiGraphics.drawString(this.font, Component.literal("Schematic Structure"), 78, 52, -12829636, false);
+		renderSchematicNbtLines(guiGraphics, schematicData, 78, 64, -12829636);
+	}
+
+	private void renderSchematicNbtLines(GuiGraphics guiGraphics, CompoundTag nbt, int x, int y, int color) {
+		if (nbt.isEmpty()) {
+			guiGraphics.drawString(this.font, Component.literal("No schematic data"), x, y, color, false);
+			return;
+		}
+
+		String sizeLine = this.extractSizeLine(nbt);
+		if (sizeLine != null)
+			guiGraphics.drawString(this.font, Component.literal(sizeLine), x, y, color, false);
+
+		String sourceLine = this.extractSourceLine(nbt);
+		if (sourceLine != null)
+			guiGraphics.drawString(this.font, Component.literal(sourceLine), x, y + 10, color, false);
+
+		String blocksLine = this.extractBlocksLine(nbt);
+		if (blocksLine != null)
+			guiGraphics.drawString(this.font, Component.literal(blocksLine), x, y + 20, color, false);
+	}
+
+	private String extractSizeLine(CompoundTag nbt) {
+		int width = resolveInt(nbt, "width", "Width", "sizeX", "SizeX");
+		int height = resolveInt(nbt, "height", "Height", "sizeY", "SizeY");
+		int depth = resolveInt(nbt, "length", "Length", "sizeZ", "SizeZ", "depth", "Depth");
+		if (width > 0 && height > 0 && depth > 0)
+			return "Size: " + width + "x" + height + "x" + depth;
+		return null;
+	}
+
+	private String extractSourceLine(CompoundTag nbt) {
+		for (String key : new String[] {"File", "file", "Schematic", "schematic", "Name", "name"}) {
+			if (nbt.contains(key)) {
+				String value = nbt.getString(key);
+				if (!value.isBlank())
+					return "Source: " + value;
+			}
+		}
+		return null;
+	}
+
+	private String extractBlocksLine(CompoundTag nbt) {
+		for (String key : new String[] {"blocks", "Blocks", "palette", "Palette"}) {
+			if (nbt.contains(key) && nbt.get(key) instanceof ListTag listTag)
+				return "Entries: " + listTag.size();
+		}
+		return null;
+	}
+
+	private int resolveInt(CompoundTag tag, String... keys) {
+		for (String key : keys) {
+			if (tag.contains(key))
+				return tag.getInt(key);
+		}
+		return 0;
+	}
+
+	private ItemStack getHoveredCabinetSchematic() {
+		Slot slot = this.hoveredSlot;
+		if (slot == null || !slot.hasItem() || slot.index < 0 || slot.index >= 16)
+			return ItemStack.EMPTY;
+		return slot.getItem();
 	}
 
 	@Override
