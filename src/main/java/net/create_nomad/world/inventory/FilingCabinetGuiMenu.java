@@ -94,19 +94,40 @@ public class FilingCabinetGuiMenu extends AbstractContainerMenu implements Creat
 				}
 			}
 		}
+//offest FIX
+for (int row = 0; row < 4; row++) {
+	for (int col = 0; col < 4; col++) {
+		int slotIndex = row * 4 + col;
 
-		for (int row = 0; row < 4; row++) {
-			for (int col = 0; col < 4; col++) {
-				int slotIndex = row * 4 + col;
-				this.customSlots.put(slotIndex, this.addSlot(createSchematicSlot(slotIndex, 7 + col * 18, 8 + row * 18)));
-			}
-		}
+		this.customSlots.put(slotIndex,
+				this.addSlot(createSchematicSlot(
+						slotIndex,
+						104 + col * 18,
+						20 + row * 18
+				))
+		);
+	}
+}
 
-		for (int si = 0; si < 3; ++si)
-			for (int sj = 0; sj < 9; ++sj)
-				this.addSlot(new Slot(inv, sj + (si + 1) * 9, 8 + sj * 18, 84 + si * 18));
-		for (int si = 0; si < 9; ++si)
-			this.addSlot(new Slot(inv, si, 8 + si * 18, 142));
+// Player inventory
+for (int row = 0; row < 3; ++row) {
+	for (int col = 0; col < 9; ++col) {
+		this.addSlot(new Slot(inv,
+				col + (row + 1) * 9,
+				14 + col * 18,
+				100 + row * 18
+		));
+	}
+}
+
+// Hotbar
+for (int col = 0; col < 9; ++col) {
+	this.addSlot(new Slot(inv,
+			col,
+			14 + col * 18,
+			158
+	));
+}
 	}
 
 	private SlotItemHandler createSchematicSlot(int slotIndex, int slotX, int slotY) {

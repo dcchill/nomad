@@ -41,9 +41,8 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
 		this.z = container.z;
 		this.entity = container.entity;
 
-		// ⚠️ IMPORTANT: match this to your texture size
-		this.imageWidth = 176;
-		this.imageHeight = 166;
+		this.imageWidth = 188;
+		this.imageHeight = 182;
 	}
 
 	@Override
@@ -59,8 +58,8 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
 
 		ItemStack stack = getHoveredCabinetSchematic();
 
-		// Always render preview panel
-		renderPreviewPanel(guiGraphics, stack, partialTicks);
+		// render inside texture box
+		renderPreviewInBox(guiGraphics, stack, partialTicks);
 
 		this.renderTooltip(guiGraphics, mouseX, mouseY);
 	}
@@ -69,84 +68,86 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
 	protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
 		RenderSystem.setShaderColor(1, 1, 1, 1);
 
-		// ✅ If your texture is actually 352x332, change imageWidth/Height instead
-		guiGraphics.blit(
-				texture,
-				this.leftPos,
-				this.topPos,
-				0, 0,
-				this.imageWidth,
-				this.imageHeight,
-				this.imageWidth,
-				this.imageHeight
-		);
+		guiGraphics.blit(texture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
 	}
 
 	// =========================
-	// PREVIEW PANEL
+	// PREVIEW BOX
 	// =========================
 
-		private void renderPreviewPanel(GuiGraphics guiGraphics, ItemStack stack, float partialTicks) {
-		
-			// anchor STRICTLY to GUI
-			int panelX = this.leftPos + this.imageWidth + 4;
-			int panelY = this.topPos + 6;
-		
-			int width = 100;
-			int height = 100;
-		
-			// border
-			guiGraphics.fill(panelX - 1, panelY - 1, panelX + width + 1, panelY + height + 1, 0xFF555555);
-		
-			// background
-			guiGraphics.fill(panelX, panelY, panelX + width, panelY + height, 0xCC1E1E1E);
-		
-			if (!stack.isEmpty()) {
-				render3DSchematic(guiGraphics, stack, panelX, panelY, width, height, partialTicks);
-			} else {
-				guiGraphics.drawString(
-						this.font,
-						Component.literal("No schematic"),
-						panelX + 8,
-						panelY + height / 2 - 4,
-						0xAAAAAA,
-						false
-				);
-			}
-		}
+	private void renderPreviewInBox(GuiGraphics guiGraphics, ItemStack stack, float partialTicks) {
 
+		int boxX = this.leftPos + 14;
+		int boxY = this.topPos + 19;
+
+		int boxW = 72;
+		int boxH = 72;
+
+		if (stack.isEmpty()) return;
+
+		render3DSchematic(guiGraphics, stack, boxX, boxY, boxW, boxH, partialTicks);
+	}
+	//render labels
+	@Override
+	protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+
+    // Filing Cabinet title
+    guiGraphics.drawString(
+            this.font,
+            this.title,
+            5,
+            4,
+            4210752,
+            false
+    );
+	}
 	// =========================
 	// 3D RENDER (NBT BASED)
 	// =========================
 
-	private void render3DSchematic(GuiGraphics guiGraphics, ItemStack stack,
-								  int x, int y, int width, int height, float partialTicks) {
-
-		String file = extractSchematicFile(stack);
-		if (file.isBlank()) return;
-
-		SchematicData data = loadRawSchematic(file);
-		if (data == null) return;
-
-		var mc = Minecraft.getInstance();
-		var pose = guiGraphics.pose();
-
-		pose.pushPose();
-
-		pose.translate(x + width / 2f, y + height / 2f, 200);
-
-		float scale = Math.min(width, height) / 25f;
-		pose.scale(scale, -scale, scale);
-
-		pose.mulPose(Axis.XP.rotationDegrees(30));
-		pose.mulPose(Axis.YP.rotationDegrees((mc.level.getGameTime() * 0.3f % 360)));
-
-		pose.translate(-data.width / 2f, 0, -data.depth / 2f);
-
-		renderBlocksFromNBT(data, pose);
-
-		pose.popPose();
-	}
+		private void render3DSchematic(GuiGraphics guiGraphics, ItemStack stack,
+		                              int x, int y, int width, int height, float partialTicks) {
+		
+		    String file = extractSchematicFile(stack);
+		    if (file.isBlank()) return;
+		
+		    SchematicData data = loadRawSchematic(file);
+		    if (data == null) return;
+		
+		    var mc = Minecraft.getInstance();
+		    var pose = guiGraphics.pose();
+		
+		    // 🔒 CLIP TO BOX (prevents overflow)
+		    guiGraphics.enableScissor(x, y, x + width, y + height);
+		
+		    pose.pushPose();
+		
+		    // center of box
+		    pose.translate(x + width / 2f, y + height / 2f, 300);
+		
+		    // 🔥 FIXED SCALE (much tighter + consistent)
+		    float maxDim = Math.max(data.width, Math.max(data.height, data.depth));
+		    float scale = (Math.min(width, height) / maxDim) * 0.6f;
+		
+		    pose.scale(scale, -scale, scale);
+		
+		    // 🔥 BETTER CAMERA ANGLE
+		    pose.mulPose(Axis.XP.rotationDegrees(25));
+		    pose.mulPose(Axis.YP.rotationDegrees((mc.level.getGameTime() * 0.3f % 360)));
+		
+		    // 🔥 TRUE CENTERING (this was the big issue)
+		    pose.translate(
+		        -data.width / 2f,
+		        -data.height / 2f,
+		        -data.depth / 2f
+		    );
+		
+		    renderBlocksFromNBT(data, pose);
+		
+		    pose.popPose();
+		
+		    guiGraphics.disableScissor();
+		}
 
 	// =========================
 	// LOAD NBT
