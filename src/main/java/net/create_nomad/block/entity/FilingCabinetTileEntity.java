@@ -15,6 +15,8 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.WorldlyContainer;
@@ -39,6 +41,7 @@ import java.util.stream.IntStream;
 import io.netty.buffer.Unpooled;
 
 public class FilingCabinetTileEntity extends RandomizableContainerBlockEntity implements GeoBlockEntity, WorldlyContainer {
+	private static final ResourceLocation CREATE_SCHEMATIC_ID = ResourceLocation.parse("create:schematic");
 	private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 	private NonNullList<ItemStack> stacks = NonNullList.<ItemStack>withSize(16, ItemStack.EMPTY);
 	private final SidedInvWrapper handler = new SidedInvWrapper(this, null);
@@ -158,7 +161,8 @@ public class FilingCabinetTileEntity extends RandomizableContainerBlockEntity im
 
 	@Override
 	public boolean canPlaceItem(int index, ItemStack stack) {
-		return true;
+		ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+		return CREATE_SCHEMATIC_ID.equals(itemId);
 	}
 
 	@Override
