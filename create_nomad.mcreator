@@ -838,6 +838,9 @@
     ],
     "ITEMS:minecraft:pickaxes": [
       "CUSTOM:Jackhammer"
+    ],
+    "BLOCKS:create:wrench_pickup": [
+      "CUSTOM:FilingCabinet"
     ]
   },
   "tab_element_order": {
