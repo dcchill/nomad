@@ -22,7 +22,7 @@
   "tooltip.create_nomad.grappling_hook.description_1": "Hold [Shift] for Summary",
   "tooltip.create_nomad.grappling_hook.description_2": "Uses backtank air instead of durability while air is available.  Right click to grapple to the block if in range.",
   "tooltip.create_nomad.backpack.description_1": "Hold [Shift] for Summary",
-  "tooltip.create_nomad.backpack.description_2": "The Backpack is a wearable storage item. When placed down, it also acts as a supply station that automatically refills your hotbar with items from its inventory while you\u2019re nearby.",
+  "tooltip.create_nomad.backpack.description_2": "The Backpack is a wearable storage item. When placed down, it also acts as a supply station that automatically refills your hotbar with items from its inventory while you’re nearby.",
   "item.create_nomad.track_pack": "Track Pack",
   "tooltip.create_nomad.track_pack.contents": "Stored Tracks: %s/%s",
   "tooltip.create_nomad.track_pack.hint": "Right-Click the air to take a stack out.",
@@ -51,5 +51,6 @@
   "item.create_nomad.harpoon_gun": "Harpoon Gun",
   "item.create_nomad.harpoon_item": "Harpoon",
   "tooltip.create_nomad.harpoon_gun.description_2": "Uses backtank air to fire a harpoon.  Harpoons are high piercing and reusable projectiles that deal high damage.",
-  "block.create_nomad.filing_cabinet": "Filing Cabinet"
+  "block.create_nomad.filing_cabinet": "Filing Cabinet",
+  "gui.create_nomad.filing_cabinet_gui.label_schematic_placeholder": "schematic placeholder"
 }
