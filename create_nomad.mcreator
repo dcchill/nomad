@@ -751,7 +751,7 @@
       "name": "FilingCabinet",
       "type": "animatedblock",
       "compiles": true,
-      "locked_code": false,
+      "locked_code": true,
       "registry_name": "filing_cabinet",
       "metadata": {
         "files": [
@@ -773,7 +773,7 @@
       "name": "FilingCabinetGui",
       "type": "gui",
       "compiles": true,
-      "locked_code": false,
+      "locked_code": true,
       "registry_name": "filing_cabinet_gui",
       "metadata": {
         "files": [
