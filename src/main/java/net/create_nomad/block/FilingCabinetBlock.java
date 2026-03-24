@@ -110,6 +110,7 @@ public class FilingCabinetBlock extends BaseEntityBlock implements EntityBlock {
 	public InteractionResult useWithoutItem(BlockState blockstate, Level world, BlockPos pos, Player entity, BlockHitResult hit) {
 		super.useWithoutItem(blockstate, world, pos, entity, hit);
 		if (entity instanceof ServerPlayer player) {
+			world.setBlock(pos, blockstate.setValue(ANIMATION, 1), 3);
 			player.openMenu(new MenuProvider() {
 				@Override
 				public Component getDisplayName() {
