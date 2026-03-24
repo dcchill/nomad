@@ -135,9 +135,9 @@ private void renderBlocks(SchematicData data, PoseStack pose) {
     var renderer = mc.getBlockRenderer();
     var buffer = mc.renderBuffers().bufferSource();
 
-    int totalBlocks = Math.min(7500, data.size);
+    int totalBlocks = Math.min(50000, data.size);
 
-    // ✅ update animation ONCE per frame
+    // update animation ONCE per frame
     if (animating) {
         buildProgress += 0.02f;
 

@@ -22,6 +22,7 @@ public class CreateNomadModTabs {
 				tabData.accept(CreateNomadModItems.JACKHAMMER.get());
 				tabData.accept(CreateNomadModItems.HARPOON_GUN.get());
 				tabData.accept(CreateNomadModItems.HARPOON_ITEM.get());
+				tabData.accept(CreateNomadModBlocks.FILING_CABINET.get().asItem());
 				tabData.accept(CreateNomadModItems.TRACK_PACK.get());
 				tabData.accept(CreateNomadModItems.BROWN_BRASS_BACKPACK_ITEM.get());
 				tabData.accept(CreateNomadModItems.WHITE_BRASS_BACKPACK_ITEM.get());
@@ -40,6 +41,5 @@ public class CreateNomadModTabs {
 				tabData.accept(CreateNomadModItems.PURPLE_BRASS_BACKPACK_ITEM.get());
 				tabData.accept(CreateNomadModItems.MAGENTA_BRASS_BACKPACK_ITEM.get());
 				tabData.accept(CreateNomadModItems.PINK_BRASS_BACKPACK_ITEM.get());
-				tabData.accept(CreateNomadModBlocks.FILING_CABINET.get().asItem());
 			}).build());
 }

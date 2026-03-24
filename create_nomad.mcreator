@@ -782,6 +782,19 @@
         ]
       },
       "path": "~/filing cabinet"
+    },
+    {
+      "name": "FilingCabinetRecipe",
+      "type": "recipe",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "filing_cabinet_recipe",
+      "metadata": {
+        "files": [
+          "src/main/resources/data/create_nomad/recipe/filing_cabinet_recipe.json"
+        ]
+      },
+      "path": "~/filing cabinet"
     }
   ],
   "variable_elements": [],
@@ -834,6 +847,7 @@
       "Jackhammer",
       "HarpoonGun",
       "HarpoonItem",
+      "FilingCabinet",
       "TrackPack",
       "BrownBrassBackpackItem",
       "WhiteBrassBackpackItem",
@@ -851,8 +865,7 @@
       "BlueBrassBackpackItem",
       "PurpleBrassBackpackItem",
       "MagentaBrassBackpackItem",
-      "PinkBrassBackpackItem",
-      "FilingCabinet"
+      "PinkBrassBackpackItem"
     ]
   },
   "language_map": {
