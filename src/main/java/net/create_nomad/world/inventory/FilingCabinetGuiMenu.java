@@ -18,10 +18,13 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.BlockPos;
 
 import net.create_nomad.init.CreateNomadModMenus;
+import net.create_nomad.block.FilingCabinetBlock;
 
 import java.util.function.Supplier;
 import java.util.Map;
@@ -29,6 +32,8 @@ import java.util.HashMap;
 import java.util.Collections;
 
 public class FilingCabinetGuiMenu extends AbstractContainerMenu implements CreateNomadModMenus.MenuAccessor {
+	private static final ResourceLocation CREATE_SCHEMATIC_ID = ResourceLocation.parse("create:schematic");
+	private static final int CABINET_SLOT_COUNT = 16;
 	public final Map<String, Object> menuState = new HashMap<>() {
 		@Override
 		public Object put(String key, Object value) {
@@ -52,7 +57,7 @@ public class FilingCabinetGuiMenu extends AbstractContainerMenu implements Creat
 		super(CreateNomadModMenus.FILING_CABINET_GUI.get(), id);
 		this.entity = inv.player;
 		this.world = inv.player.level();
-		this.internal = new ItemStackHandler(16);
+		this.internal = new ItemStackHandler(CABINET_SLOT_COUNT);
 		BlockPos pos = null;
 		if (extraData != null) {
 			pos = extraData.readBlockPos();
@@ -89,91 +94,35 @@ public class FilingCabinetGuiMenu extends AbstractContainerMenu implements Creat
 				}
 			}
 		}
-		this.customSlots.put(0, this.addSlot(new SlotItemHandler(internal, 0, 7, 8) {
-			private final int slot = 0;
-			private int x = FilingCabinetGuiMenu.this.x;
-			private int y = FilingCabinetGuiMenu.this.y;
-		}));
-		this.customSlots.put(1, this.addSlot(new SlotItemHandler(internal, 1, 25, 8) {
-			private final int slot = 1;
-			private int x = FilingCabinetGuiMenu.this.x;
-			private int y = FilingCabinetGuiMenu.this.y;
-		}));
-		this.customSlots.put(2, this.addSlot(new SlotItemHandler(internal, 2, 43, 8) {
-			private final int slot = 2;
-			private int x = FilingCabinetGuiMenu.this.x;
-			private int y = FilingCabinetGuiMenu.this.y;
-		}));
-		this.customSlots.put(3, this.addSlot(new SlotItemHandler(internal, 3, 61, 8) {
-			private final int slot = 3;
-			private int x = FilingCabinetGuiMenu.this.x;
-			private int y = FilingCabinetGuiMenu.this.y;
-		}));
-		this.customSlots.put(4, this.addSlot(new SlotItemHandler(internal, 4, 7, 26) {
-			private final int slot = 4;
-			private int x = FilingCabinetGuiMenu.this.x;
-			private int y = FilingCabinetGuiMenu.this.y;
-		}));
-		this.customSlots.put(5, this.addSlot(new SlotItemHandler(internal, 5, 25, 26) {
-			private final int slot = 5;
-			private int x = FilingCabinetGuiMenu.this.x;
-			private int y = FilingCabinetGuiMenu.this.y;
-		}));
-		this.customSlots.put(6, this.addSlot(new SlotItemHandler(internal, 6, 43, 26) {
-			private final int slot = 6;
-			private int x = FilingCabinetGuiMenu.this.x;
-			private int y = FilingCabinetGuiMenu.this.y;
-		}));
-		this.customSlots.put(7, this.addSlot(new SlotItemHandler(internal, 7, 61, 26) {
-			private final int slot = 7;
-			private int x = FilingCabinetGuiMenu.this.x;
-			private int y = FilingCabinetGuiMenu.this.y;
-		}));
-		this.customSlots.put(8, this.addSlot(new SlotItemHandler(internal, 8, 7, 44) {
-			private final int slot = 8;
-			private int x = FilingCabinetGuiMenu.this.x;
-			private int y = FilingCabinetGuiMenu.this.y;
-		}));
-		this.customSlots.put(9, this.addSlot(new SlotItemHandler(internal, 9, 25, 44) {
-			private final int slot = 9;
-			private int x = FilingCabinetGuiMenu.this.x;
-			private int y = FilingCabinetGuiMenu.this.y;
-		}));
-		this.customSlots.put(10, this.addSlot(new SlotItemHandler(internal, 10, 43, 44) {
-			private final int slot = 10;
-			private int x = FilingCabinetGuiMenu.this.x;
-			private int y = FilingCabinetGuiMenu.this.y;
-		}));
-		this.customSlots.put(11, this.addSlot(new SlotItemHandler(internal, 11, 61, 44) {
-			private final int slot = 11;
-			private int x = FilingCabinetGuiMenu.this.x;
-			private int y = FilingCabinetGuiMenu.this.y;
-		}));
-		this.customSlots.put(12, this.addSlot(new SlotItemHandler(internal, 12, 7, 62) {
-			private final int slot = 12;
-			private int x = FilingCabinetGuiMenu.this.x;
-			private int y = FilingCabinetGuiMenu.this.y;
-		}));
-		this.customSlots.put(13, this.addSlot(new SlotItemHandler(internal, 13, 25, 62) {
-			private final int slot = 13;
-			private int x = FilingCabinetGuiMenu.this.x;
-			private int y = FilingCabinetGuiMenu.this.y;
-		}));
-		this.customSlots.put(14, this.addSlot(new SlotItemHandler(internal, 14, 43, 62) {
-			private final int slot = 14;
-			private int x = FilingCabinetGuiMenu.this.x;
-			private int y = FilingCabinetGuiMenu.this.y;
-		}));
-		this.customSlots.put(15, this.addSlot(new SlotItemHandler(internal, 15, 61, 62) {
-			private final int slot = 15;
-			private int x = FilingCabinetGuiMenu.this.x;
-			private int y = FilingCabinetGuiMenu.this.y;
-		}));
+
+		for (int row = 0; row < 4; row++) {
+			for (int col = 0; col < 4; col++) {
+				int slotIndex = row * 4 + col;
+				this.customSlots.put(slotIndex, this.addSlot(createSchematicSlot(slotIndex, 7 + col * 18, 8 + row * 18)));
+			}
+		}
+
 		for (int si = 0; si < 3; ++si)
 			for (int sj = 0; sj < 9; ++sj)
-				this.addSlot(new Slot(inv, sj + (si + 1) * 9, 0 + 8 + sj * 18, 0 + 84 + si * 18));
+				this.addSlot(new Slot(inv, sj + (si + 1) * 9, 8 + sj * 18, 84 + si * 18));
 		for (int si = 0; si < 9; ++si)
-			this.addSlot(new Slot(inv, si, 0 + 8 + si * 18, 0 + 142));
+			this.addSlot(new Slot(inv, si, 8 + si * 18, 142));
+	}
+
+	private SlotItemHandler createSchematicSlot(int slotIndex, int slotX, int slotY) {
+		return new SlotItemHandler(internal, slotIndex, slotX, slotY) {
+			@Override
+			public boolean mayPlace(ItemStack stack) {
+				return isCreateSchematic(stack) && super.mayPlace(stack);
+			}
+		};
+	}
+
+	private static boolean isCreateSchematic(ItemStack stack) {
+		if (stack.isEmpty())
+			return false;
+		ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+		return CREATE_SCHEMATIC_ID.equals(itemId);
 	}
 
 	@Override
@@ -192,20 +141,20 @@ public class FilingCabinetGuiMenu extends AbstractContainerMenu implements Creat
 	@Override
 	public ItemStack quickMoveStack(Player playerIn, int index) {
 		ItemStack itemstack = ItemStack.EMPTY;
-		Slot slot = (Slot) this.slots.get(index);
+		Slot slot = this.slots.get(index);
 		if (slot != null && slot.hasItem()) {
 			ItemStack itemstack1 = slot.getItem();
 			itemstack = itemstack1.copy();
-			if (index < 16) {
-				if (!this.moveItemStackTo(itemstack1, 16, this.slots.size(), true))
+			if (index < CABINET_SLOT_COUNT) {
+				if (!this.moveItemStackTo(itemstack1, CABINET_SLOT_COUNT, this.slots.size(), true))
 					return ItemStack.EMPTY;
 				slot.onQuickCraft(itemstack1, itemstack);
-			} else if (!this.moveItemStackTo(itemstack1, 0, 16, false)) {
-				if (index < 16 + 27) {
-					if (!this.moveItemStackTo(itemstack1, 16 + 27, this.slots.size(), true))
+			} else if (!isCreateSchematic(itemstack1) || !this.moveItemStackTo(itemstack1, 0, CABINET_SLOT_COUNT, false)) {
+				if (index < CABINET_SLOT_COUNT + 27) {
+					if (!this.moveItemStackTo(itemstack1, CABINET_SLOT_COUNT + 27, this.slots.size(), true))
 						return ItemStack.EMPTY;
 				} else {
-					if (!this.moveItemStackTo(itemstack1, 16, 16 + 27, false))
+					if (!this.moveItemStackTo(itemstack1, CABINET_SLOT_COUNT, CABINET_SLOT_COUNT + 27, false))
 						return ItemStack.EMPTY;
 				}
 				return ItemStack.EMPTY;
@@ -285,6 +234,12 @@ public class FilingCabinetGuiMenu extends AbstractContainerMenu implements Creat
 	@Override
 	public void removed(Player playerIn) {
 		super.removed(playerIn);
+		if (!this.world.isClientSide()) {
+			BlockPos blockPos = new BlockPos(this.x, this.y, this.z);
+			if (this.world.getBlockState(blockPos).getBlock() instanceof FilingCabinetBlock filingCabinetBlock) {
+				this.world.setBlock(blockPos, this.world.getBlockState(blockPos).setValue(FilingCabinetBlock.ANIMATION, 2), 3);
+			}
+		}
 		if (!bound && playerIn instanceof ServerPlayer serverPlayer) {
 			if (!serverPlayer.isAlive() || serverPlayer.hasDisconnected()) {
 				for (int j = 0; j < internal.getSlots(); ++j) {

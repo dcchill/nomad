@@ -2,6 +2,8 @@ package net.create_nomad.client.gui;
 
 import net.minecraft.world.level.Level;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
@@ -41,7 +43,12 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
 	@Override
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		super.render(guiGraphics, mouseX, mouseY, partialTicks);
-		this.renderTooltip(guiGraphics, mouseX, mouseY);
+		ItemStack previewStack = this.getHoveredCabinetSchematic();
+		if (!previewStack.isEmpty()) {
+			guiGraphics.renderTooltip(this.font, previewStack, mouseX, mouseY);
+		} else {
+			this.renderTooltip(guiGraphics, mouseX, mouseY);
+		}
 	}
 
 	@Override
@@ -64,7 +71,25 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
 
 	@Override
 	protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-		guiGraphics.drawString(this.font, Component.translatable("gui.create_nomad.filing_cabinet_gui.label_schematic_placeholder"), 78, 70, -12829636, false);
+		ItemStack previewStack = this.getHoveredCabinetSchematic();
+		if (previewStack.isEmpty()) {
+			guiGraphics.drawString(this.font, Component.translatable("gui.create_nomad.filing_cabinet_gui.label_schematic_placeholder"), 78, 70, -12829636, false);
+			return;
+		}
+
+		guiGraphics.pose().pushPose();
+		guiGraphics.pose().translate(116, 48, 0);
+		guiGraphics.pose().scale(2.75f, 2.75f, 1f);
+		guiGraphics.renderItem(previewStack, 0, 0);
+		guiGraphics.pose().popPose();
+		guiGraphics.drawString(this.font, previewStack.getHoverName(), 78, 70, -12829636, false);
+	}
+
+	private ItemStack getHoveredCabinetSchematic() {
+		Slot slot = this.hoveredSlot;
+		if (slot == null || !slot.hasItem() || slot.index < 0 || slot.index >= 16)
+			return ItemStack.EMPTY;
+		return slot.getItem();
 	}
 
 	@Override
