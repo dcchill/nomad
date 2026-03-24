@@ -4,15 +4,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.*;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 
 import net.create_nomad.init.CreateNomadModScreens;
 import net.create_nomad.world.inventory.FilingCabinetGuiMenu;
@@ -24,270 +23,283 @@ import com.mojang.math.Axis;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashSet;
+
 
 public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabinetGuiMenu> implements CreateNomadModScreens.ScreenAccessor {
 
-	private final Level world;
-	private final int x, y, z;
-	private final Player entity;
+    private static final ResourceLocation texture = ResourceLocation.parse("create_nomad:textures/screens/filing_cabinet_gui.png");
 
-	private static final ResourceLocation texture = ResourceLocation.parse("create_nomad:textures/screens/filing_cabinet_gui.png");
+    private SchematicData cachedData = null;
+    private String cachedFile = "";
 
-	public FilingCabinetGuiScreen(FilingCabinetGuiMenu container, Inventory inventory, Component text) {
-		super(container, inventory, text);
-		this.world = container.world;
-		this.x = container.x;
-		this.y = container.y;
-		this.z = container.z;
-		this.entity = container.entity;
 
-		this.imageWidth = 188;
-		this.imageHeight = 182;
-	}
-
-	@Override
-	public void updateMenuState(int elementType, String name, Object elementState) {}
-
-	// =========================
-	// RENDER
-	// =========================
-
-	@Override
-	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-		super.render(guiGraphics, mouseX, mouseY, partialTicks);
-
-		ItemStack stack = getHoveredCabinetSchematic();
-
-		// render inside texture box
-		renderPreviewInBox(guiGraphics, stack, partialTicks);
-
-		this.renderTooltip(guiGraphics, mouseX, mouseY);
-	}
-
-	@Override
-	protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
-		RenderSystem.setShaderColor(1, 1, 1, 1);
-
-		guiGraphics.blit(texture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
-	}
-
-	// =========================
-	// PREVIEW BOX
-	// =========================
-
-	private void renderPreviewInBox(GuiGraphics guiGraphics, ItemStack stack, float partialTicks) {
-
-		int boxX = this.leftPos + 14;
-		int boxY = this.topPos + 19;
-
-		int boxW = 72;
-		int boxH = 72;
-
-		if (stack.isEmpty()) return;
-
-		render3DSchematic(guiGraphics, stack, boxX, boxY, boxW, boxH, partialTicks);
-	}
-	//render labels
-	@Override
-	protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-
-    // Filing Cabinet title
-    guiGraphics.drawString(
-            this.font,
-            this.title,
-            5,
-            4,
-            4210752,
-            false
-    );
-	}
-	// =========================
-	// 3D RENDER (NBT BASED)
-	// =========================
-
-		private void render3DSchematic(GuiGraphics guiGraphics, ItemStack stack,
-		                              int x, int y, int width, int height, float partialTicks) {
+	// ANIMATION STATE
+		private float buildProgress = 0f;
+		private boolean animating = false;
 		
-		    String file = extractSchematicFile(stack);
-		    if (file.isBlank()) return;
+    public FilingCabinetGuiScreen(FilingCabinetGuiMenu menu, Inventory inv, Component title) {
+        super(menu, inv, title);
+        this.imageWidth = 256;
+        this.imageHeight = 256;
+    }
+
+    @Override
+    public void updateMenuState(int elementType, String name, Object elementState) {}
+
+    // REMOVE INVENTORY LABEL
+    @Override
+    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        guiGraphics.drawString(this.font, this.title, 5, 5, 4210752, false);
+    }
+
+    // BACKGROUND
+    @Override
+    protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
+        RenderSystem.setShaderColor(1,1,1,1);
+        guiGraphics.blit(texture, this.leftPos, this.topPos, 0, 0, 256, 256);
+    }
+
+    // MAIN RENDER
+    @Override
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        super.render(guiGraphics, mouseX, mouseY, partialTicks);
+
+        ItemStack stack = getHoveredCabinetSchematic();
+        renderPreview(guiGraphics, stack, partialTicks);
+
+        this.renderTooltip(guiGraphics, mouseX, mouseY);
+    }
+
+    // PREVIEW BOX 
+    private void renderPreview(GuiGraphics guiGraphics, ItemStack stack, float partialTicks) {
+        int x = this.leftPos + 14;
+        int y = this.topPos + 20;
+
+        int w = 72;
+        int h = 72;
+
+        if (stack.isEmpty()) return;
+
+        render3D(guiGraphics, stack, x, y, w, h, partialTicks);
+    }
+
+
+    // 3D RENDER
+    private void render3D(GuiGraphics guiGraphics, ItemStack stack, int x, int y, int w, int h, float partialTicks) {
+
+        String file = extractFile(stack);
+        if (file.isBlank()) return;
+
+        if (!file.equals(cachedFile)) {
+            cachedFile = file;
+            cachedData = load(file);
+
+                buildProgress = 0f;
+  				 animating = true;
+        }
+
+        if (cachedData == null) return;
+
+        var mc = Minecraft.getInstance();
+        var pose = guiGraphics.pose();
+
+        guiGraphics.enableScissor(x, y, x + w, y + h);
+
+        pose.pushPose();
+
+        pose.translate(x + w/2f, y + h/2f, 300);
+
+        float maxDim = Math.max(cachedData.w, Math.max(cachedData.h, cachedData.d));
+        float scale = (Math.min(w, h) / maxDim) * 0.75f;
+
+        pose.scale(scale, -scale, scale);
+
+        pose.mulPose(Axis.XP.rotationDegrees(25));
+        pose.mulPose(Axis.YP.rotationDegrees((mc.level.getGameTime() + partialTicks) * 0.2f % 360));
+
+        pose.translate(-cachedData.w/2f, -cachedData.h/2f, -cachedData.d/2f);
+
+        renderBlocks(cachedData, pose);
+
+        pose.popPose();
+
+        guiGraphics.disableScissor();
+    }
+
+// RENDER BLOCKS
+private void renderBlocks(SchematicData data, PoseStack pose) {
+
+    var mc = Minecraft.getInstance();
+    var renderer = mc.getBlockRenderer();
+    var buffer = mc.renderBuffers().bufferSource();
+
+    int maxBlocks = Math.min(7500, data.size);
+
+    if (animating) {
+        buildProgress += (1f - buildProgress) * 0.08f;
+
+        if (buildProgress >= 0.999f) {
+            buildProgress = 1f;
+            animating = false;
+        }
+    }
+
+    int visibleBlocks = (int)(maxBlocks * buildProgress);
+
+    for (int i = 0; i < visibleBlocks; i++) {
+
+        BlockEntry e = data.entries[i];
+        if (e == null) continue;
+
+        pose.pushPose();
+
+        // move to block position
+        pose.translate(e.x, e.y, e.z);
+
+
+        float blockProgress = (float)i / data.size;
+
+        // how far this block is behind the "build wave"
+        float diff = buildProgress - blockProgress;
+
+        float scale = 1f;
+
+        if (diff < 0.05f) {
+            // animate just as it appears
+            float t = Math.max(0f, diff / 0.05f);
+
+            // ease-out curve
+            t = 1f - (1f - t) * (1f - t);
+
+            scale = 0.6f + 0.4f * t;
+        }
+
+        // scale from center of block
+        pose.translate(0.5, 0.5, 0.5);
+        pose.scale(scale, scale, scale);
+        pose.translate(-0.5, -0.5, -0.5);
+
+
+        renderer.renderSingleBlock(
+                e.state,
+                pose,
+                buffer,
+                15728880,
+                OverlayTexture.NO_OVERLAY
+        );
+
+        pose.popPose();
+    }
+
+    buffer.endBatch();
+}
+
+    // DATA STRUCTURES
+    private static class BlockEntry {
+        final int x,y,z;
+        final net.minecraft.world.level.block.state.BlockState state;
+        BlockEntry(int x,int y,int z, net.minecraft.world.level.block.state.BlockState s){this.x=x;this.y=y;this.z=z;this.state=s;}
+    }
+
+    private static class SchematicData {
+        final int w,h,d;
+        final BlockEntry[] entries;
+        final int size;
+        SchematicData(int w,int h,int d,BlockEntry[] e,int s){this.w=w;this.h=h;this.d=d;this.entries=e;this.size=s;}
+    }
+
+
+    // LOAD
+		private SchematicData load(String file) {
+		    try {
+		        Path path = Minecraft.getInstance().gameDirectory.toPath().resolve("schematics").resolve(file);
+		        if (!Files.exists(path)) return null;
 		
-		    SchematicData data = loadRawSchematic(file);
-		    if (data == null) return;
+		        CompoundTag root;
+		        try (InputStream stream = Files.newInputStream(path)) {
+		            root = NbtIo.readCompressed(stream, NbtAccounter.unlimitedHeap());
+		        }
 		
-		    var mc = Minecraft.getInstance();
-		    var pose = guiGraphics.pose();
+		        ListTag size = root.getList("size", Tag.TAG_INT);
+		        ListTag palette = root.getList("palette", Tag.TAG_COMPOUND);
+		        ListTag blocks = root.getList("blocks", Tag.TAG_COMPOUND);
 		
-		    // 🔒 CLIP TO BOX (prevents overflow)
-		    guiGraphics.enableScissor(x, y, x + width, y + height);
+		        int w = size.getInt(0), h = size.getInt(1), d = size.getInt(2);
 		
-		    pose.pushPose();
+		        HashSet<Long> blockSet = new HashSet<>();
 		
-		    // center of box
-		    pose.translate(x + width / 2f, y + height / 2f, 300);
+		        // pass 1: store positions
+		        for (int i = 0; i < blocks.size(); i++) {
+		            ListTag pos = blocks.getCompound(i).getList("pos", Tag.TAG_INT);
+		            blockSet.add(BlockPos.asLong(pos.getInt(0), pos.getInt(1), pos.getInt(2)));
+		        }
 		
-		    // 🔥 FIXED SCALE (much tighter + consistent)
-		    float maxDim = Math.max(data.width, Math.max(data.height, data.depth));
-		    float scale = (Math.min(width, height) / maxDim) * 0.6f;
+		        ArrayList<BlockEntry> visible = new ArrayList<>();
 		
-		    pose.scale(scale, -scale, scale);
+		        // pass 2: build surface blocks
+		        for (int i = 0; i < blocks.size(); i++) {
 		
-		    // 🔥 BETTER CAMERA ANGLE
-		    pose.mulPose(Axis.XP.rotationDegrees(25));
-		    pose.mulPose(Axis.YP.rotationDegrees((mc.level.getGameTime() * 0.3f % 360)));
+		            CompoundTag b = blocks.getCompound(i);
+		            ListTag pos = b.getList("pos", Tag.TAG_INT);
 		
-		    // 🔥 TRUE CENTERING (this was the big issue)
-		    pose.translate(
-		        -data.width / 2f,
-		        -data.height / 2f,
-		        -data.depth / 2f
-		    );
+		            int x = pos.getInt(0);
+		            int y = pos.getInt(1);
+		            int z = pos.getInt(2);
 		
-		    renderBlocksFromNBT(data, pose);
+		            CompoundTag stateTag = palette.getCompound(b.getInt("state"));
+		            var block = BuiltInRegistries.BLOCK.get(ResourceLocation.tryParse(stateTag.getString("Name")));
+		            if (block == null) continue;
 		
-		    pose.popPose();
+		            var state = block.defaultBlockState();
+		            if (state.isAir()) continue;
 		
-		    guiGraphics.disableScissor();
+		            if (isSurface(blockSet, x, y, z)) {
+		                visible.add(new BlockEntry(x, y, z, state));
+		            }
+		        }
+		
+		        visible.sort((a, b) -> {
+		            if (a.y != b.y) return Integer.compare(a.y, b.y); 
+		            if (a.x != b.x) return Integer.compare(a.x, b.x);
+		            return Integer.compare(a.z, b.z);
+		        });
+		
+		        BlockEntry[] arr = visible.toArray(new BlockEntry[0]);
+		        return new SchematicData(w, h, d, arr, arr.length);
+		
+		    } catch (Exception e) {
+		        return null;
+		    }
 		}
 
-	// =========================
-	// LOAD NBT
-	// =========================
+    private boolean isSurface(HashSet<Long> set, int x, int y, int z) {
+        return !(
+            set.contains(BlockPos.asLong(x+1,y,z)) &&
+            set.contains(BlockPos.asLong(x-1,y,z)) &&
+            set.contains(BlockPos.asLong(x,y+1,z)) &&
+            set.contains(BlockPos.asLong(x,y-1,z)) &&
+            set.contains(BlockPos.asLong(x,y,z+1)) &&
+            set.contains(BlockPos.asLong(x,y,z-1))
+        );
+    }
 
-	private SchematicData loadRawSchematic(String fileName) {
-		try {
-			String name = fileName.endsWith(".nbt") ? fileName : fileName + ".nbt";
 
-			Path path = Minecraft.getInstance().gameDirectory.toPath()
-					.resolve("schematics")
-					.resolve(name);
+    private ItemStack getHoveredCabinetSchematic() {
+        Slot s = this.hoveredSlot;
+        if (s == null || !s.hasItem() || s.index < 0 || s.index >= 16)
+            return ItemStack.EMPTY;
+        return s.getItem();
+    }
 
-			if (!Files.exists(path)) return null;
-
-			CompoundTag root;
-
-			try (InputStream stream = Files.newInputStream(path)) {
-				root = NbtIo.readCompressed(stream, NbtAccounter.unlimitedHeap());
-			} catch (Exception e) {
-				try (InputStream stream = Files.newInputStream(path)) {
-					root = NbtIo.read(new java.io.DataInputStream(stream), NbtAccounter.unlimitedHeap());
-				}
-			}
-
-			ListTag size = root.getList("size", Tag.TAG_INT);
-			ListTag palette = root.getList("palette", Tag.TAG_COMPOUND);
-			ListTag blocks = root.getList("blocks", Tag.TAG_COMPOUND);
-
-			return new SchematicData(size, palette, blocks);
-
-		} catch (Exception e) {
-			System.out.println("NBT load fail: " + e.getMessage());
-			return null;
-		}
-	}
-
-	// =========================
-	// RENDER BLOCKS
-	// =========================
-
-	private void renderBlocksFromNBT(SchematicData data, PoseStack pose) {
-		var mc = Minecraft.getInstance();
-		var renderer = mc.getBlockRenderer();
-		var buffer = mc.renderBuffers().bufferSource();
-
-		for (int i = 0; i < data.blocks.size(); i++) {
-			CompoundTag blockTag = data.blocks.getCompound(i);
-
-			ListTag pos = blockTag.getList("pos", Tag.TAG_INT);
-			int x = pos.getInt(0);
-			int y = pos.getInt(1);
-			int z = pos.getInt(2);
-
-			int stateIndex = blockTag.getInt("state");
-			CompoundTag stateTag = data.palette.getCompound(stateIndex);
-
-			String blockName = stateTag.getString("Name");
-
-			var block = BuiltInRegistries.BLOCK.get(ResourceLocation.tryParse(blockName));
-			if (block == null) continue;
-
-			var state = block.defaultBlockState();
-			if (state.isAir()) continue;
-
-			pose.pushPose();
-			pose.translate(x, y, z);
-
-			renderer.renderSingleBlock(
-					state,
-					pose,
-					buffer,
-					15728880,
-					OverlayTexture.NO_OVERLAY
-			);
-
-			pose.popPose();
-		}
-
-		buffer.endBatch();
-	}
-
-	// =========================
-	// EXTRACT FILE NAME
-	// =========================
-
-	private String extractSchematicFile(ItemStack stack) {
-		try {
-			var mc = Minecraft.getInstance();
-			if (mc.level == null) return "";
-
-			var provider = mc.level.registryAccess();
-
-			CompoundTag full = (CompoundTag) stack.save(provider);
-
-			if (full.contains("components", Tag.TAG_COMPOUND)) {
-				CompoundTag comps = full.getCompound("components");
-
-				if (comps.contains("create:schematic_file")) {
-					return comps.getString("create:schematic_file");
-				}
-			}
-		} catch (Exception e) {
-			System.out.println("NBT read fail: " + e.getMessage());
-		}
-
-		return "";
-	}
-
-	// =========================
-	// UTIL
-	// =========================
-
-	private ItemStack getHoveredCabinetSchematic() {
-		Slot slot = this.hoveredSlot;
-
-		if (slot == null || !slot.hasItem() || slot.index < 0 || slot.index >= 16)
-			return ItemStack.EMPTY;
-
-		return slot.getItem();
-	}
-
-	// =========================
-	// DATA CLASS
-	// =========================
-
-	private static class SchematicData {
-		final int width;
-		final int height;
-		final int depth;
-
-		final ListTag palette;
-		final ListTag blocks;
-
-		SchematicData(ListTag size, ListTag palette, ListTag blocks) {
-			this.width = size.getInt(0);
-			this.height = size.getInt(1);
-			this.depth = size.getInt(2);
-			this.palette = palette;
-			this.blocks = blocks;
-		}
-	}
+    private String extractFile(ItemStack stack) {
+        try {
+            CompoundTag tag = (CompoundTag) stack.save(Minecraft.getInstance().level.registryAccess());
+            if (tag.contains("components")) {
+                return tag.getCompound("components").getString("create:schematic_file");
+            }
+        } catch(Exception ignored){}
+        return "";
+    }
 }
