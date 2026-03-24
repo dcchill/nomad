@@ -135,18 +135,19 @@ private void renderBlocks(SchematicData data, PoseStack pose) {
     var renderer = mc.getBlockRenderer();
     var buffer = mc.renderBuffers().bufferSource();
 
-    int maxBlocks = Math.min(7500, data.size);
+    int totalBlocks = Math.min(7500, data.size);
 
+    // ✅ update animation ONCE per frame
     if (animating) {
-        buildProgress += (1f - buildProgress) * 0.08f;
+        buildProgress += 0.02f;
 
-        if (buildProgress >= 0.999f) {
+        if (buildProgress >= 1f) {
             buildProgress = 1f;
             animating = false;
         }
     }
 
-    int visibleBlocks = (int)(maxBlocks * buildProgress);
+    int visibleBlocks = (int)(totalBlocks * buildProgress);
 
     for (int i = 0; i < visibleBlocks; i++) {
 
@@ -155,39 +156,29 @@ private void renderBlocks(SchematicData data, PoseStack pose) {
 
         pose.pushPose();
 
-        // move to block position
         pose.translate(e.x, e.y, e.z);
 
-
-        float blockProgress = (float)i / data.size;
-
-        // how far this block is behind the "build wave"
+        float blockProgress = (float)e.y / data.h;
         float diff = buildProgress - blockProgress;
 
         float scale = 1f;
 
-        if (diff < 0.05f) {
-            // animate just as it appears
-            float t = Math.max(0f, diff / 0.05f);
-
-            // ease-out curve
+        if (diff < 0.1f) {
+            float t = Math.max(0f, diff / 0.1f);
             t = 1f - (1f - t) * (1f - t);
-
-            scale = 0.6f + 0.4f * t;
+            scale = 0.2f + 0.8f * t;
         }
 
-        // scale from center of block
         pose.translate(0.5, 0.5, 0.5);
         pose.scale(scale, scale, scale);
         pose.translate(-0.5, -0.5, -0.5);
 
-
         renderer.renderSingleBlock(
-                e.state,
-                pose,
-                buffer,
-                15728880,
-                OverlayTexture.NO_OVERLAY
+            e.state,
+            pose,
+            buffer,
+            15728880,
+            OverlayTexture.NO_OVERLAY
         );
 
         pose.popPose();
