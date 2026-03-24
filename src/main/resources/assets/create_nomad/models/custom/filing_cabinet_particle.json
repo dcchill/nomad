@@ -1,0 +1,6 @@
+{
+  "parent": "create_nomad:displaysettings/filing_cabinet",
+  "textures": {
+    "particle": "create_nomad:block/vault_front_small"
+  }
+}

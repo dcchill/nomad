@@ -16,6 +16,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.core.registries.BuiltInRegistries;
 
+import net.create_nomad.block.entity.FilingCabinetTileEntity;
 import net.create_nomad.block.entity.BrownBrassBackpackBlockEntity;
 import net.create_nomad.CreateNomadMod;
 
@@ -23,6 +24,7 @@ import net.create_nomad.CreateNomadMod;
 public class CreateNomadModBlockEntities {
 	public static final DeferredRegister<BlockEntityType<?>> REGISTRY = DeferredRegister.create(BuiltInRegistries.BLOCK_ENTITY_TYPE, CreateNomadMod.MODID);
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<?>> BROWN_BRASS_BACKPACK = register("brown_brass_backpack", CreateNomadModBlocks.BROWN_BRASS_BACKPACK, BrownBrassBackpackBlockEntity::new);
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<?>> FILING_CABINET = register("filing_cabinet", CreateNomadModBlocks.FILING_CABINET, FilingCabinetTileEntity::new);
 
 	// Start of user code block custom block entities
 	// End of user code block custom block entities
@@ -33,5 +35,6 @@ public class CreateNomadModBlockEntities {
 	@SubscribeEvent
 	public static void registerCapabilities(RegisterCapabilitiesEvent event) {
 		event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, BROWN_BRASS_BACKPACK.get(), (blockEntity, side) -> new SidedInvWrapper((WorldlyContainer) blockEntity, side));
+		event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, FILING_CABINET.get(), (blockEntity, side) -> new SidedInvWrapper((WorldlyContainer) blockEntity, side));
 	}
 }

@@ -1,0 +1,24 @@
+package net.create_nomad.block.model;
+
+import software.bernie.geckolib.model.GeoModel;
+
+import net.minecraft.resources.ResourceLocation;
+
+import net.create_nomad.block.display.FilingCabinetDisplayItem;
+
+public class FilingCabinetDisplayModel extends GeoModel<FilingCabinetDisplayItem> {
+	@Override
+	public ResourceLocation getAnimationResource(FilingCabinetDisplayItem animatable) {
+		return ResourceLocation.parse("create_nomad:animations/filing_cabinet.animation.json");
+	}
+
+	@Override
+	public ResourceLocation getModelResource(FilingCabinetDisplayItem animatable) {
+		return ResourceLocation.parse("create_nomad:geo/filing_cabinet.geo.json");
+	}
+
+	@Override
+	public ResourceLocation getTextureResource(FilingCabinetDisplayItem entity) {
+		return ResourceLocation.parse("create_nomad:textures/block/filing_cabinet_texture.png");
+	}
+}

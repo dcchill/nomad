@@ -746,6 +746,28 @@
         ]
       },
       "path": "~/harpoon"
+    },
+    {
+      "name": "FilingCabinet",
+      "type": "animatedblock",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "filing_cabinet",
+      "metadata": {
+        "files": [
+          "src/main/java/net/create_nomad/block/model/FilingCabinetDisplayModel.java",
+          "src/main/resources/assets/create_nomad/models/item/filing_cabinet.json",
+          "src/main/java/net/create_nomad/block/renderer/FilingCabinetDisplayItemRenderer.java",
+          "src/main/resources/assets/create_nomad/blockstates/filing_cabinet.json",
+          "src/main/java/net/create_nomad/block/renderer/FilingCabinetTileRenderer.java",
+          "src/main/java/net/create_nomad/block/model/FilingCabinetBlockModel.java",
+          "src/main/java/net/create_nomad/block/FilingCabinetBlock.java",
+          "src/main/resources/assets/create_nomad/models/custom/filing_cabinet_particle.json",
+          "src/main/java/net/create_nomad/block/display/FilingCabinetDisplayItem.java",
+          "src/main/java/net/create_nomad/block/entity/FilingCabinetTileEntity.java"
+        ]
+      },
+      "path": "~/filing cabinet"
     }
   ],
   "variable_elements": [],
@@ -815,7 +837,8 @@
       "BlueBrassBackpackItem",
       "PurpleBrassBackpackItem",
       "MagentaBrassBackpackItem",
-      "PinkBrassBackpackItem"
+      "PinkBrassBackpackItem",
+      "FilingCabinet"
     ]
   },
   "language_map": {
@@ -871,7 +894,8 @@
       "create_nomad.ponder.backpack_auto_hotbar_pg2.header": "Customizing Backpacks",
       "item.create_nomad.harpoon_gun": "Harpoon Gun",
       "item.create_nomad.harpoon_item": "Harpoon",
-      "tooltip.create_nomad.harpoon_gun.description_2": "Uses backtank air to fire a harpoon.  Harpoons are high piercing and reusable projectiles that deal high damage."
+      "tooltip.create_nomad.harpoon_gun.description_2": "Uses backtank air to fire a harpoon.  Harpoons are high piercing and reusable projectiles that deal high damage.",
+      "block.create_nomad.filing_cabinet": "Filing Cabinet"
     }
   },
   "metadata": {
@@ -884,6 +908,7 @@
       "src/main/java/net/create_nomad/init/CreateNomadModModels.java",
       "src/main/java/net/create_nomad/init/CreateNomadModTabs.java",
       "src/main/resources/META-INF/enumextensions.json",
+      "src/main/java/net/create_nomad/block/listener/ClientListener.java",
       "src/main/java/net/create_nomad/utils/AnimUtils.java",
       "src/main/java/net/create_nomad/init/ItemAnimationFactory.java",
       "src/main/java/net/create_nomad/init/CreateNomadModCuriosCompat.java",
@@ -932,6 +957,10 @@
       },
       {
         "name": "harpoon",
+        "children": []
+      },
+      {
+        "name": "filing cabinet",
         "children": []
       }
     ]

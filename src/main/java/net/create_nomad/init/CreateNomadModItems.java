@@ -33,6 +33,7 @@ import net.create_nomad.item.ChainsawItem;
 import net.create_nomad.item.BrownBrassBackpackItemItem;
 import net.create_nomad.item.BlueBrassBackpackItemItem;
 import net.create_nomad.item.BlackBrassBackpackItemItem;
+import net.create_nomad.block.display.FilingCabinetDisplayItem;
 import net.create_nomad.CreateNomadMod;
 
 public class CreateNomadModItems {
@@ -60,6 +61,7 @@ public class CreateNomadModItems {
 	public static final DeferredItem<Item> YELLOW_BRASS_BACKPACK_ITEM = REGISTRY.register("yellow_brass_backpack_item", YellowBrassBackpackItemItem::new);
 	public static final DeferredItem<Item> HARPOON_GUN = REGISTRY.register("harpoon_gun", HarpoonGunItem::new);
 	public static final DeferredItem<Item> HARPOON_ITEM = REGISTRY.register("harpoon_item", HarpoonItemItem::new);
+	public static final DeferredItem<Item> FILING_CABINET = REGISTRY.register(CreateNomadModBlocks.FILING_CABINET.getId().getPath(), () -> new FilingCabinetDisplayItem(CreateNomadModBlocks.FILING_CABINET.get(), new Item.Properties()));
 
 	// Start of user code block custom items
 	// End of user code block custom items
