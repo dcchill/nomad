@@ -3,44 +3,71 @@ package net.create_nomad.client.gui;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.*;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtAccounter;
+import net.minecraft.nbt.NbtIo;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.BlockState;
 
 import net.create_nomad.init.CreateNomadModScreens;
 import net.create_nomad.world.inventory.FilingCabinetGuiMenu;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+
+import com.simibubi.create.content.schematics.client.SchematicRenderer;
+
+import net.createmod.catnip.levelWrappers.SchematicLevel;
+import net.createmod.catnip.render.DefaultSuperRenderTypeBuffer;
 
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabinetGuiMenu> implements CreateNomadModScreens.ScreenAccessor {
 
-    private static final ResourceLocation texture = ResourceLocation.parse("create_nomad:textures/screens/filing_cabinet_gui.png");
+    private static final ResourceLocation texture =
+            ResourceLocation.parse("create_nomad:textures/screens/filing_cabinet_gui.png");
 
-    private SchematicData cachedData = null;
+    private static final Map<String, SchematicResult> SCHEMATIC_CACHE = new HashMap<>();
+
     private String cachedFile = "";
+    private SchematicRenderer schematicRenderer = null;
+    private SchematicLevel schematicLevel = null;
 
-    private float buildProgress = 0f;
-    private boolean animating = false;
+    private int schematicW = 0;
+    private int schematicH = 0;
+    private int schematicD = 0;
 
-    private Map<Long, List<BlockEntry>> chunkCache = new HashMap<>();
+    private CompletableFuture<SchematicResult> loadFuture = null;
 
     public FilingCabinetGuiScreen(FilingCabinetGuiMenu menu, Inventory inv, Component title) {
         super(menu, inv, title);
         this.imageWidth = 256;
         this.imageHeight = 256;
+    }
+
+    @Override
+    public void onClose() {
+        super.onClose();
+        if (loadFuture != null) {
+            loadFuture.cancel(true);
+            loadFuture = null;
+        }
+        schematicRenderer = null;
+        schematicLevel = null;
     }
 
     @Override
@@ -53,7 +80,7 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
-        RenderSystem.setShaderColor(1,1,1,1);
+        RenderSystem.setShaderColor(1, 1, 1, 1);
         guiGraphics.blit(texture, this.leftPos, this.topPos, 0, 0, 256, 256);
     }
 
@@ -66,130 +93,93 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
     }
 
     private void renderPreview(GuiGraphics guiGraphics, ItemStack stack, float partialTicks) {
-        int x = this.leftPos + 14;
-        int y = this.topPos + 20;
-        int w = 72;
-        int h = 72;
         if (stack.isEmpty()) return;
-        render3D(guiGraphics, stack, x, y, w, h, partialTicks);
+        render3D(guiGraphics, stack, this.leftPos + 14, this.topPos + 20, 72, 72, partialTicks);
     }
 
     private void render3D(GuiGraphics guiGraphics, ItemStack stack, int x, int y, int w, int h, float partialTicks) {
-
         String file = extractFile(stack);
         if (file.isBlank()) return;
 
         if (!file.equals(cachedFile)) {
             cachedFile = file;
-            cachedData = load(file);
-            buildChunkCache(cachedData);
-            buildProgress = 0f;
-            animating = true;
+            schematicRenderer = null;
+            schematicLevel = null;
+            schematicW = 0;
+            schematicH = 0;
+            schematicD = 0;
+
+            if (loadFuture != null) {
+                loadFuture.cancel(true);
+                loadFuture = null;
+            }
+
+            SchematicResult cached = SCHEMATIC_CACHE.get(file);
+            if (cached != null) {
+                applyLoadedSchematic(cached);
+            } else {
+                var mc = Minecraft.getInstance();
+                Path path = mc.gameDirectory.toPath().resolve("schematics").resolve(file);
+                var level = mc.level;
+
+                loadFuture = CompletableFuture.supplyAsync(() -> loadSchematicLevel(path, level, file));
+            }
         }
 
-        if (cachedData == null) return;
+        if (loadFuture != null && loadFuture.isDone()) {
+            SchematicResult result = loadFuture.getNow(null);
+            loadFuture = null;
+
+            if (result != null) {
+                SCHEMATIC_CACHE.put(file, result);
+                applyLoadedSchematic(result);
+            }
+        }
+
+        if (schematicRenderer == null || schematicLevel == null) return;
 
         var mc = Minecraft.getInstance();
         var pose = guiGraphics.pose();
 
         guiGraphics.enableScissor(x, y, x + w, y + h);
-
         pose.pushPose();
 
-        pose.translate(x + w/2f, y + h/2f, 300);
+        pose.translate(x + w / 2f, y + h / 2f, 300);
 
-        float maxDim = Math.max(cachedData.w, Math.max(cachedData.h, cachedData.d));
+        float maxDim = Math.max(schematicW, Math.max(schematicH, schematicD));
+        if (maxDim <= 0) maxDim = 1;
+
         float scale = (Math.min(w, h) / maxDim) * 0.75f;
-
         pose.scale(scale, -scale, scale);
 
         pose.mulPose(Axis.XP.rotationDegrees(25));
         pose.mulPose(Axis.YP.rotationDegrees((mc.level.getGameTime() / 4f) % 360));
 
-        pose.translate(-cachedData.w/2f, -cachedData.h/2f, -cachedData.d/2f);
+        pose.translate(-schematicW / 2f, -schematicH / 2f, -schematicD / 2f);
 
-        renderChunks(pose);
+        DefaultSuperRenderTypeBuffer superBuffer = DefaultSuperRenderTypeBuffer.getInstance();
+        schematicRenderer.render(pose, superBuffer);
+        superBuffer.draw();
 
         pose.popPose();
-
         guiGraphics.disableScissor();
     }
 
-    private void buildChunkCache(SchematicData data) {
+    private void applyLoadedSchematic(SchematicResult result) {
+        if (result == null || result.level() == null) return;
 
-        chunkCache.clear();
-        if (data == null) return;
+        schematicLevel = result.level();
+        schematicRenderer = new SchematicRenderer();
+        schematicRenderer.display(schematicLevel);
 
-        int maxRender = Math.min(500000, data.size);
-        int step = Math.max(1, data.size / maxRender);
-
-        for (int i = 0; i < data.size; i += step) {
-            BlockEntry e = data.entries[i];
-
-            int cx = e.x >> 4;
-            int cy = e.y >> 4;
-            int cz = e.z >> 4;
-
-            long key = (((long)cx & 0x3FFFFF) << 42) | (((long)cy & 0xFFFFF) << 22) | ((long)cz & 0x3FFFFF);
-
-            chunkCache.computeIfAbsent(key, k -> new ArrayList<>()).add(e);
-        }
+        var bounds = schematicLevel.getBounds();
+        schematicW = bounds.getXSpan();
+        schematicH = bounds.getYSpan();
+        schematicD = bounds.getZSpan();
     }
 
-    private void renderChunks(PoseStack pose) {
-
-        var mc = Minecraft.getInstance();
-        var renderer = mc.getBlockRenderer();
-        var bufferSource = mc.renderBuffers().bufferSource();
-
-        if (animating) {
-            buildProgress += 0.03f;
-            if (buildProgress >= 1f) {
-                buildProgress = 1f;
-                animating = false;
-            }
-        }
-
-        for (var entry : chunkCache.values()) {
-
-            for (BlockEntry e : entry) {
-
-                if (e.y > buildProgress * cachedData.h) continue;
-
-                pose.pushPose();
-                pose.translate(e.x, e.y, e.z);
-
-                renderer.renderSingleBlock(
-                    e.state,
-                    pose,
-                    bufferSource,
-                    15728880,
-                    OverlayTexture.NO_OVERLAY
-                );
-
-                pose.popPose();
-            }
-        }
-
-        bufferSource.endBatch();
-    }
-
-    private static class BlockEntry {
-        final int x,y,z;
-        final net.minecraft.world.level.block.state.BlockState state;
-        BlockEntry(int x,int y,int z, net.minecraft.world.level.block.state.BlockState s){this.x=x;this.y=y;this.z=z;this.state=s;}
-    }
-
-    private static class SchematicData {
-        final int w,h,d;
-        final BlockEntry[] entries;
-        final int size;
-        SchematicData(int w,int h,int d,BlockEntry[] e,int s){this.w=w;this.h=h;this.d=d;this.entries=e;this.size=s;}
-    }
-
-    private SchematicData load(String file) {
+    private SchematicResult loadSchematicLevel(Path path, net.minecraft.world.level.Level level, String cacheKey) {
         try {
-            Path path = Minecraft.getInstance().gameDirectory.toPath().resolve("schematics").resolve(file);
             if (!Files.exists(path)) return null;
 
             CompoundTag root;
@@ -197,65 +187,45 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
                 root = NbtIo.readCompressed(stream, NbtAccounter.unlimitedHeap());
             }
 
-            ListTag size = root.getList("size", Tag.TAG_INT);
-            ListTag palette = root.getList("palette", Tag.TAG_COMPOUND);
-            ListTag blocks = root.getList("blocks", Tag.TAG_COMPOUND);
+            ListTag sizeTag = root.getList("size", Tag.TAG_INT);
 
-            int w = size.getInt(0), h = size.getInt(1), d = size.getInt(2);
+            ListTag palette = root.contains("palette")
+                    ? root.getList("palette", Tag.TAG_COMPOUND)
+                    : root.getList("Palette", Tag.TAG_COMPOUND);
 
-            HashSet<Long> blockSet = new HashSet<>();
+            ListTag blocks = root.contains("blocks")
+                    ? root.getList("blocks", Tag.TAG_COMPOUND)
+                    : root.getList("Blocks", Tag.TAG_COMPOUND);
+
+            if (sizeTag.size() < 3 || palette.isEmpty() || blocks.isEmpty()) return null;
+
+            SchematicLevel schematicLevel = new SchematicLevel(BlockPos.ZERO, level);
 
             for (int i = 0; i < blocks.size(); i++) {
-                ListTag pos = blocks.getCompound(i).getList("pos", Tag.TAG_INT);
-                blockSet.add(BlockPos.asLong(pos.getInt(0), pos.getInt(1), pos.getInt(2)));
-            }
-
-            ArrayList<BlockEntry> visible = new ArrayList<>();
-
-            for (int i = 0; i < blocks.size(); i++) {
-
                 CompoundTag b = blocks.getCompound(i);
                 ListTag pos = b.getList("pos", Tag.TAG_INT);
 
-                int x = pos.getInt(0);
-                int y = pos.getInt(1);
-                int z = pos.getInt(2);
+                int bx = pos.getInt(0);
+                int by = pos.getInt(1);
+                int bz = pos.getInt(2);
 
                 CompoundTag stateTag = palette.getCompound(b.getInt("state"));
-                var block = BuiltInRegistries.BLOCK.get(ResourceLocation.tryParse(stateTag.getString("Name")));
+                var block = BuiltInRegistries.BLOCK.get(
+                        ResourceLocation.tryParse(stateTag.getString("Name")));
+
                 if (block == null) continue;
 
-                var state = block.defaultBlockState();
+                BlockState state = block.defaultBlockState();
                 if (state.isAir()) continue;
 
-                if (isSurface(blockSet, x, y, z)) {
-                    visible.add(new BlockEntry(x, y, z, state));
-                }
+                schematicLevel.setBlock(new BlockPos(bx, by, bz), state, 3);
             }
 
-            visible.sort((a, b) -> {
-                if (a.y != b.y) return Integer.compare(a.y, b.y);
-                if (a.x != b.x) return Integer.compare(a.x, b.x);
-                return Integer.compare(a.z, b.z);
-            });
-
-            BlockEntry[] arr = visible.toArray(new BlockEntry[0]);
-            return new SchematicData(w, h, d, arr, arr.length);
+            return new SchematicResult(schematicLevel);
 
         } catch (Exception e) {
             return null;
         }
-    }
-
-    private boolean isSurface(HashSet<Long> set, int x, int y, int z) {
-        return !(
-            set.contains(BlockPos.asLong(x+1,y,z)) &&
-            set.contains(BlockPos.asLong(x-1,y,z)) &&
-            set.contains(BlockPos.asLong(x,y+1,z)) &&
-            set.contains(BlockPos.asLong(x,y-1,z)) &&
-            set.contains(BlockPos.asLong(x,y,z+1)) &&
-            set.contains(BlockPos.asLong(x,y,z-1))
-        );
     }
 
     private ItemStack getHoveredCabinetSchematic() {
@@ -267,11 +237,26 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
 
     private String extractFile(ItemStack stack) {
         try {
-            CompoundTag tag = (CompoundTag) stack.save(Minecraft.getInstance().level.registryAccess());
-            if (tag.contains("components")) {
-                return tag.getCompound("components").getString("create:schematic_file");
+            var components = stack.getComponents();
+
+            if (components.has(DataComponents.CUSTOM_DATA)) {
+                CompoundTag tag = components.get(DataComponents.CUSTOM_DATA).copyTag();
+                if (tag.contains("create:schematic_file"))
+                    return tag.getString("create:schematic_file");
             }
-        } catch(Exception ignored){}
+
+            CompoundTag full = (CompoundTag) stack.save(Minecraft.getInstance().level.registryAccess());
+
+            if (full.contains("components")) {
+                CompoundTag comps = full.getCompound("components");
+                if (comps.contains("create:schematic_file"))
+                    return comps.getString("create:schematic_file");
+            }
+
+        } catch (Exception ignored) {}
+
         return "";
     }
+
+    private record SchematicResult(SchematicLevel level) {}
 }
