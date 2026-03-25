@@ -32,16 +32,12 @@ import net.createmod.catnip.render.DefaultSuperRenderTypeBuffer;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabinetGuiMenu> implements CreateNomadModScreens.ScreenAccessor {
 
     private static final ResourceLocation texture =
             ResourceLocation.parse("create_nomad:textures/screens/filing_cabinet_gui.png");
-
-    private static final Map<String, SchematicResult> SCHEMATIC_CACHE = new HashMap<>();
 
     private String cachedFile = "";
     private SchematicRenderer schematicRenderer = null;
@@ -51,7 +47,7 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
     private int schematicH = 0;
     private int schematicD = 0;
 
-    private CompletableFuture<SchematicResult> loadFuture = null;
+    private CompletableFuture<SchematicPreviewCache.CachedPreview> loadFuture = null;
 
     public FilingCabinetGuiScreen(FilingCabinetGuiMenu menu, Inventory inv, Component title) {
         super(menu, inv, title);
@@ -114,25 +110,25 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
                 loadFuture = null;
             }
 
-            SchematicResult cached = SCHEMATIC_CACHE.get(file);
+            SchematicPreviewCache.CachedPreview cached = SchematicPreviewCache.get(file);
             if (cached != null) {
-                applyLoadedSchematic(cached);
+                applyLoadedPreview(cached);
             } else {
                 var mc = Minecraft.getInstance();
                 Path path = mc.gameDirectory.toPath().resolve("schematics").resolve(file);
                 var level = mc.level;
 
-                loadFuture = CompletableFuture.supplyAsync(() -> loadSchematicLevel(path, level, file));
+                loadFuture = CompletableFuture.supplyAsync(() -> loadSchematicPreview(path, level));
             }
         }
 
         if (loadFuture != null && loadFuture.isDone()) {
-            SchematicResult result = loadFuture.getNow(null);
+            SchematicPreviewCache.CachedPreview result = loadFuture.getNow(null);
             loadFuture = null;
 
             if (result != null) {
-                SCHEMATIC_CACHE.put(file, result);
-                applyLoadedSchematic(result);
+                SchematicPreviewCache.put(file, result);
+                applyLoadedPreview(result);
             }
         }
 
@@ -165,20 +161,19 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
         guiGraphics.disableScissor();
     }
 
-    private void applyLoadedSchematic(SchematicResult result) {
-        if (result == null || result.level() == null) return;
+    private void applyLoadedPreview(SchematicPreviewCache.CachedPreview cached) {
+        if (cached == null || cached.level == null) return;
 
-        schematicLevel = result.level();
+        schematicLevel = cached.level;
         schematicRenderer = new SchematicRenderer();
         schematicRenderer.display(schematicLevel);
 
-        var bounds = schematicLevel.getBounds();
-        schematicW = bounds.getXSpan();
-        schematicH = bounds.getYSpan();
-        schematicD = bounds.getZSpan();
+        schematicW = cached.width;
+        schematicH = cached.height;
+        schematicD = cached.depth;
     }
 
-    private SchematicResult loadSchematicLevel(Path path, net.minecraft.world.level.Level level, String cacheKey) {
+    private SchematicPreviewCache.CachedPreview loadSchematicPreview(Path path, net.minecraft.world.level.Level level) {
         try {
             if (!Files.exists(path)) return null;
 
@@ -221,7 +216,15 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
                 schematicLevel.setBlock(new BlockPos(bx, by, bz), state, 3);
             }
 
-            return new SchematicResult(schematicLevel);
+            var bounds = schematicLevel.getBounds();
+
+            return new SchematicPreviewCache.CachedPreview(
+                    schematicLevel,
+                    null,
+                    bounds.getXSpan(),
+                    bounds.getYSpan(),
+                    bounds.getZSpan()
+            );
 
         } catch (Exception e) {
             return null;
@@ -257,6 +260,4 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
 
         return "";
     }
-
-    private record SchematicResult(SchematicLevel level) {}
 }
