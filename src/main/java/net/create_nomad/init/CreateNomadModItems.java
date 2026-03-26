@@ -17,6 +17,7 @@ import net.create_nomad.item.TrackPackItem;
 import net.create_nomad.item.RedBrassBackpackItemItem;
 import net.create_nomad.item.PurpleBrassBackpackItemItem;
 import net.create_nomad.item.PinkBrassBackpackItemItem;
+import net.create_nomad.item.PackagerUpgradeItem;
 import net.create_nomad.item.OrangeBrassBackpackItemItem;
 import net.create_nomad.item.MagnetUpgradeItem;
 import net.create_nomad.item.MagentaBrassBackpackItemItem;
@@ -66,6 +67,7 @@ public class CreateNomadModItems {
 	public static final DeferredItem<Item> FILING_CABINET = REGISTRY.register(CreateNomadModBlocks.FILING_CABINET.getId().getPath(), () -> new FilingCabinetDisplayItem(CreateNomadModBlocks.FILING_CABINET.get(), new Item.Properties()));
 	public static final DeferredItem<Item> ANDESITE_UPGRADE = REGISTRY.register("andesite_upgrade", AndesiteUpgradeItem::new);
 	public static final DeferredItem<Item> MAGNET_UPGRADE = REGISTRY.register("magnet_upgrade", MagnetUpgradeItem::new);
+	public static final DeferredItem<Item> PACKAGER_UPGRADE = REGISTRY.register("packager_upgrade", PackagerUpgradeItem::new);
 
 	// Start of user code block custom items
 	// End of user code block custom items

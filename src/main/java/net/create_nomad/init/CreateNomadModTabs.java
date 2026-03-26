@@ -43,5 +43,6 @@ public class CreateNomadModTabs {
 				tabData.accept(CreateNomadModItems.PINK_BRASS_BACKPACK_ITEM.get());
 				tabData.accept(CreateNomadModItems.ANDESITE_UPGRADE.get());
 				tabData.accept(CreateNomadModItems.MAGNET_UPGRADE.get());
+				tabData.accept(CreateNomadModItems.PACKAGER_UPGRADE.get());
 			}).build());
 }
