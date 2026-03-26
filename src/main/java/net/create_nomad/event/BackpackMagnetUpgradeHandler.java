@@ -29,6 +29,7 @@ import java.util.Set;
 @EventBusSubscriber(modid = CreateNomadMod.MODID)
 public class BackpackMagnetUpgradeHandler {
     private static final double MAGNET_RANGE = 6.0D;
+    private static final double AUTO_INSERT_RANGE = 1.35D;
 
     private BackpackMagnetUpgradeHandler() {
     }
@@ -126,10 +127,15 @@ public class BackpackMagnetUpgradeHandler {
             }
 
             Vec3 offset = target.subtract(itemEntity.position());
-            if (offset.lengthSqr() > 0.0001) {
+            double distanceSqr = offset.lengthSqr();
+            if (distanceSqr > 0.0001) {
                 Vec3 pull = offset.normalize().scale(0.35);
                 itemEntity.setDeltaMovement(itemEntity.getDeltaMovement().add(pull));
                 itemEntity.hurtMarked = true;
+            }
+
+            if (distanceSqr > AUTO_INSERT_RANGE * AUTO_INSERT_RANGE) {
+                continue;
             }
 
             ItemStack remaining = inserter.insert(stack.copy());
