@@ -26,6 +26,7 @@ public class BrassBackpackGUIScreen extends AbstractContainerScreen<BrassBackpac
 	private final Level world;
 	private final Player entity;
 	private boolean menuStateUpdateActive = false;
+	private Button packageButton;
 
 	public BrassBackpackGUIScreen(BrassBackpackGUIMenu container, Inventory inventory, Component text) {
 		super(container, inventory, text);
@@ -57,7 +58,9 @@ public class BrassBackpackGUIScreen extends AbstractContainerScreen<BrassBackpac
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
 		guiGraphics.blit(texture, this.leftPos, this.topPos, 0, 0, BASE_GUI_WIDTH, BASE_GUI_HEIGHT, BASE_GUI_WIDTH, BASE_GUI_HEIGHT);
-		guiGraphics.blit(ResourceLocation.parse("create_nomad:textures/screens/brass_backpack.png"), this.leftPos + -2, this.topPos + -21, 0, 0, 256, 256, 256, 256);
+		if (this.menu.hasPackagerUpgradeInstalled()) {
+			guiGraphics.blit(ResourceLocation.parse("create_nomad:textures/screens/brass_backpack.png"), this.leftPos + -2, this.topPos + -21, 0, 0, 256, 256, 256, 256);
+		}
 		RenderSystem.disableBlend();
 	}
 
@@ -78,11 +81,21 @@ public class BrassBackpackGUIScreen extends AbstractContainerScreen<BrassBackpac
 	@Override
 	public void init() {
 		super.init();
-		this.addRenderableWidget(Button.builder(Component.translatable("gui.create_nomad.brass_backpack_gui.button_package"), button -> PacketDistributor.sendToServer(new PackageBackpackSlotsMessage()))
+		this.packageButton = this.addRenderableWidget(Button.builder(Component.translatable("gui.create_nomad.brass_backpack_gui.button_package"), button -> PacketDistributor.sendToServer(new PackageBackpackSlotsMessage()))
 				.bounds(this.leftPos + 178, this.topPos + 92, 72, 20)
 				.build());
+		this.packageButton.visible = this.menu.hasPackagerUpgradeInstalled();
 		if (this.minecraft != null) {
 			this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(CreateNomadModSounds.BACKPACK_OPEN.get(), 1.0F));
+		}
+	}
+
+
+	@Override
+	protected void containerTick() {
+		super.containerTick();
+		if (this.packageButton != null) {
+			this.packageButton.visible = this.menu.hasPackagerUpgradeInstalled();
 		}
 	}
 
