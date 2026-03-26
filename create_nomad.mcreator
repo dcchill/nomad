@@ -795,6 +795,48 @@
         ]
       },
       "path": "~/filing cabinet"
+    },
+    {
+      "name": "AndesiteUpgrade",
+      "type": "item",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "andesite_upgrade",
+      "metadata": {
+        "files": [
+          "src/main/java/net/create_nomad/item/AndesiteUpgradeItem.java",
+          "src/main/resources/assets/create_nomad/models/item/andesite_upgrade.json"
+        ]
+      },
+      "path": "~/bp_upgrades"
+    },
+    {
+      "name": "HotbarUpgrade",
+      "type": "item",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "hotbar_upgrade",
+      "metadata": {
+        "files": [
+          "src/main/java/net/create_nomad/item/HotbarUpgradeItem.java",
+          "src/main/resources/assets/create_nomad/models/item/hotbar_upgrade.json"
+        ]
+      },
+      "path": "~/bp_upgrades"
+    },
+    {
+      "name": "MagnetUpgrade",
+      "type": "item",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "magnet_upgrade",
+      "metadata": {
+        "files": [
+          "src/main/resources/assets/create_nomad/models/item/magnet_upgrade.json",
+          "src/main/java/net/create_nomad/item/MagnetUpgradeItem.java"
+        ]
+      },
+      "path": "~/bp_upgrades"
     }
   ],
   "variable_elements": [],
@@ -868,7 +910,9 @@
       "BlueBrassBackpackItem",
       "PurpleBrassBackpackItem",
       "MagentaBrassBackpackItem",
-      "PinkBrassBackpackItem"
+      "PinkBrassBackpackItem",
+      "AndesiteUpgrade",
+      "HotbarUpgrade"
     ]
   },
   "language_map": {
@@ -926,7 +970,10 @@
       "item.create_nomad.harpoon_item": "Harpoon",
       "tooltip.create_nomad.harpoon_gun.description_2": "Uses backtank air to fire a harpoon.  Harpoons are high piercing and reusable projectiles that deal high damage.",
       "block.create_nomad.filing_cabinet": "Filing Cabinet",
-      "gui.create_nomad.filing_cabinet_gui.label_schematic_placeholder": "schematic placeholder"
+      "gui.create_nomad.filing_cabinet_gui.label_schematic_placeholder": "schematic placeholder",
+      "item.create_nomad.andesite_upgrade": "Andesite Upgrade",
+      "item.create_nomad.hotbar_upgrade": "Hotbar Upgrade",
+      "item.create_nomad.magnet_upgrade": "Magnet Upgrade"
     }
   },
   "metadata": {
@@ -992,6 +1039,10 @@
       },
       {
         "name": "filing cabinet",
+        "children": []
+      },
+      {
+        "name": "bp_upgrades",
         "children": []
       }
     ]
