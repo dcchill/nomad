@@ -978,7 +978,8 @@
       "gui.create_nomad.filing_cabinet_gui.label_schematic_placeholder": "schematic placeholder",
       "item.create_nomad.andesite_upgrade": "Andesite Upgrade",
       "item.create_nomad.magnet_upgrade": "Magnet Upgrade",
-      "item.create_nomad.packager_upgrade": "Packager Upgrade"
+      "item.create_nomad.packager_upgrade": "Packager Upgrade",
+      "gui.create_nomad.brass_backpack_gui.button_package": "Package"
     }
   },
   "metadata": {

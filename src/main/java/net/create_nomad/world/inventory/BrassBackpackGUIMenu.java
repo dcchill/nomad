@@ -47,7 +47,7 @@ public class BrassBackpackGUIMenu extends AbstractContainerMenu implements Creat
             ResourceLocation.fromNamespaceAndPath(CreateNomadMod.MODID, "backpack_upgrades"));
     private static final TagKey<Item> CREATE_PACKAGES_TAG = TagKey.create(Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath("create", "packages"));
-    private static final int[] PACKAGE_INPUT_SLOTS = {32, 33, 34, 35};
+    private static final int[] PACKAGE_INPUT_SLOTS = {0, 1, 2, 3};
     private static final ResourceLocation PACKAGER_UPGRADE_ID = ResourceLocation.fromNamespaceAndPath(CreateNomadMod.MODID, "packager_upgrade");
 
     public final Level world;
@@ -162,11 +162,11 @@ public class BrassBackpackGUIMenu extends AbstractContainerMenu implements Creat
             }
         }
         // Upgrade Slots (3)
-        int[] upgradeSlotY = {38, 56, 74};
+        int[] upgradeSlotY = {17, 35, 53};
         for (int i = 0; i < BackpackInventoryRules.UPGRADE_SLOT_COUNT; i++) {
             int slotIndex = BackpackInventoryRules.UPGRADE_SLOT_START + i;
             int yPos = upgradeSlotY[i];
-            this.customSlots.put(slotIndex, this.addSlot(new SlotItemHandler(internal, slotIndex, 181, yPos) {
+            this.customSlots.put(slotIndex, this.addSlot(new SlotItemHandler(internal, slotIndex, 179, yPos) {
                 @Override
                 public boolean mayPlace(ItemStack stack) {
                     return stack.is(BACKPACK_UPGRADES_TAG);
