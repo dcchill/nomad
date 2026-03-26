@@ -48,8 +48,6 @@ public class BackpackToolboxRefillHandler {
         Container boundBackpack = getBoundBackpack(player);
         if (boundBackpack == null)
             return;
-        if (!hasHotbarUpgrade(boundBackpack))
-            return;
 
         boolean changed = false;
         for (int slot = 0; slot < HOTBAR_SLOTS; slot++) {
@@ -140,15 +138,5 @@ public class BackpackToolboxRefillHandler {
         }
 
         return totalExtracted;
-    }
-
-    private static boolean hasHotbarUpgrade(Container container) {
-        for (int slot = BackpackInventoryRules.UPGRADE_SLOT_START; slot < container.getContainerSize(); slot++) {
-            if (container.getItem(slot).is(CreateNomadModItems.HOTBAR_UPGRADE.get())) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }
