@@ -823,6 +823,20 @@
         ]
       },
       "path": "~/bp_upgrades"
+    },
+    {
+      "name": "PackagerUpgrade",
+      "type": "item",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "packager_upgrade",
+      "metadata": {
+        "files": [
+          "src/main/resources/assets/create_nomad/models/item/packager_upgrade.json",
+          "src/main/java/net/create_nomad/item/PackagerUpgradeItem.java"
+        ]
+      },
+      "path": "~/bp_upgrades"
     }
   ],
   "variable_elements": [],
@@ -871,8 +885,8 @@
       "CUSTOM:FilingCabinet"
     ],
     "ITEMS:mod:backpack_upgrades": [
-      "CUSTOM:HotbarUpgrade",
-      "CUSTOM:MagnetUpgrade"
+      "CUSTOM:MagnetUpgrade",
+      "CUSTOM:PackagerUpgrade"
     ]
   },
   "tab_element_order": {
@@ -902,7 +916,8 @@
       "MagentaBrassBackpackItem",
       "PinkBrassBackpackItem",
       "AndesiteUpgrade",
-      "MagnetUpgrade"
+      "MagnetUpgrade",
+      "PackagerUpgrade"
     ]
   },
   "language_map": {
@@ -962,7 +977,8 @@
       "block.create_nomad.filing_cabinet": "Filing Cabinet",
       "gui.create_nomad.filing_cabinet_gui.label_schematic_placeholder": "schematic placeholder",
       "item.create_nomad.andesite_upgrade": "Andesite Upgrade",
-      "item.create_nomad.magnet_upgrade": "Magnet Upgrade"
+      "item.create_nomad.magnet_upgrade": "Magnet Upgrade",
+      "item.create_nomad.packager_upgrade": "Packager Upgrade"
     }
   },
   "metadata": {
