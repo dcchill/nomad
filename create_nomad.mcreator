@@ -883,6 +883,10 @@
     ],
     "BLOCKS:create:wrench_pickup": [
       "CUSTOM:FilingCabinet"
+    ],
+    "ITEMS:mod:backpack_upgrades": [
+      "CUSTOM:HotbarUpgrade",
+      "CUSTOM:MagnetUpgrade"
     ]
   },
   "tab_element_order": {
