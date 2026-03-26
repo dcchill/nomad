@@ -6,12 +6,16 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 
 import net.create_nomad.world.inventory.BrassBackpackGUIMenu;
 import net.create_nomad.init.CreateNomadModScreens;
 
 import net.create_nomad.init.CreateNomadModSounds;
+import net.create_nomad.network.PackageBackpackSlotsMessage;
+
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
@@ -74,6 +78,9 @@ public class BrassBackpackGUIScreen extends AbstractContainerScreen<BrassBackpac
 	@Override
 	public void init() {
 		super.init();
+		this.addRenderableWidget(Button.builder(Component.translatable("gui.create_nomad.brass_backpack_gui.button_package"), button -> PacketDistributor.sendToServer(new PackageBackpackSlotsMessage()))
+				.bounds(this.leftPos + 178, this.topPos + 92, 72, 20)
+				.build());
 		if (this.minecraft != null) {
 			this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(CreateNomadModSounds.BACKPACK_OPEN.get(), 1.0F));
 		}
