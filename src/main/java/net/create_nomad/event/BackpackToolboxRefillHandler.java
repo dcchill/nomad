@@ -21,6 +21,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.create_nomad.CreateNomadMod;
 import net.create_nomad.network.BackpackRefillHighlightMessage;
 import net.create_nomad.util.BackpackItemAssociations;
+import net.create_nomad.util.BackpackInventoryRules;
+import net.create_nomad.init.CreateNomadModItems;
 
 @EventBusSubscriber(modid = CreateNomadMod.MODID)
 public class BackpackToolboxRefillHandler {
@@ -45,6 +47,8 @@ public class BackpackToolboxRefillHandler {
         Inventory inventory = player.getInventory();
         Container boundBackpack = getBoundBackpack(player);
         if (boundBackpack == null)
+            return;
+        if (!hasHotbarUpgrade(boundBackpack))
             return;
 
         boolean changed = false;
@@ -136,5 +140,15 @@ public class BackpackToolboxRefillHandler {
         }
 
         return totalExtracted;
+    }
+
+    private static boolean hasHotbarUpgrade(Container container) {
+        for (int slot = BackpackInventoryRules.UPGRADE_SLOT_START; slot < container.getContainerSize(); slot++) {
+            if (container.getItem(slot).is(CreateNomadModItems.HOTBAR_UPGRADE.get())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
