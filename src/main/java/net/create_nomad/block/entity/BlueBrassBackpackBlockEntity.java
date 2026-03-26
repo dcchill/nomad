@@ -30,7 +30,7 @@ import java.util.stream.IntStream;
 import io.netty.buffer.Unpooled;
 
 public class BlueBrassBackpackBlockEntity extends RandomizableContainerBlockEntity implements WorldlyContainer {
-	private NonNullList<ItemStack> stacks = NonNullList.withSize(36, ItemStack.EMPTY);
+	private NonNullList<ItemStack> stacks = NonNullList.withSize(BackpackInventoryRules.TOTAL_SLOT_COUNT, ItemStack.EMPTY);
 
 	public BlueBrassBackpackBlockEntity(BlockPos position, BlockState state) {
 		this(resolveBlockEntityType(state), position, state);
@@ -110,7 +110,7 @@ public class BlueBrassBackpackBlockEntity extends RandomizableContainerBlockEnti
 
 	@Override
 	public boolean canPlaceItem(int index, ItemStack stack) {
-		return BackpackInventoryRules.canStoreInBackpack(stack);
+		return BackpackInventoryRules.canPlaceInSlot(index, stack);
 	}
 
 	@Override
