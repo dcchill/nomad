@@ -26,6 +26,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.component.ItemContainerContents;
+import net.minecraft.core.HolderSet;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import net.create_nomad.CreateNomadMod;
 import net.create_nomad.init.CreateNomadModMenus;
@@ -41,6 +45,10 @@ import java.util.Collections;
 public class BrassBackpackGUIMenu extends AbstractContainerMenu implements CreateNomadModMenus.MenuAccessor {
     private static final TagKey<Item> BACKPACK_UPGRADES_TAG = TagKey.create(Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath(CreateNomadMod.MODID, "backpack_upgrades"));
+    private static final TagKey<Item> CREATE_PACKAGES_TAG = TagKey.create(Registries.ITEM,
+            ResourceLocation.fromNamespaceAndPath("create", "packages"));
+    private static final int[] PACKAGE_INPUT_SLOTS = {32, 33, 34, 35};
+    private static final ResourceLocation PACKAGER_UPGRADE_ID = ResourceLocation.fromNamespaceAndPath(CreateNomadMod.MODID, "packager_upgrade");
 
     public final Level world;
     public final Player entity;
@@ -322,6 +330,80 @@ public class BrassBackpackGUIMenu extends AbstractContainerMenu implements Creat
     @Override
     public Map<String, Object> getMenuState() {
         return Collections.emptyMap();
+    }
+
+    public boolean hasPackagerUpgradeInstalled() {
+        for (int slot = BackpackInventoryRules.UPGRADE_SLOT_START; slot < BackpackInventoryRules.TOTAL_SLOT_COUNT; slot++) {
+            ItemStack upgradeStack = this.getSlot(slot).getItem();
+            if (!upgradeStack.isEmpty() && PACKAGER_UPGRADE_ID.equals(BuiltInRegistries.ITEM.getKey(upgradeStack.getItem()))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    public void packageInputSlotsIntoRandomCreatePackage(ServerPlayer player) {
+        if (world.isClientSide()) {
+            return;
+        }
+
+        if (!hasPackagerUpgradeInstalled()) {
+            return;
+        }
+
+        HolderSet.Named<Item> packageItems = player.registryAccess()
+                .lookupOrThrow(Registries.ITEM)
+                .get(CREATE_PACKAGES_TAG)
+                .orElse(null);
+
+        if (packageItems == null || packageItems.size() == 0) {
+            return;
+        }
+
+        ItemStack[] contents = new ItemStack[PACKAGE_INPUT_SLOTS.length];
+        boolean hasAnyItem = false;
+
+        for (int i = 0; i < PACKAGE_INPUT_SLOTS.length; i++) {
+            int slot = PACKAGE_INPUT_SLOTS[i];
+            ItemStack stack = internal.getStackInSlot(slot);
+            if (!stack.isEmpty()) {
+                hasAnyItem = true;
+                contents[i] = stack.copy();
+            } else {
+                contents[i] = ItemStack.EMPTY;
+            }
+        }
+
+        if (!hasAnyItem) {
+            return;
+        }
+
+        Item chosenPackage = packageItems.get(world.random.nextInt(packageItems.size())).value();
+        ItemStack packagedStack = new ItemStack(chosenPackage);
+        DataComponentType<?> packageContentsComponent = BuiltInRegistries.DATA_COMPONENT_TYPE.get(ResourceLocation.fromNamespaceAndPath("create", "package_contents"));
+        if (packageContentsComponent != null) {
+            @SuppressWarnings("unchecked")
+            DataComponentType<ItemContainerContents> typedComponent = (DataComponentType<ItemContainerContents>) packageContentsComponent;
+            packagedStack.set(typedComponent, ItemContainerContents.fromItems(java.util.List.of(contents)));
+        } else {
+            return;
+        }
+
+        if (!(internal instanceof IItemHandlerModifiable modifiable)) {
+            return;
+        }
+
+        for (int slot : PACKAGE_INPUT_SLOTS) {
+            modifiable.setStackInSlot(slot, ItemStack.EMPTY);
+        }
+
+        player.getInventory().placeItemBackInInventory(packagedStack);
+        broadcastChanges();
+
+        if (bound && !boundStack.isEmpty()) {
+            saveToItem();
+        }
     }
 
     private static ItemStack findFirstCuriosBackpack(Player player) {
