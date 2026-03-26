@@ -42,6 +42,6 @@ public class CreateNomadModTabs {
 				tabData.accept(CreateNomadModItems.MAGENTA_BRASS_BACKPACK_ITEM.get());
 				tabData.accept(CreateNomadModItems.PINK_BRASS_BACKPACK_ITEM.get());
 				tabData.accept(CreateNomadModItems.ANDESITE_UPGRADE.get());
-				tabData.accept(CreateNomadModItems.HOTBAR_UPGRADE.get());
+				tabData.accept(CreateNomadModItems.MAGNET_UPGRADE.get());
 			}).build());
 }

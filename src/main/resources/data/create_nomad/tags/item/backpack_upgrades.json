@@ -1,7 +1,6 @@
 {
   "replace": false,
   "values": [
-    "create_nomad:hotbar_upgrade",
     "create_nomad:magnet_upgrade"
   ]
 }

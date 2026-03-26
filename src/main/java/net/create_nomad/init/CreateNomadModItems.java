@@ -24,7 +24,6 @@ import net.create_nomad.item.LimeBrassBackpackItemItem;
 import net.create_nomad.item.LightGrayBrassBackpackItemItem;
 import net.create_nomad.item.LightBlueBrassBackpackItemItem;
 import net.create_nomad.item.JackhammerItem;
-import net.create_nomad.item.HotbarUpgradeItem;
 import net.create_nomad.item.HarpoonItemItem;
 import net.create_nomad.item.HarpoonGunItem;
 import net.create_nomad.item.GreenBrassBackpackItemItem;
@@ -66,7 +65,6 @@ public class CreateNomadModItems {
 	public static final DeferredItem<Item> HARPOON_ITEM = REGISTRY.register("harpoon_item", HarpoonItemItem::new);
 	public static final DeferredItem<Item> FILING_CABINET = REGISTRY.register(CreateNomadModBlocks.FILING_CABINET.getId().getPath(), () -> new FilingCabinetDisplayItem(CreateNomadModBlocks.FILING_CABINET.get(), new Item.Properties()));
 	public static final DeferredItem<Item> ANDESITE_UPGRADE = REGISTRY.register("andesite_upgrade", AndesiteUpgradeItem::new);
-	public static final DeferredItem<Item> HOTBAR_UPGRADE = REGISTRY.register("hotbar_upgrade", HotbarUpgradeItem::new);
 	public static final DeferredItem<Item> MAGNET_UPGRADE = REGISTRY.register("magnet_upgrade", MagnetUpgradeItem::new);
 
 	// Start of user code block custom items

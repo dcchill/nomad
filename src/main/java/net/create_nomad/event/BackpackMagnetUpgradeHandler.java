@@ -28,7 +28,9 @@ import java.util.Set;
 
 @EventBusSubscriber(modid = CreateNomadMod.MODID)
 public class BackpackMagnetUpgradeHandler {
-    private static final double MAGNET_RANGE = 6.0D;
+    private static final double MAGNET_RANGE = 16.0D;
+    private static final double WORN_AUTO_INSERT_RANGE = 2.75D;
+    private static final double PLACED_AUTO_INSERT_RANGE = 1.35D;
 
     private BackpackMagnetUpgradeHandler() {
     }
@@ -37,10 +39,6 @@ public class BackpackMagnetUpgradeHandler {
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         Player player = event.getEntity();
         if (!(player.level() instanceof ServerLevel serverLevel)) {
-            return;
-        }
-
-        if (player.tickCount % 5 != 0) {
             return;
         }
 
@@ -68,7 +66,8 @@ public class BackpackMagnetUpgradeHandler {
                 player.position().add(0, 0.5, 0),
                 () -> {
                 },
-                stack -> insertIntoBackpackStorage(backpackInventory, stack));
+                stack -> insertIntoBackpackStorage(backpackInventory, stack),
+                WORN_AUTO_INSERT_RANGE);
 
         if (changed) {
             BackpackDataUtils.saveHandlerToItem(backpackInventory, backpackStack, serverLevel);
@@ -102,7 +101,8 @@ public class BackpackMagnetUpgradeHandler {
                             serverLevel,
                             target,
                             container::setChanged,
-                            stack -> insertIntoBackpackStorage(container, stack));
+                            stack -> insertIntoBackpackStorage(container, stack),
+                            PLACED_AUTO_INSERT_RANGE);
 
                     if (changed) {
                         blockEntity.setChanged();
@@ -112,7 +112,7 @@ public class BackpackMagnetUpgradeHandler {
         }
     }
 
-    private static boolean pullItemsTowardsAndInsert(ServerLevel level, Vec3 target, Runnable markDirty, Inserter inserter) {
+    private static boolean pullItemsTowardsAndInsert(ServerLevel level, Vec3 target, Runnable markDirty, Inserter inserter, double autoInsertRange) {
         List<ItemEntity> nearbyItems = level.getEntitiesOfClass(
                 ItemEntity.class,
                 new AABB(target, target).inflate(MAGNET_RANGE),
@@ -126,10 +126,15 @@ public class BackpackMagnetUpgradeHandler {
             }
 
             Vec3 offset = target.subtract(itemEntity.position());
-            if (offset.lengthSqr() > 0.0001) {
+            double distanceSqr = offset.lengthSqr();
+            if (distanceSqr > 0.0001) {
                 Vec3 pull = offset.normalize().scale(0.35);
                 itemEntity.setDeltaMovement(itemEntity.getDeltaMovement().add(pull));
                 itemEntity.hurtMarked = true;
+            }
+
+            if (distanceSqr > autoInsertRange * autoInsertRange) {
+                continue;
             }
 
             ItemStack remaining = inserter.insert(stack.copy());

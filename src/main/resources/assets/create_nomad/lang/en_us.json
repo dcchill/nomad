@@ -54,6 +54,5 @@
   "block.create_nomad.filing_cabinet": "Filing Cabinet",
   "gui.create_nomad.filing_cabinet_gui.label_schematic_placeholder": "schematic placeholder",
   "item.create_nomad.andesite_upgrade": "Andesite Upgrade",
-  "item.create_nomad.hotbar_upgrade": "Hotbar Upgrade",
   "item.create_nomad.magnet_upgrade": "Magnet Upgrade"
 }

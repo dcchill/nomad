@@ -811,20 +811,6 @@
       "path": "~/bp_upgrades"
     },
     {
-      "name": "HotbarUpgrade",
-      "type": "item",
-      "compiles": true,
-      "locked_code": false,
-      "registry_name": "hotbar_upgrade",
-      "metadata": {
-        "files": [
-          "src/main/java/net/create_nomad/item/HotbarUpgradeItem.java",
-          "src/main/resources/assets/create_nomad/models/item/hotbar_upgrade.json"
-        ]
-      },
-      "path": "~/bp_upgrades"
-    },
-    {
       "name": "MagnetUpgrade",
       "type": "item",
       "compiles": true,
@@ -916,7 +902,7 @@
       "MagentaBrassBackpackItem",
       "PinkBrassBackpackItem",
       "AndesiteUpgrade",
-      "HotbarUpgrade"
+      "MagnetUpgrade"
     ]
   },
   "language_map": {
@@ -976,7 +962,6 @@
       "block.create_nomad.filing_cabinet": "Filing Cabinet",
       "gui.create_nomad.filing_cabinet_gui.label_schematic_placeholder": "schematic placeholder",
       "item.create_nomad.andesite_upgrade": "Andesite Upgrade",
-      "item.create_nomad.hotbar_upgrade": "Hotbar Upgrade",
       "item.create_nomad.magnet_upgrade": "Magnet Upgrade"
     }
   },
