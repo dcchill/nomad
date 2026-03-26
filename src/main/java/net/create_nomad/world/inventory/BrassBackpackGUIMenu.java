@@ -26,6 +26,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.ItemContainerContents;
+import net.minecraft.core.HolderSet;
 
 import net.create_nomad.CreateNomadMod;
 import net.create_nomad.init.CreateNomadModMenus;
@@ -41,6 +44,9 @@ import java.util.Collections;
 public class BrassBackpackGUIMenu extends AbstractContainerMenu implements CreateNomadModMenus.MenuAccessor {
     private static final TagKey<Item> BACKPACK_UPGRADES_TAG = TagKey.create(Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath(CreateNomadMod.MODID, "backpack_upgrades"));
+    private static final TagKey<Item> CREATE_PACKAGES_TAG = TagKey.create(Registries.ITEM,
+            ResourceLocation.fromNamespaceAndPath("create", "packages"));
+    private static final int[] PACKAGE_INPUT_SLOTS = {32, 33, 34, 35};
 
     public final Level world;
     public final Player entity;
@@ -322,6 +328,59 @@ public class BrassBackpackGUIMenu extends AbstractContainerMenu implements Creat
     @Override
     public Map<String, Object> getMenuState() {
         return Collections.emptyMap();
+    }
+
+
+    public void packageInputSlotsIntoRandomCreatePackage(ServerPlayer player) {
+        if (world.isClientSide()) {
+            return;
+        }
+
+        HolderSet.Named<Item> packageItems = player.registryAccess()
+                .lookupOrThrow(Registries.ITEM)
+                .get(CREATE_PACKAGES_TAG)
+                .orElse(null);
+
+        if (packageItems == null || packageItems.size() == 0) {
+            return;
+        }
+
+        ItemStack[] contents = new ItemStack[PACKAGE_INPUT_SLOTS.length];
+        boolean hasAnyItem = false;
+
+        for (int i = 0; i < PACKAGE_INPUT_SLOTS.length; i++) {
+            int slot = PACKAGE_INPUT_SLOTS[i];
+            ItemStack stack = internal.getStackInSlot(slot);
+            if (!stack.isEmpty()) {
+                hasAnyItem = true;
+                contents[i] = stack.copy();
+            } else {
+                contents[i] = ItemStack.EMPTY;
+            }
+        }
+
+        if (!hasAnyItem) {
+            return;
+        }
+
+        Item chosenPackage = packageItems.get(world.random.nextInt(packageItems.size())).value();
+        ItemStack packagedStack = new ItemStack(chosenPackage);
+        packagedStack.set(DataComponents.CONTAINER, ItemContainerContents.fromItems(java.util.List.of(contents)));
+
+        if (!(internal instanceof IItemHandlerModifiable modifiable)) {
+            return;
+        }
+
+        for (int slot : PACKAGE_INPUT_SLOTS) {
+            modifiable.setStackInSlot(slot, ItemStack.EMPTY);
+        }
+
+        player.getInventory().placeItemBackInInventory(packagedStack);
+        broadcastChanges();
+
+        if (bound && !boundStack.isEmpty()) {
+            saveToItem();
+        }
     }
 
     private static ItemStack findFirstCuriosBackpack(Player player) {
