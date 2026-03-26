@@ -155,7 +155,12 @@ public class BrassBackpackGUIMenu extends AbstractContainerMenu implements Creat
                         new SlotItemHandler(internal, index, xPos, yPos) {
                             @Override
                             public boolean mayPlace(ItemStack stack) {
-                                return BackpackInventoryRules.canStoreInBackpack(stack);
+                                if (!BackpackInventoryRules.canStoreInBackpack(stack)) {
+                                    return false;
+                                }
+
+                                return !isPackageInputSlot(index) || !stack.is(CREATE_PACKAGES_TAG);
+
                             }
                         }
                 ));
@@ -374,9 +379,15 @@ public class BrassBackpackGUIMenu extends AbstractContainerMenu implements Creat
                 contents[i] = ItemStack.EMPTY;
             }
         }
-
+		
         if (!hasAnyItem) {
             return;
+        }
+        
+        for (ItemStack content : contents) {
+            if (!content.isEmpty() && content.is(CREATE_PACKAGES_TAG)) {
+                return;
+            }
         }
 
         Item chosenPackage = packageItems.get(world.random.nextInt(packageItems.size())).value();
@@ -404,6 +415,14 @@ public class BrassBackpackGUIMenu extends AbstractContainerMenu implements Creat
         if (bound && !boundStack.isEmpty()) {
             saveToItem();
         }
+    }
+    private static boolean isPackageInputSlot(int slot) {
+        for (int packageInputSlot : PACKAGE_INPUT_SLOTS) {
+            if (packageInputSlot == slot) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static ItemStack findFirstCuriosBackpack(Player player) {
