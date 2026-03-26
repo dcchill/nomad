@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
+    "create_nomad:packager_upgrade",
     "create_nomad:magnet_upgrade"
   ]
 }
