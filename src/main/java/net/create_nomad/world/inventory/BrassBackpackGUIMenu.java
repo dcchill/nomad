@@ -13,6 +13,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -22,6 +23,9 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 
 import net.create_nomad.CreateNomadMod;
 import net.create_nomad.init.CreateNomadModMenus;
@@ -35,6 +39,8 @@ import java.util.HashMap;
 import java.util.Collections;
 
 public class BrassBackpackGUIMenu extends AbstractContainerMenu implements CreateNomadModMenus.MenuAccessor {
+    private static final TagKey<Item> BACKPACK_UPGRADES_TAG = TagKey.create(Registries.ITEM,
+            ResourceLocation.fromNamespaceAndPath(CreateNomadMod.MODID, "backpack_upgrades"));
 
     public final Level world;
     public final Player entity;
@@ -55,7 +61,7 @@ public class BrassBackpackGUIMenu extends AbstractContainerMenu implements Creat
 
         this.entity = inv.player;
         this.world = inv.player.level();
-        this.internal = new ItemStackHandler(36);
+        this.internal = new ItemStackHandler(BackpackInventoryRules.TOTAL_SLOT_COUNT);
 
         BlockPos pos = null;
 
@@ -93,7 +99,7 @@ public class BrassBackpackGUIMenu extends AbstractContainerMenu implements Creat
 
                 this.boundStack = stack;
 
-                this.internal = new ItemStackHandler(36);
+                this.internal = new ItemStackHandler(BackpackInventoryRules.TOTAL_SLOT_COUNT);
                 this.bound = true;
 
                 loadFromItem(stack);
@@ -146,6 +152,18 @@ public class BrassBackpackGUIMenu extends AbstractContainerMenu implements Creat
                         }
                 ));
             }
+        }
+        // Upgrade Slots (3)
+        int[] upgradeSlotY = {38, 56, 74};
+        for (int i = 0; i < BackpackInventoryRules.UPGRADE_SLOT_COUNT; i++) {
+            int slotIndex = BackpackInventoryRules.UPGRADE_SLOT_START + i;
+            int yPos = upgradeSlotY[i];
+            this.customSlots.put(slotIndex, this.addSlot(new SlotItemHandler(internal, slotIndex, 181, yPos) {
+                @Override
+                public boolean mayPlace(ItemStack stack) {
+                    return stack.is(BACKPACK_UPGRADES_TAG);
+                }
+            }));
         }
 
         // ===============================
@@ -232,11 +250,17 @@ public class BrassBackpackGUIMenu extends AbstractContainerMenu implements Creat
             ItemStack itemstack1 = slot.getItem();
             itemstack = itemstack1.copy();
 
-            if (index < 36) {
-                if (!this.moveItemStackTo(itemstack1, 36, this.slots.size(), true))
+            if (index < BackpackInventoryRules.TOTAL_SLOT_COUNT) {
+                if (!this.moveItemStackTo(itemstack1, BackpackInventoryRules.TOTAL_SLOT_COUNT, this.slots.size(), true))
                     return ItemStack.EMPTY;
-            } else if (!this.moveItemStackTo(itemstack1, 0, 36, false)) {
-                return ItemStack.EMPTY;
+            } else {
+                if (itemstack1.is(BACKPACK_UPGRADES_TAG)) {
+                    if (!this.moveItemStackTo(itemstack1, BackpackInventoryRules.UPGRADE_SLOT_START, BackpackInventoryRules.TOTAL_SLOT_COUNT, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                } else if (!this.moveItemStackTo(itemstack1, 0, BackpackInventoryRules.STORAGE_SLOT_COUNT, false)) {
+                    return ItemStack.EMPTY;
+                }
             }
 
             if (itemstack1.isEmpty())
