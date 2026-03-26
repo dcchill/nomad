@@ -16,6 +16,9 @@ import net.create_nomad.init.CreateNomadModSounds;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 public class BrassBackpackGUIScreen extends AbstractContainerScreen<BrassBackpackGUIMenu> implements CreateNomadModScreens.ScreenAccessor {
+	private static final int BASE_GUI_WIDTH = 176;
+	private static final int BASE_GUI_HEIGHT = 188;
+	private static final int FULL_GUI_WIDTH = 256;
 	private final Level world;
 	private final Player entity;
 	private boolean menuStateUpdateActive = false;
@@ -24,8 +27,10 @@ public class BrassBackpackGUIScreen extends AbstractContainerScreen<BrassBackpac
 		super(container, inventory, text);
 		this.world = container.world;
 		this.entity = container.entity;
-		this.imageWidth = 176;
-		this.imageHeight = 188;
+		// Keep vanilla inventory anchored, but enlarge logical screen width so
+		// slots on the backpack side panel (x > 176) are visible and interactive.
+		this.imageWidth = FULL_GUI_WIDTH;
+		this.imageHeight = BASE_GUI_HEIGHT;
 	}
 
 	@Override
@@ -47,7 +52,7 @@ public class BrassBackpackGUIScreen extends AbstractContainerScreen<BrassBackpac
 		RenderSystem.setShaderColor(1, 1, 1, 1);
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
-		guiGraphics.blit(texture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight, this.imageWidth, this.imageHeight);
+		guiGraphics.blit(texture, this.leftPos, this.topPos, 0, 0, BASE_GUI_WIDTH, BASE_GUI_HEIGHT, BASE_GUI_WIDTH, BASE_GUI_HEIGHT);
 		guiGraphics.blit(ResourceLocation.parse("create_nomad:textures/screens/brass_backpack.png"), this.leftPos + -2, this.topPos + -21, 0, 0, 256, 256, 256, 256);
 		RenderSystem.disableBlend();
 	}
