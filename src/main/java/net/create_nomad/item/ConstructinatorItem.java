@@ -3,6 +3,7 @@ package net.create_nomad.item;
 import com.simibubi.create.content.schematics.SchematicPrinter;
 import com.simibubi.create.content.schematics.requirement.ItemRequirement;
 import com.simibubi.create.content.equipment.armor.BacktankUtil;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -120,8 +121,11 @@ public class ConstructinatorItem extends Item implements GeoItem {
 		}
 
 		String previousFile = getCustomTag(constructinatorStack).getString(SCHEMATIC_FILE_TAG);
-		if (!printer.isLoaded() || !schematicFile.equals(previousFile)) {
+		boolean schematicChanged = !schematicFile.equals(previousFile);
+		if (schematicChanged) {
 			printer.resetSchematic();
+		}
+		if (!printer.isLoaded() || schematicChanged) {
 			printer.loadSchematic(schematicStack, level, false);
 		}
 
@@ -142,31 +146,38 @@ public class ConstructinatorItem extends Item implements GeoItem {
 			}
 
 			final BlockState[] targetState = { null };
-			printer.handleCurrentTarget((pos, state, blockEntity) -> targetState[0] = state, (pos, entityTarget) -> {
+			final BlockPos[] targetPos = { null };
+			printer.handleCurrentTarget((pos, state, blockEntity) -> {
+				targetPos[0] = pos.immutable();
+				targetState[0] = state;
+			}, (pos, entityTarget) -> {
 			});
-			if (targetState[0] == null || shouldSkipPlacementState(targetState[0])) {
+			if (targetState[0] == null || targetPos[0] == null || shouldSkipPlacementState(targetState[0])) {
+				continue;
+			}
+
+			if (!targetState[0].canSurvive(level, targetPos[0])) {
 				continue;
 			}
 
 			ItemRequirement requirement = printer.getCurrentRequirement();
 			if (requirement.isInvalid()) {
-				storePrinterState(constructinatorStack, printer, schematicFile);
-				return false;
+				continue;
 			}
 
 			if (!canMeetRequirement(player, level, requirement)) {
 				storePrinterState(constructinatorStack, printer, schematicFile);
-				return true;
+				return false;
 			}
 
 			if (!tryConsumeBacktankAir(player, BACKTANK_AIR_COST_PER_BLOCK)) {
 				storePrinterState(constructinatorStack, printer, schematicFile);
-				return true;
+				return false;
 			}
 
 			if (!consumeRequirement(player, level, requirement)) {
 				storePrinterState(constructinatorStack, printer, schematicFile);
-				return true;
+				return false;
 			}
 
 			final boolean[] placementSucceeded = { false };
