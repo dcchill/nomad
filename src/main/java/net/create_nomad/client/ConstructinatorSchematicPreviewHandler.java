@@ -19,6 +19,8 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Map;
+import java.util.Vector;
 
 @EventBusSubscriber(modid = CreateNomadMod.MODID, value = Dist.CLIENT)
 public class ConstructinatorSchematicPreviewHandler {
@@ -35,6 +37,14 @@ public class ConstructinatorSchematicPreviewHandler {
 	private static Field deployedField;
 	private static Field displayedSchematicField;
 	private static Field currentToolField;
+	private static Field renderersField;
+	private static Field bufferCacheField;
+
+	private static Method bufferColorFloatMethod;
+	private static Method bufferColorIntMethod;
+	private static Method bufferSetColorIntMethod;
+
+	private static final float PREVIEW_ALPHA = 0.6f;
 
 	private static boolean reflectionReady = false;
 	private static boolean reflectionFailed = false;
@@ -126,6 +136,7 @@ public class ConstructinatorSchematicPreviewHandler {
 			activeSchematicItemField.set(schematicHandler, offhand);
 			activeHotbarSlotField.setInt(schematicHandler, player.getInventory().selected);
 			activeField.setBoolean(schematicHandler, true);
+			applyPreviewTransparency(schematicHandler);
 			forcedPreviewLastTick = true;
 		} catch (ReflectiveOperationException ignored) {
 			reflectionFailed = true;
@@ -192,12 +203,93 @@ public class ConstructinatorSchematicPreviewHandler {
 			currentToolField = handlerClass.getDeclaredField("currentTool");
 			currentToolField.setAccessible(true);
 
+			renderersField = handlerClass.getDeclaredField("renderers");
+			renderersField.setAccessible(true);
+
+			Class<?> rendererClass = Class.forName("com.simibubi.create.content.schematics.client.SchematicRenderer");
+			bufferCacheField = rendererClass.getDeclaredField("bufferCache");
+			bufferCacheField.setAccessible(true);
+
 			reflectionReady = true;
 			return true;
 		} catch (ReflectiveOperationException e) {
 			e.printStackTrace();
 			reflectionFailed = true;
 			return false;
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private static void applyPreviewTransparency(SchematicHandler schematicHandler) {
+		if (renderersField == null || bufferCacheField == null) {
+			return;
+		}
+
+		try {
+			Object renderersObject = renderersField.get(schematicHandler);
+			if (!(renderersObject instanceof Vector<?> renderers)) {
+				return;
+			}
+
+			for (Object renderer : renderers) {
+				Object cacheObject = bufferCacheField.get(renderer);
+				if (!(cacheObject instanceof Map<?, ?> cache)) {
+					continue;
+				}
+
+				for (Object buffer : cache.values()) {
+					applyBufferAlpha(buffer, PREVIEW_ALPHA);
+				}
+			}
+		} catch (ReflectiveOperationException ignored) {
+			reflectionFailed = true;
+		}
+	}
+
+	private static void applyBufferAlpha(Object buffer, float alpha) {
+		if (buffer == null) {
+			return;
+		}
+
+		try {
+			if (bufferColorFloatMethod == null) {
+				try {
+					bufferColorFloatMethod = buffer.getClass().getMethod("color", float.class, float.class, float.class, float.class);
+				} catch (NoSuchMethodException ignored) {
+					bufferColorFloatMethod = null;
+				}
+			}
+			if (bufferColorFloatMethod != null) {
+				bufferColorFloatMethod.invoke(buffer, 1f, 1f, 1f, alpha);
+				return;
+			}
+
+			if (bufferColorIntMethod == null) {
+				try {
+					bufferColorIntMethod = buffer.getClass().getMethod("color", int.class);
+				} catch (NoSuchMethodException ignored) {
+					bufferColorIntMethod = null;
+				}
+			}
+			if (bufferColorIntMethod != null) {
+				int alphaInt = Math.max(0, Math.min(255, Math.round(alpha * 255f)));
+				bufferColorIntMethod.invoke(buffer, (alphaInt << 24) | 0x00FFFFFF);
+				return;
+			}
+
+			if (bufferSetColorIntMethod == null) {
+				try {
+					bufferSetColorIntMethod = buffer.getClass().getMethod("setColor", int.class);
+				} catch (NoSuchMethodException ignored) {
+					bufferSetColorIntMethod = null;
+				}
+			}
+			if (bufferSetColorIntMethod != null) {
+				int alphaInt = Math.max(0, Math.min(255, Math.round(alpha * 255f)));
+				bufferSetColorIntMethod.invoke(buffer, (alphaInt << 24) | 0x00FFFFFF);
+			}
+		} catch (ReflectiveOperationException ignored) {
+			// Ignore unknown buffer implementations and keep normal preview rendering.
 		}
 	}
 }
