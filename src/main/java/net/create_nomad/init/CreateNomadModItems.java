@@ -14,6 +14,7 @@ import net.minecraft.world.item.BlockItem;
 import net.create_nomad.item.YellowBrassBackpackItemItem;
 import net.create_nomad.item.WhiteBrassBackpackItemItem;
 import net.create_nomad.item.TrackPackItem;
+import net.create_nomad.item.ToolUpgradeItem;
 import net.create_nomad.item.RedBrassBackpackItemItem;
 import net.create_nomad.item.PurpleBrassBackpackItemItem;
 import net.create_nomad.item.PinkBrassBackpackItemItem;
@@ -25,6 +26,8 @@ import net.create_nomad.item.LimeBrassBackpackItemItem;
 import net.create_nomad.item.LightGrayBrassBackpackItemItem;
 import net.create_nomad.item.LightBlueBrassBackpackItemItem;
 import net.create_nomad.item.JackhammerItem;
+import net.create_nomad.item.InvulnerableUpgradeItem;
+import net.create_nomad.item.InfinityUpgradeItem;
 import net.create_nomad.item.HarpoonItemItem;
 import net.create_nomad.item.HarpoonGunItem;
 import net.create_nomad.item.GreenBrassBackpackItemItem;
@@ -33,6 +36,7 @@ import net.create_nomad.item.GrapplingHookItem;
 import net.create_nomad.item.CyanBrassBackpackItemItem;
 import net.create_nomad.item.ChainsawItem;
 import net.create_nomad.item.BrownBrassBackpackItemItem;
+import net.create_nomad.item.BrassUpgradeItem;
 import net.create_nomad.item.BlueBrassBackpackItemItem;
 import net.create_nomad.item.BlackBrassBackpackItemItem;
 import net.create_nomad.item.AndesiteUpgradeItem;
@@ -68,6 +72,10 @@ public class CreateNomadModItems {
 	public static final DeferredItem<Item> ANDESITE_UPGRADE = REGISTRY.register("andesite_upgrade", AndesiteUpgradeItem::new);
 	public static final DeferredItem<Item> MAGNET_UPGRADE = REGISTRY.register("magnet_upgrade", MagnetUpgradeItem::new);
 	public static final DeferredItem<Item> PACKAGER_UPGRADE = REGISTRY.register("packager_upgrade", PackagerUpgradeItem::new);
+	public static final DeferredItem<Item> BRASS_UPGRADE = REGISTRY.register("brass_upgrade", BrassUpgradeItem::new);
+	public static final DeferredItem<Item> INFINITY_UPGRADE = REGISTRY.register("infinity_upgrade", InfinityUpgradeItem::new);
+	public static final DeferredItem<Item> TOOL_UPGRADE = REGISTRY.register("tool_upgrade", ToolUpgradeItem::new);
+	public static final DeferredItem<Item> INVULNERABLE_UPGRADE = REGISTRY.register("invulnerable_upgrade", InvulnerableUpgradeItem::new);
 
 	// Start of user code block custom items
 	// End of user code block custom items

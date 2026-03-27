@@ -837,6 +837,62 @@
         ]
       },
       "path": "~/bp_upgrades"
+    },
+    {
+      "name": "BrassUpgrade",
+      "type": "item",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "brass_upgrade",
+      "metadata": {
+        "files": [
+          "src/main/java/net/create_nomad/item/BrassUpgradeItem.java",
+          "src/main/resources/assets/create_nomad/models/item/brass_upgrade.json"
+        ]
+      },
+      "path": "~/bp_upgrades"
+    },
+    {
+      "name": "InfinityUpgrade",
+      "type": "item",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "infinity_upgrade",
+      "metadata": {
+        "files": [
+          "src/main/java/net/create_nomad/item/InfinityUpgradeItem.java",
+          "src/main/resources/assets/create_nomad/models/item/infinity_upgrade.json"
+        ]
+      },
+      "path": "~/bp_upgrades"
+    },
+    {
+      "name": "ToolUpgrade",
+      "type": "item",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "tool_upgrade",
+      "metadata": {
+        "files": [
+          "src/main/resources/assets/create_nomad/models/item/tool_upgrade.json",
+          "src/main/java/net/create_nomad/item/ToolUpgradeItem.java"
+        ]
+      },
+      "path": "~/bp_upgrades"
+    },
+    {
+      "name": "InvulnerableUpgrade",
+      "type": "item",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "invulnerable_upgrade",
+      "metadata": {
+        "files": [
+          "src/main/java/net/create_nomad/item/InvulnerableUpgradeItem.java",
+          "src/main/resources/assets/create_nomad/models/item/invulnerable_upgrade.json"
+        ]
+      },
+      "path": "~/bp_upgrades"
     }
   ],
   "variable_elements": [],
@@ -917,7 +973,10 @@
       "PinkBrassBackpackItem",
       "AndesiteUpgrade",
       "MagnetUpgrade",
-      "PackagerUpgrade"
+      "PackagerUpgrade",
+      "BrassUpgrade",
+      "InfinityUpgrade",
+      "ToolUpgrade"
     ]
   },
   "language_map": {
@@ -979,7 +1038,11 @@
       "item.create_nomad.andesite_upgrade": "Andesite Upgrade",
       "item.create_nomad.magnet_upgrade": "Magnet Upgrade",
       "item.create_nomad.packager_upgrade": "Packager Upgrade",
-      "gui.create_nomad.brass_backpack_gui.button_package": "Package"
+      "gui.create_nomad.brass_backpack_gui.button_package": "Package",
+      "item.create_nomad.brass_upgrade": "Brass Upgrade",
+      "item.create_nomad.infinity_upgrade": "Infinity Upgrade",
+      "item.create_nomad.tool_upgrade": "Tool Upgrade",
+      "item.create_nomad.invulnerable_upgrade": "Invulnerable Upgrade"
     }
   },
   "metadata": {

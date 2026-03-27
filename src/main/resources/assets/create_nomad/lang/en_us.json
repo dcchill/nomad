@@ -56,5 +56,9 @@
   "item.create_nomad.andesite_upgrade": "Andesite Upgrade",
   "item.create_nomad.magnet_upgrade": "Magnet Upgrade",
   "item.create_nomad.packager_upgrade": "Packager Upgrade",
-  "gui.create_nomad.brass_backpack_gui.button_package": "Package"
+  "gui.create_nomad.brass_backpack_gui.button_package": "Package",
+  "item.create_nomad.brass_upgrade": "Brass Upgrade",
+  "item.create_nomad.infinity_upgrade": "Infinity Upgrade",
+  "item.create_nomad.tool_upgrade": "Tool Upgrade",
+  "item.create_nomad.invulnerable_upgrade": "Invulnerable Upgrade"
 }
