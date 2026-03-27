@@ -49,10 +49,14 @@ public class ConstructinatorItem extends Item implements GeoItem {
 	private static final String PRINTER_TAG = "constructinatorPrinter";
 	private static final String GECKO_ANIM_TAG = "geckoAnim";
 	private static final String SCHEMATIC_FILE_TAG = "constructinatorSchematicFile";
+	private static final String FAILED_TARGET_POS_TAG = "constructinatorFailedTargetPos";
+	private static final String FAILED_TARGET_COUNT_TAG = "constructinatorFailedTargetCount";
+	private static final String SKIPPED_TARGETS_TAG = "constructinatorSkippedTargets";
 	private static final int PLACE_INTERVAL_TICKS = 2;
 	private static final int BACKTANK_AIR_COST_PER_BLOCK = 1;
 	private static final int SHOT_VISUAL_LIFETIME_TICKS = 8;
 	private static final double SHOT_VISUAL_SPEED = 0.85;
+	private static final int FAILED_TARGET_SKIP_THRESHOLD = 3;
 	private static final RawAnimation FIRE_ANIMATION = RawAnimation.begin().thenPlay("fire");
 	private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 	public String animationprocedure = "empty";
@@ -124,6 +128,7 @@ public class ConstructinatorItem extends Item implements GeoItem {
 		boolean schematicChanged = !schematicFile.equals(previousFile);
 		if (schematicChanged) {
 			printer.resetSchematic();
+			clearFailedTargetTracking(constructinatorStack);
 		}
 		if (!printer.isLoaded() || schematicChanged) {
 			printer.loadSchematic(schematicStack, level, false);
@@ -152,6 +157,10 @@ public class ConstructinatorItem extends Item implements GeoItem {
 			}, (pos, entityTarget) -> {
 			});
 			if (targetState[0] == null || targetPos[0] == null || shouldSkipPlacementState(targetState[0])) {
+				continue;
+			}
+
+			if (isSkippedTarget(constructinatorStack, targetPos[0])) {
 				continue;
 			}
 
@@ -190,12 +199,15 @@ public class ConstructinatorItem extends Item implements GeoItem {
 			});
 
 			if (placementSucceeded[0]) {
+				clearRecentFailedTarget(constructinatorStack);
 				placed = true;
 				printer.sendBlockUpdates(level);
 				CustomData.update(DataComponents.CUSTOM_DATA, constructinatorStack, tag -> tag.putString(GECKO_ANIM_TAG, "fire"));
 				if (constructinatorStack.getItem() instanceof ConstructinatorItem constructinatorItem) {
 					constructinatorItem.triggerAnim(player, GeoItem.getOrAssignId(constructinatorStack, level), "procedureController", "fire");
 				}
+			} else {
+				recordFailedTarget(constructinatorStack, targetPos[0]);
 			}
 		}
 
@@ -277,6 +289,77 @@ public class ConstructinatorItem extends Item implements GeoItem {
 
 		BacktankUtil.consumeAir(player, backtank, airCost);
 		return true;
+	}
+
+	private static boolean isSkippedTarget(ItemStack stack, BlockPos targetPos) {
+		if (targetPos == null) {
+			return false;
+		}
+
+		long target = targetPos.asLong();
+		long[] skipped = getCustomTag(stack).getLongArray(SKIPPED_TARGETS_TAG);
+		for (long skippedTarget : skipped) {
+			if (skippedTarget == target) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private static void recordFailedTarget(ItemStack stack, BlockPos targetPos) {
+		if (targetPos == null) {
+			return;
+		}
+
+		long target = targetPos.asLong();
+		CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
+			long lastFailed = tag.getLong(FAILED_TARGET_POS_TAG);
+			int failedCount = tag.getInt(FAILED_TARGET_COUNT_TAG);
+			if (lastFailed == target) {
+				failedCount++;
+			} else {
+				lastFailed = target;
+				failedCount = 1;
+			}
+
+			if (failedCount >= FAILED_TARGET_SKIP_THRESHOLD) {
+				long[] skipped = tag.getLongArray(SKIPPED_TARGETS_TAG);
+				boolean known = false;
+				for (long skippedTarget : skipped) {
+					if (skippedTarget == target) {
+						known = true;
+						break;
+					}
+				}
+				if (!known) {
+					long[] updated = java.util.Arrays.copyOf(skipped, skipped.length + 1);
+					updated[skipped.length] = target;
+					tag.putLongArray(SKIPPED_TARGETS_TAG, updated);
+				}
+				tag.putLong(FAILED_TARGET_POS_TAG, 0L);
+				tag.putInt(FAILED_TARGET_COUNT_TAG, 0);
+				return;
+			}
+
+			tag.putLong(FAILED_TARGET_POS_TAG, lastFailed);
+			tag.putInt(FAILED_TARGET_COUNT_TAG, failedCount);
+		});
+	}
+
+	private static void clearRecentFailedTarget(ItemStack stack) {
+		CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
+			tag.putLong(FAILED_TARGET_POS_TAG, 0L);
+			tag.putInt(FAILED_TARGET_COUNT_TAG, 0);
+		});
+	}
+
+	private static void clearFailedTargetTracking(ItemStack stack) {
+		CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
+			tag.putLong(FAILED_TARGET_POS_TAG, 0L);
+			tag.putInt(FAILED_TARGET_COUNT_TAG, 0);
+			tag.remove(SKIPPED_TARGETS_TAG);
+		});
 	}
 
 
