@@ -989,7 +989,7 @@
       "name": "Constructinator",
       "type": "animateditem",
       "compiles": true,
-      "locked_code": false,
+      "locked_code": true,
       "registry_name": "constructinator",
       "metadata": {
         "files": [
