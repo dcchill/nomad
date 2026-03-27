@@ -166,6 +166,9 @@ public class ConstructinatorItem extends Item implements GeoItem {
 			}
 
 			if (!canMeetRequirement(player, level, requirement)) {
+				if (isOnlyDamageRequirement(requirement)) {
+					continue;
+				}
 				storePrinterState(constructinatorStack, printer, schematicFile);
 				return false;
 			}
@@ -176,6 +179,9 @@ public class ConstructinatorItem extends Item implements GeoItem {
 			}
 
 			if (!consumeRequirement(player, level, requirement)) {
+				if (isOnlyDamageRequirement(requirement)) {
+					continue;
+				}
 				storePrinterState(constructinatorStack, printer, schematicFile);
 				return false;
 			}
@@ -274,6 +280,21 @@ public class ConstructinatorItem extends Item implements GeoItem {
 		return true;
 	}
 
+
+	private static boolean isOnlyDamageRequirement(ItemRequirement requirement) {
+		List<ItemRequirement.StackRequirement> requiredItems = requirement.getRequiredItems();
+		if (requiredItems.isEmpty()) {
+			return false;
+		}
+
+		for (ItemRequirement.StackRequirement stackRequirement : requiredItems) {
+			if (stackRequirement.usage != ItemRequirement.ItemUseType.DAMAGE) {
+				return false;
+			}
+		}
+
+		return true;
+	}
 	private static boolean canMeetRequirement(Player player, ServerLevel level, ItemRequirement requirement) {
 		if (player.getAbilities().instabuild || requirement.isEmpty()) {
 			return true;
