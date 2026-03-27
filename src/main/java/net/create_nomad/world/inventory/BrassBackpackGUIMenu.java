@@ -33,6 +33,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 
 import net.create_nomad.CreateNomadMod;
 import net.create_nomad.init.CreateNomadModMenus;
+import net.create_nomad.init.CreateNomadModItems;
 import net.create_nomad.util.BackpackDataUtils;
 import net.create_nomad.util.BackpackInventoryRules;
 import net.create_nomad.util.BackpackItemAssociations;
@@ -155,7 +156,7 @@ public class BrassBackpackGUIMenu extends AbstractContainerMenu implements Creat
                         new SlotItemHandler(internal, index, xPos, yPos) {
                             @Override
                             public boolean mayPlace(ItemStack stack) {
-                                if (!BackpackInventoryRules.canStoreInBackpack(stack)) {
+                                if (!BackpackInventoryRules.canStoreInBackpack(stack, hasInfinityUpgradeInstalled())) {
                                     return false;
                                 }
 
@@ -341,6 +342,16 @@ public class BrassBackpackGUIMenu extends AbstractContainerMenu implements Creat
         for (int slot = BackpackInventoryRules.UPGRADE_SLOT_START; slot < BackpackInventoryRules.TOTAL_SLOT_COUNT; slot++) {
             ItemStack upgradeStack = this.getSlot(slot).getItem();
             if (!upgradeStack.isEmpty() && PACKAGER_UPGRADE_ID.equals(BuiltInRegistries.ITEM.getKey(upgradeStack.getItem()))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean hasInfinityUpgradeInstalled() {
+        for (int slot = BackpackInventoryRules.UPGRADE_SLOT_START; slot < BackpackInventoryRules.TOTAL_SLOT_COUNT; slot++) {
+            ItemStack upgradeStack = this.getSlot(slot).getItem();
+            if (!upgradeStack.isEmpty() && upgradeStack.is(CreateNomadModItems.INFINITY_UPGRADE.get())) {
                 return true;
             }
         }
