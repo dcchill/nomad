@@ -20,7 +20,12 @@ public final class BackpackInventoryRules {
     }
 
     public static boolean canStoreInBackpack(ItemStack stack) {
-        return !BackpackItemAssociations.isBackpackItem(stack) && !isShulkerBoxItem(stack);
+        return canStoreInBackpack(stack, false);
+    }
+
+    public static boolean canStoreInBackpack(ItemStack stack, boolean allowBackpacks) {
+        boolean disallowBackpack = !allowBackpacks && BackpackItemAssociations.isBackpackItem(stack);
+        return !disallowBackpack && !isShulkerBoxItem(stack);
     }
 
     public static boolean isUpgradeSlot(int slot) {
