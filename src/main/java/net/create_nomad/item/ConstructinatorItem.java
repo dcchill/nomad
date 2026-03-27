@@ -134,8 +134,7 @@ public class ConstructinatorItem extends Item implements GeoItem {
 		}
 
 		boolean placed = false;
-		int safety = 256;
-		while (!placed && safety-- > 0) {
+		while (!placed) {
 			if (!printer.advanceCurrentPos()) {
 				storePrinterState(constructinatorStack, printer, schematicFile);
 				return false;
