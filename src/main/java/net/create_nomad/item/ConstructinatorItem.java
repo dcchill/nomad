@@ -177,7 +177,9 @@ public class ConstructinatorItem extends Item implements GeoItem {
 				placed = true;
 				printer.sendBlockUpdates(level);
 				CustomData.update(DataComponents.CUSTOM_DATA, constructinatorStack, tag -> tag.putString(GECKO_ANIM_TAG, "fire"));
-				triggerAnim(player, GeoItem.getOrAssignId(constructinatorStack, level), "procedureController", "fire");
+				if (constructinatorStack.getItem() instanceof ConstructinatorItem constructinatorItem) {
+					constructinatorItem.triggerAnim(player, GeoItem.getOrAssignId(constructinatorStack, level), "procedureController", "fire");
+				}
 			}
 		}
 
