@@ -56,7 +56,7 @@ public class ConstructinatorSchematicPreviewHandler {
 
 		ItemStack mainHand = player.getMainHandItem();
 		ItemStack offhand = player.getOffhandItem();
-		if (!(mainHand.getItem() instanceof ConstructinatorItem) || !isSchematicWithFile(offhand)) {
+		if (!shouldRenderConstructinatorPreview(player, mainHand, offhand)) {
 			return;
 		}
 
@@ -113,7 +113,7 @@ public class ConstructinatorSchematicPreviewHandler {
 
 		ItemStack mainHand = player.getMainHandItem();
 		ItemStack offhand = player.getOffhandItem();
-		boolean shouldForcePreview = mainHand.getItem() instanceof ConstructinatorItem && isSchematicWithFile(offhand);
+		boolean shouldForcePreview = shouldRenderConstructinatorPreview(player, mainHand, offhand);
 
 		if (!shouldForcePreview) {
 			clearForcedPreview();
@@ -128,6 +128,8 @@ public class ConstructinatorSchematicPreviewHandler {
 			// Create's tick() will have set active=false because the schematic
 			// isn't in the main hand. Restore it so the renderer stays active.
 			activeField.setBoolean(CreateClient.SCHEMATIC_HANDLER, true);
+			// Keep world preview active, but hide Create's hotbar schematic slot UI overlay.
+			activeSchematicItemField.set(CreateClient.SCHEMATIC_HANDLER, null);
 			forcedPreviewLastTick = true;
 		} catch (ReflectiveOperationException ignored) {
 			reflectionFailed = true;
@@ -152,6 +154,13 @@ public class ConstructinatorSchematicPreviewHandler {
 
 		forcedPreviewLastTick = false;
 		lastOffhandSchematic = "";
+	}
+
+
+	private static boolean shouldRenderConstructinatorPreview(LocalPlayer player, ItemStack mainHand, ItemStack offhand) {
+		return player.isCrouching()
+				&& mainHand.getItem() instanceof ConstructinatorItem
+				&& isSchematicWithFile(offhand);
 	}
 
 	private static boolean isSchematicWithFile(ItemStack stack) {
