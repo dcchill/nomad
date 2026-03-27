@@ -43,8 +43,10 @@ public class ConstructinatorSchematicPreviewHandler {
 
 	/**
 	 * HIGH priority: runs before Create's SchematicHandler.tick().
-	 * Manually replicates what init() does but always calls setupRenderer(),
-	 * bypassing the deployed check that normally gates it.
+	 *
+	 * Create calls itemLost() when no main-hand schematic is found. itemLost() only scans
+	 * the hotbar, so an offhand schematic is considered "lost" and Create clears renderers.
+	 * Clearing activeSchematicItem ahead of Create's tick avoids that cleanup path.
 	 */
 	@SubscribeEvent(priority = EventPriority.HIGH)
 	public static void onClientTickEarly(ClientTickEvent.Post event) {
@@ -64,33 +66,8 @@ public class ConstructinatorSchematicPreviewHandler {
 			return;
 		}
 
-		SchematicHandler schematicHandler = CreateClient.SCHEMATIC_HANDLER;
-		String schematicFile = offhand.get(AllDataComponents.SCHEMATIC_FILE);
-		if (schematicFile == null || schematicFile.isEmpty()) {
-			return;
-		}
-
 		try {
-			String currentDisplayed = (String) displayedSchematicField.get(schematicHandler);
-			boolean needsInit = !schematicFile.equals(lastOffhandSchematic)
-					|| !schematicFile.equals(currentDisplayed);
-
-			if (needsInit) {
-				// Replicate init() manually so we can force deployed=true
-				// before setupRenderer() is called, without touching the item's components
-				activeSchematicItemField.set(schematicHandler, offhand);
-				loadSettingsMethod.invoke(schematicHandler, offhand);         // loads bounds/transform from item
-				deployedField.setBoolean(schematicHandler, true);             // force deployed so setupRenderer runs
-				displayedSchematicField.set(schematicHandler, schematicFile);
-				setupRendererMethod.invoke(schematicHandler);                 // build the render buffers
-				schematicHandler.equip(ToolType.DEPLOY);
-				lastOffhandSchematic = schematicFile;
-			}
-
-			activeSchematicItemField.set(schematicHandler, offhand);
-			activeHotbarSlotField.setInt(schematicHandler, player.getInventory().selected);
-			activeField.setBoolean(schematicHandler, true);
-
+			activeSchematicItemField.set(CreateClient.SCHEMATIC_HANDLER, null);
 		} catch (ReflectiveOperationException e) {
 			e.printStackTrace();
 			reflectionFailed = true;
@@ -125,9 +102,31 @@ public class ConstructinatorSchematicPreviewHandler {
 		}
 
 		try {
-			// Create's tick() will have set active=false because the schematic
-			// isn't in the main hand. Restore it so the renderer stays active.
-			activeField.setBoolean(CreateClient.SCHEMATIC_HANDLER, true);
+			SchematicHandler schematicHandler = CreateClient.SCHEMATIC_HANDLER;
+			String schematicFile = offhand.get(AllDataComponents.SCHEMATIC_FILE);
+			if (schematicFile == null || schematicFile.isEmpty()) {
+				return;
+			}
+
+			String currentDisplayed = (String) displayedSchematicField.get(schematicHandler);
+			boolean needsInit = !schematicFile.equals(lastOffhandSchematic)
+					|| !schematicFile.equals(currentDisplayed);
+
+			if (needsInit) {
+				activeSchematicItemField.set(schematicHandler, offhand);
+				loadSettingsMethod.invoke(schematicHandler, offhand);
+				deployedField.setBoolean(schematicHandler, true);
+				displayedSchematicField.set(schematicHandler, schematicFile);
+				setupRendererMethod.invoke(schematicHandler);
+				schematicHandler.equip(ToolType.DEPLOY);
+				lastOffhandSchematic = schematicFile;
+			}
+
+			// Create's tick() sets active=false because it only checks main-hand schematics.
+			// Restore the offhand schematic state after Create has finished ticking.
+			activeSchematicItemField.set(schematicHandler, offhand);
+			activeHotbarSlotField.setInt(schematicHandler, player.getInventory().selected);
+			activeField.setBoolean(schematicHandler, true);
 			forcedPreviewLastTick = true;
 		} catch (ReflectiveOperationException ignored) {
 			reflectionFailed = true;
