@@ -2,21 +2,25 @@ package net.create_nomad.item;
 
 import com.simibubi.create.content.schematics.SchematicPrinter;
 import com.simibubi.create.content.schematics.requirement.ItemRequirement;
+import com.simibubi.create.content.equipment.armor.BacktankUtil;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.world.phys.Vec3;
 
 import net.create_nomad.item.renderer.ConstructinatorItemRenderer;
 import net.create_nomad.CreateNomadMod;
@@ -30,20 +34,12 @@ import software.bernie.geckolib.animation.AnimationState;
 import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.animatable.GeoItem;
+import software.bernie.geckolib.animatable.SingletonGeoAnimatable;
 import software.bernie.geckolib.animatable.client.GeoRenderProvider;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-import software.bernie.geckolib.animation.AnimatableManager;
-import software.bernie.geckolib.animation.AnimationController;
-import software.bernie.geckolib.animation.AnimationState;
-import software.bernie.geckolib.animation.PlayState;
-import software.bernie.geckolib.animation.RawAnimation;
-import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.animatable.client.GeoRenderProvider;
-import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.util.GeckoLibUtil;
-
+import java.util.List;
 import java.util.function.Consumer;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
@@ -53,11 +49,16 @@ public class ConstructinatorItem extends Item implements GeoItem {
 	private static final String GECKO_ANIM_TAG = "geckoAnim";
 	private static final String SCHEMATIC_FILE_TAG = "constructinatorSchematicFile";
 	private static final int PLACE_INTERVAL_TICKS = 2;
+	private static final int BACKTANK_AIR_COST_PER_BLOCK = 1;
+	private static final int SHOT_VISUAL_LIFETIME_TICKS = 8;
+	private static final double SHOT_VISUAL_SPEED = 0.85;
+	private static final RawAnimation FIRE_ANIMATION = RawAnimation.begin().thenPlay("fire");
 	private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 	public String animationprocedure = "empty";
 
 	public ConstructinatorItem() {
 		super(new Item.Properties().stacksTo(1).rarity(Rarity.COMMON));
+		SingletonGeoAnimatable.registerSyncedAnimatable(this);
 	}
 
 	@Override
@@ -140,6 +141,13 @@ public class ConstructinatorItem extends Item implements GeoItem {
 				continue;
 			}
 
+			final BlockState[] targetState = { null };
+			printer.handleCurrentTarget((pos, state, blockEntity) -> targetState[0] = state, (pos, entityTarget) -> {
+			});
+			if (targetState[0] == null || shouldSkipPlacementState(targetState[0])) {
+				continue;
+			}
+
 			ItemRequirement requirement = printer.getCurrentRequirement();
 			if (requirement.isInvalid()) {
 				storePrinterState(constructinatorStack, printer, schematicFile);
@@ -151,19 +159,25 @@ public class ConstructinatorItem extends Item implements GeoItem {
 				return true;
 			}
 
+			if (!tryConsumeBacktankAir(player, BACKTANK_AIR_COST_PER_BLOCK)) {
+				storePrinterState(constructinatorStack, printer, schematicFile);
+				return true;
+			}
+
 			if (!consumeRequirement(player, level, requirement)) {
 				storePrinterState(constructinatorStack, printer, schematicFile);
 				return true;
 			}
 
 			final boolean[] placementSucceeded = { false };
-			printer.handleCurrentTarget((pos, state, blockEntity) -> placeBlock(level, pos, state, blockEntity, placementSucceeded), (pos, entityTarget) -> {
+			printer.handleCurrentTarget((pos, state, blockEntity) -> placeBlock(level, player, pos, state, requirement, placementSucceeded), (pos, entityTarget) -> {
 			});
 
 			if (placementSucceeded[0]) {
 				placed = true;
 				printer.sendBlockUpdates(level);
 				CustomData.update(DataComponents.CUSTOM_DATA, constructinatorStack, tag -> tag.putString(GECKO_ANIM_TAG, "fire"));
+				triggerAnim(player, GeoItem.getOrAssignId(constructinatorStack, level), "procedureController", "fire");
 			}
 		}
 
@@ -171,7 +185,7 @@ public class ConstructinatorItem extends Item implements GeoItem {
 		return true;
 	}
 
-	private static void placeBlock(ServerLevel level, net.minecraft.core.BlockPos pos, BlockState state, BlockEntity targetBlockEntity, boolean[] placementSucceeded) {
+	private static void placeBlock(ServerLevel level, Player player, net.minecraft.core.BlockPos pos, BlockState state, ItemRequirement requirement, boolean[] placementSucceeded) {
 		if (state.isAir()) {
 			placementSucceeded[0] = true;
 			return;
@@ -179,8 +193,72 @@ public class ConstructinatorItem extends Item implements GeoItem {
 
 		boolean placed = level.setBlock(pos, state, 3);
 		if (placed) {
+			spawnShotVisual(level, player, pos, state, requirement);
 			placementSucceeded[0] = true;
 		}
+	}
+
+	private static void spawnShotVisual(ServerLevel level, Player player, net.minecraft.core.BlockPos targetPos, BlockState placedState, ItemRequirement requirement) {
+		ItemStack display = ItemStack.EMPTY;
+		for (ItemRequirement.StackRequirement stackRequirement : requirement.getRequiredItems()) {
+			if (stackRequirement.usage == ItemRequirement.ItemUseType.CONSUME && !stackRequirement.stack.isEmpty()) {
+				display = stackRequirement.stack.copyWithCount(1);
+				break;
+			}
+		}
+
+		if (display.isEmpty()) {
+			if (placedState.getBlock() instanceof net.minecraft.world.level.block.AirBlock) {
+				return;
+			}
+			Item item = BlockItem.BY_BLOCK.get(placedState.getBlock());
+			if (item != null) {
+				display = new ItemStack(item);
+			}
+		}
+
+		if (display.isEmpty()) {
+			return;
+		}
+
+		Vec3 look = player.getLookAngle().normalize();
+		Vec3 muzzle = player.getEyePosition().add(look.scale(0.7));
+		Vec3 targetCenter = Vec3.atCenterOf(targetPos);
+		Vec3 velocity = targetCenter.subtract(muzzle).normalize().scale(SHOT_VISUAL_SPEED);
+
+		ItemEntity projectileVisual = new ItemEntity(level, muzzle.x, muzzle.y, muzzle.z, display);
+		projectileVisual.setNoGravity(true);
+		projectileVisual.setPickUpDelay(32767);
+		projectileVisual.setDeltaMovement(velocity);
+		projectileVisual.setInvulnerable(true);
+		level.addFreshEntity(projectileVisual);
+		CreateNomadMod.queueServerWork(SHOT_VISUAL_LIFETIME_TICKS, projectileVisual::discard);
+	}
+
+	private static boolean shouldSkipPlacementState(BlockState state) {
+		if (state.isAir()) {
+			return true;
+		}
+		return state.getFluidState().is(Fluids.WATER) || state.getFluidState().is(Fluids.LAVA);
+	}
+
+	private static boolean tryConsumeBacktankAir(Player player, int airCost) {
+		if (airCost <= 0 || player.isCreative()) {
+			return true;
+		}
+
+		List<ItemStack> backtanksWithAir = BacktankUtil.getAllWithAir(player);
+		if (backtanksWithAir.isEmpty()) {
+			return false;
+		}
+
+		ItemStack backtank = backtanksWithAir.getFirst();
+		if (BacktankUtil.getAir(backtank) < airCost) {
+			return false;
+		}
+
+		BacktankUtil.consumeAir(player, backtank, airCost);
+		return true;
 	}
 
 	private static boolean canMeetRequirement(Player player, ServerLevel level, ItemRequirement requirement) {
@@ -416,7 +494,8 @@ public class ConstructinatorItem extends Item implements GeoItem {
 
 	@Override
 	public void registerControllers(AnimatableManager.ControllerRegistrar data) {
-		AnimationController procedureController = new AnimationController(this, "procedureController", 0, this::procedurePredicate);
+		AnimationController procedureController = new AnimationController(this, "procedureController", 0, this::procedurePredicate)
+			.triggerableAnim("fire", FIRE_ANIMATION);
 		data.add(procedureController);
 		AnimationController idleController = new AnimationController(this, "idleController", 0, this::idlePredicate);
 		data.add(idleController);
