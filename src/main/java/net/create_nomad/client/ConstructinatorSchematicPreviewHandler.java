@@ -19,6 +19,8 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Map;
+import java.util.Vector;
 
 @EventBusSubscriber(modid = CreateNomadMod.MODID, value = Dist.CLIENT)
 public class ConstructinatorSchematicPreviewHandler {
@@ -35,16 +37,26 @@ public class ConstructinatorSchematicPreviewHandler {
 	private static Field deployedField;
 	private static Field displayedSchematicField;
 	private static Field currentToolField;
+	private static Field renderersField;
+	private static Field bufferCacheField;
+
+	private static Method bufferColorFloatMethod;
+	private static Method bufferColorIntMethod;
+	private static Method bufferSetColorIntMethod;
+
+	private static final float PREVIEW_ALPHA = 0.6f;
 
 	private static boolean reflectionReady = false;
 	private static boolean reflectionFailed = false;
-	private static String lastOffhandSchematic = "";
+	private static String initializedOffhandSchematic = "";
 	private static boolean forcedPreviewLastTick = false;
 
 	/**
 	 * HIGH priority: runs before Create's SchematicHandler.tick().
-	 * Manually replicates what init() does but always calls setupRenderer(),
-	 * bypassing the deployed check that normally gates it.
+	 *
+	 * Create calls itemLost() when no main-hand schematic is found. itemLost() only scans
+	 * the hotbar, so an offhand schematic is considered "lost" and Create clears renderers.
+	 * Clearing activeSchematicItem ahead of Create's tick avoids that cleanup path.
 	 */
 	@SubscribeEvent(priority = EventPriority.HIGH)
 	public static void onClientTickEarly(ClientTickEvent.Post event) {
@@ -64,33 +76,8 @@ public class ConstructinatorSchematicPreviewHandler {
 			return;
 		}
 
-		SchematicHandler schematicHandler = CreateClient.SCHEMATIC_HANDLER;
-		String schematicFile = offhand.get(AllDataComponents.SCHEMATIC_FILE);
-		if (schematicFile == null || schematicFile.isEmpty()) {
-			return;
-		}
-
 		try {
-			String currentDisplayed = (String) displayedSchematicField.get(schematicHandler);
-			boolean needsInit = !schematicFile.equals(lastOffhandSchematic)
-					|| !schematicFile.equals(currentDisplayed);
-
-			if (needsInit) {
-				// Replicate init() manually so we can force deployed=true
-				// before setupRenderer() is called, without touching the item's components
-				activeSchematicItemField.set(schematicHandler, offhand);
-				loadSettingsMethod.invoke(schematicHandler, offhand);         // loads bounds/transform from item
-				deployedField.setBoolean(schematicHandler, true);             // force deployed so setupRenderer runs
-				displayedSchematicField.set(schematicHandler, schematicFile);
-				setupRendererMethod.invoke(schematicHandler);                 // build the render buffers
-				schematicHandler.equip(ToolType.DEPLOY);
-				lastOffhandSchematic = schematicFile;
-			}
-
-			activeSchematicItemField.set(schematicHandler, offhand);
-			activeHotbarSlotField.setInt(schematicHandler, player.getInventory().selected);
-			activeField.setBoolean(schematicHandler, true);
-
+			activeSchematicItemField.set(CreateClient.SCHEMATIC_HANDLER, null);
 		} catch (ReflectiveOperationException e) {
 			e.printStackTrace();
 			reflectionFailed = true;
@@ -125,9 +112,31 @@ public class ConstructinatorSchematicPreviewHandler {
 		}
 
 		try {
-			// Create's tick() will have set active=false because the schematic
-			// isn't in the main hand. Restore it so the renderer stays active.
-			activeField.setBoolean(CreateClient.SCHEMATIC_HANDLER, true);
+			SchematicHandler schematicHandler = CreateClient.SCHEMATIC_HANDLER;
+			String schematicFile = offhand.get(AllDataComponents.SCHEMATIC_FILE);
+			if (schematicFile == null || schematicFile.isEmpty()) {
+				return;
+			}
+
+			boolean needsInit = !forcedPreviewLastTick
+					|| !schematicFile.equals(initializedOffhandSchematic);
+
+			if (needsInit) {
+				activeSchematicItemField.set(schematicHandler, offhand);
+				loadSettingsMethod.invoke(schematicHandler, offhand);
+				deployedField.setBoolean(schematicHandler, true);
+				displayedSchematicField.set(schematicHandler, schematicFile);
+				setupRendererMethod.invoke(schematicHandler);
+				schematicHandler.equip(ToolType.DEPLOY);
+				initializedOffhandSchematic = schematicFile;
+			}
+
+			// Create's tick() sets active=false because it only checks main-hand schematics.
+			// Restore the offhand schematic state after Create has finished ticking.
+			activeSchematicItemField.set(schematicHandler, offhand);
+			activeHotbarSlotField.setInt(schematicHandler, player.getInventory().selected);
+			activeField.setBoolean(schematicHandler, true);
+			applyPreviewTransparency(schematicHandler);
 			forcedPreviewLastTick = true;
 		} catch (ReflectiveOperationException ignored) {
 			reflectionFailed = true;
@@ -137,7 +146,7 @@ public class ConstructinatorSchematicPreviewHandler {
 	private static void clearForcedPreview() {
 		if (!forcedPreviewLastTick || !reflectionReady) {
 			forcedPreviewLastTick = false;
-			lastOffhandSchematic = "";
+			initializedOffhandSchematic = "";
 			return;
 		}
 
@@ -151,7 +160,7 @@ public class ConstructinatorSchematicPreviewHandler {
 		}
 
 		forcedPreviewLastTick = false;
-		lastOffhandSchematic = "";
+		initializedOffhandSchematic = "";
 	}
 
 	private static boolean isSchematicWithFile(ItemStack stack) {
@@ -194,12 +203,93 @@ public class ConstructinatorSchematicPreviewHandler {
 			currentToolField = handlerClass.getDeclaredField("currentTool");
 			currentToolField.setAccessible(true);
 
+			renderersField = handlerClass.getDeclaredField("renderers");
+			renderersField.setAccessible(true);
+
+			Class<?> rendererClass = Class.forName("com.simibubi.create.content.schematics.client.SchematicRenderer");
+			bufferCacheField = rendererClass.getDeclaredField("bufferCache");
+			bufferCacheField.setAccessible(true);
+
 			reflectionReady = true;
 			return true;
 		} catch (ReflectiveOperationException e) {
 			e.printStackTrace();
 			reflectionFailed = true;
 			return false;
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private static void applyPreviewTransparency(SchematicHandler schematicHandler) {
+		if (renderersField == null || bufferCacheField == null) {
+			return;
+		}
+
+		try {
+			Object renderersObject = renderersField.get(schematicHandler);
+			if (!(renderersObject instanceof Vector<?> renderers)) {
+				return;
+			}
+
+			for (Object renderer : renderers) {
+				Object cacheObject = bufferCacheField.get(renderer);
+				if (!(cacheObject instanceof Map<?, ?> cache)) {
+					continue;
+				}
+
+				for (Object buffer : cache.values()) {
+					applyBufferAlpha(buffer, PREVIEW_ALPHA);
+				}
+			}
+		} catch (ReflectiveOperationException ignored) {
+			reflectionFailed = true;
+		}
+	}
+
+	private static void applyBufferAlpha(Object buffer, float alpha) {
+		if (buffer == null) {
+			return;
+		}
+
+		try {
+			if (bufferColorFloatMethod == null) {
+				try {
+					bufferColorFloatMethod = buffer.getClass().getMethod("color", float.class, float.class, float.class, float.class);
+				} catch (NoSuchMethodException ignored) {
+					bufferColorFloatMethod = null;
+				}
+			}
+			if (bufferColorFloatMethod != null) {
+				bufferColorFloatMethod.invoke(buffer, 1f, 1f, 1f, alpha);
+				return;
+			}
+
+			if (bufferColorIntMethod == null) {
+				try {
+					bufferColorIntMethod = buffer.getClass().getMethod("color", int.class);
+				} catch (NoSuchMethodException ignored) {
+					bufferColorIntMethod = null;
+				}
+			}
+			if (bufferColorIntMethod != null) {
+				int alphaInt = Math.max(0, Math.min(255, Math.round(alpha * 255f)));
+				bufferColorIntMethod.invoke(buffer, (alphaInt << 24) | 0x00FFFFFF);
+				return;
+			}
+
+			if (bufferSetColorIntMethod == null) {
+				try {
+					bufferSetColorIntMethod = buffer.getClass().getMethod("setColor", int.class);
+				} catch (NoSuchMethodException ignored) {
+					bufferSetColorIntMethod = null;
+				}
+			}
+			if (bufferSetColorIntMethod != null) {
+				int alphaInt = Math.max(0, Math.min(255, Math.round(alpha * 255f)));
+				bufferSetColorIntMethod.invoke(buffer, (alphaInt << 24) | 0x00FFFFFF);
+			}
+		} catch (ReflectiveOperationException ignored) {
+			// Ignore unknown buffer implementations and keep normal preview rendering.
 		}
 	}
 }
