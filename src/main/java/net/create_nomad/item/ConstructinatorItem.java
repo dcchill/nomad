@@ -159,8 +159,7 @@ public class ConstructinatorItem extends Item implements GeoItem {
 
 			ItemRequirement requirement = printer.getCurrentRequirement();
 			if (requirement.isInvalid()) {
-				storePrinterState(constructinatorStack, printer, schematicFile);
-				return false;
+				continue;
 			}
 
 			if (!canMeetRequirement(player, level, requirement)) {
