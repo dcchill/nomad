@@ -44,8 +44,9 @@ public class CreateNomadModTabs {
 				tabData.accept(CreateNomadModItems.ANDESITE_UPGRADE.get());
 				tabData.accept(CreateNomadModItems.MAGNET_UPGRADE.get());
 				tabData.accept(CreateNomadModItems.PACKAGER_UPGRADE.get());
+				tabData.accept(CreateNomadModItems.TOOL_UPGRADE.get());
 				tabData.accept(CreateNomadModItems.BRASS_UPGRADE.get());
 				tabData.accept(CreateNomadModItems.INFINITY_UPGRADE.get());
-				tabData.accept(CreateNomadModItems.TOOL_UPGRADE.get());
+				tabData.accept(CreateNomadModItems.INVULNERABLE_UPGRADE.get());
 			}).build());
 }

@@ -893,6 +893,97 @@
         ]
       },
       "path": "~/bp_upgrades"
+    },
+    {
+      "name": "AndesiteUpgradeRecipe",
+      "type": "recipe",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "andesite_upgrade_recipe",
+      "metadata": {
+        "files": [
+          "src/main/resources/data/create_nomad/recipe/andesite_upgrade_recipe.json"
+        ]
+      },
+      "path": "~/bp_upgrades"
+    },
+    {
+      "name": "BrassUpgradeRecipe",
+      "type": "recipe",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "brass_upgrade_recipe",
+      "metadata": {
+        "files": [
+          "src/main/resources/data/create_nomad/recipe/brass_upgrade_recipe.json"
+        ]
+      },
+      "path": "~/bp_upgrades"
+    },
+    {
+      "name": "MagnetUpgradeRecipe",
+      "type": "recipe",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "magnet_upgrade_recipe",
+      "metadata": {
+        "files": [
+          "src/main/resources/data/create_nomad/recipe/magnet_upgrade_recipe.json"
+        ]
+      },
+      "path": "~/bp_upgrades"
+    },
+    {
+      "name": "PackagerUpgradeRecipe",
+      "type": "recipe",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "packager_upgrade_recipe",
+      "metadata": {
+        "files": [
+          "src/main/resources/data/create_nomad/recipe/packager_upgrade_recipe.json"
+        ]
+      },
+      "path": "~/bp_upgrades"
+    },
+    {
+      "name": "ToolUpgradeRecipe",
+      "type": "recipe",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "tool_upgrade_recipe",
+      "metadata": {
+        "files": [
+          "src/main/resources/data/create_nomad/recipe/tool_upgrade_recipe.json"
+        ]
+      },
+      "path": "~/bp_upgrades"
+    },
+    {
+      "name": "InfinityUpgradeRecipe",
+      "type": "recipe",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "infinity_upgrade_recipe",
+      "metadata": {
+        "files": [
+          "src/main/resources/data/create_nomad/recipe/infinity_upgrade_recipe.json"
+        ]
+      },
+      "path": "~/bp_upgrades"
+    },
+    {
+      "name": "InvulnerableUpgradeRecipe",
+      "type": "recipe",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "invulnerable_upgrade_recipe",
+      "metadata": {
+        "files": [
+          "src/main/resources/data/create_nomad/recipe/invulnerable_upgrade_recipe.json"
+        ]
+      },
+      "path": "~/bp_upgrades"
     }
   ],
   "variable_elements": [],
@@ -942,7 +1033,10 @@
     ],
     "ITEMS:mod:backpack_upgrades": [
       "CUSTOM:MagnetUpgrade",
-      "CUSTOM:PackagerUpgrade"
+      "CUSTOM:PackagerUpgrade",
+      "CUSTOM:InfinityUpgrade",
+      "CUSTOM:ToolUpgrade",
+      "CUSTOM:InvulnerableUpgrade"
     ]
   },
   "tab_element_order": {
@@ -974,9 +1068,10 @@
       "AndesiteUpgrade",
       "MagnetUpgrade",
       "PackagerUpgrade",
+      "ToolUpgrade",
       "BrassUpgrade",
       "InfinityUpgrade",
-      "ToolUpgrade"
+      "InvulnerableUpgrade"
     ]
   },
   "language_map": {
@@ -1035,11 +1130,11 @@
       "tooltip.create_nomad.harpoon_gun.description_2": "Uses backtank air to fire a harpoon.  Harpoons are high piercing and reusable projectiles that deal high damage.",
       "block.create_nomad.filing_cabinet": "Filing Cabinet",
       "gui.create_nomad.filing_cabinet_gui.label_schematic_placeholder": "schematic placeholder",
-      "item.create_nomad.andesite_upgrade": "Andesite Upgrade",
+      "item.create_nomad.andesite_upgrade": "Andesite Upgrade Template",
       "item.create_nomad.magnet_upgrade": "Magnet Upgrade",
       "item.create_nomad.packager_upgrade": "Packager Upgrade",
       "gui.create_nomad.brass_backpack_gui.button_package": "Package",
-      "item.create_nomad.brass_upgrade": "Brass Upgrade",
+      "item.create_nomad.brass_upgrade": "Brass Upgrade Template",
       "item.create_nomad.infinity_upgrade": "Infinity Upgrade",
       "item.create_nomad.tool_upgrade": "Tool Upgrade",
       "item.create_nomad.invulnerable_upgrade": "Invulnerable Upgrade"

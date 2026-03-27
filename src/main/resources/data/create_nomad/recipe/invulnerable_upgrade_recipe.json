@@ -1,0 +1,16 @@
+{
+  "type": "create:deploying",
+  "ingredients": [
+    {
+      "item": "create_nomad:brass_upgrade"
+    },
+    {
+      "item" : "minecraft:netherite_scrap"
+    }
+  ],
+  "results": [
+    {
+      "id": "create_nomad:invulnerable_upgrade"
+    }
+  ]
+}

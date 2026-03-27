@@ -1,0 +1,16 @@
+{
+  "type": "create:deploying",
+  "ingredients": [
+    {
+      "item": "create_nomad:andesite_upgrade"
+    },
+    {
+      "item": "create:packager"
+    }
+  ],
+  "results": [
+    {
+      "id": "create_nomad:packager_upgrade"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "type": "create:deploying",
+  "ingredients": [
+    {
+      "item": "create_nomad:andesite_upgrade"
+    },
+    {
+      "tag": "create:toolboxes"
+    }
+  ],
+  "results": [
+    {
+      "id": "create_nomad:tool_upgrade"
+    }
+  ]
+}

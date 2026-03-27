@@ -1,0 +1,16 @@
+{
+  "type": "create:deploying",
+  "ingredients": [
+    {
+      "item": "create_nomad:brass_upgrade"
+    },
+    {
+      "item" : "minecraft:nether_star"
+    }
+  ],
+  "results": [
+    {
+      "id": "create_nomad:infinity_upgrade"
+    }
+  ]
+}
