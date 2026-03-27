@@ -1,0 +1,6 @@
+{
+  "parent": "create_nomad:displaysettings/constructinator",
+  "textures": {
+    "layer0": "create_nomad:item/constructinator_texture"
+  }
+}

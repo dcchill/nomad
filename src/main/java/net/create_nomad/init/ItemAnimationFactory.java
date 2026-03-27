@@ -12,6 +12,7 @@ import net.minecraft.core.component.DataComponents;
 
 import net.create_nomad.item.JackhammerItem;
 import net.create_nomad.item.HarpoonGunItem;
+import net.create_nomad.item.ConstructinatorItem;
 
 @EventBusSubscriber
 public class ItemAnimationFactory {
@@ -54,6 +55,24 @@ public class ItemAnimationFactory {
 					CustomData.update(DataComponents.CUSTOM_DATA, event.getEntity().getOffhandItem(), tag -> tag.putString("geckoAnim", ""));
 					if (event.getEntity().level().isClientSide()) {
 						((HarpoonGunItem) event.getEntity().getOffhandItem().getItem()).animationprocedure = animation;
+					}
+				}
+			}
+			if (mainhandItem.getItem() instanceof ConstructinatorItem animatable) {
+				animation = mainhandItem.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getString("geckoAnim");
+				if (!animation.isEmpty()) {
+					CustomData.update(DataComponents.CUSTOM_DATA, event.getEntity().getMainHandItem(), tag -> tag.putString("geckoAnim", ""));
+					if (event.getEntity().level().isClientSide()) {
+						((ConstructinatorItem) event.getEntity().getMainHandItem().getItem()).animationprocedure = animation;
+					}
+				}
+			}
+			if (offhandItem.getItem() instanceof ConstructinatorItem animatable) {
+				animation = offhandItem.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getString("geckoAnim");
+				if (!animation.isEmpty()) {
+					CustomData.update(DataComponents.CUSTOM_DATA, event.getEntity().getOffhandItem(), tag -> tag.putString("geckoAnim", ""));
+					if (event.getEntity().level().isClientSide()) {
+						((ConstructinatorItem) event.getEntity().getOffhandItem().getItem()).animationprocedure = animation;
 					}
 				}
 			}

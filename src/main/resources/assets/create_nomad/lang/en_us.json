@@ -60,5 +60,6 @@
   "item.create_nomad.brass_upgrade": "Brass Upgrade Template",
   "item.create_nomad.infinity_upgrade": "Infinity Upgrade",
   "item.create_nomad.tool_upgrade": "Tool Upgrade",
-  "item.create_nomad.invulnerable_upgrade": "Invulnerable Upgrade"
+  "item.create_nomad.invulnerable_upgrade": "Invulnerable Upgrade",
+  "item.create_nomad.constructinator": "Constructinator"
 }

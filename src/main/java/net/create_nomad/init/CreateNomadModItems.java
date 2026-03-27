@@ -34,6 +34,7 @@ import net.create_nomad.item.GreenBrassBackpackItemItem;
 import net.create_nomad.item.GrayBrassBackpackItemItem;
 import net.create_nomad.item.GrapplingHookItem;
 import net.create_nomad.item.CyanBrassBackpackItemItem;
+import net.create_nomad.item.ConstructinatorItem;
 import net.create_nomad.item.ChainsawItem;
 import net.create_nomad.item.BrownBrassBackpackItemItem;
 import net.create_nomad.item.BrassUpgradeItem;
@@ -76,6 +77,7 @@ public class CreateNomadModItems {
 	public static final DeferredItem<Item> INFINITY_UPGRADE = REGISTRY.register("infinity_upgrade", InfinityUpgradeItem::new);
 	public static final DeferredItem<Item> TOOL_UPGRADE = REGISTRY.register("tool_upgrade", ToolUpgradeItem::new);
 	public static final DeferredItem<Item> INVULNERABLE_UPGRADE = REGISTRY.register("invulnerable_upgrade", InvulnerableUpgradeItem::new);
+	public static final DeferredItem<Item> CONSTRUCTINATOR = REGISTRY.register("constructinator", ConstructinatorItem::new);
 
 	// Start of user code block custom items
 	// End of user code block custom items
