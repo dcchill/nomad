@@ -38,7 +38,7 @@ public class ConstructinatorSchematicPreviewHandler {
 
 	private static boolean reflectionReady = false;
 	private static boolean reflectionFailed = false;
-	private static String lastOffhandSchematic = "";
+	private static String initializedOffhandSchematic = "";
 	private static boolean forcedPreviewLastTick = false;
 
 	/**
@@ -108,9 +108,8 @@ public class ConstructinatorSchematicPreviewHandler {
 				return;
 			}
 
-			String currentDisplayed = (String) displayedSchematicField.get(schematicHandler);
-			boolean needsInit = !schematicFile.equals(lastOffhandSchematic)
-					|| !schematicFile.equals(currentDisplayed);
+			boolean needsInit = !forcedPreviewLastTick
+					|| !schematicFile.equals(initializedOffhandSchematic);
 
 			if (needsInit) {
 				activeSchematicItemField.set(schematicHandler, offhand);
@@ -119,7 +118,7 @@ public class ConstructinatorSchematicPreviewHandler {
 				displayedSchematicField.set(schematicHandler, schematicFile);
 				setupRendererMethod.invoke(schematicHandler);
 				schematicHandler.equip(ToolType.DEPLOY);
-				lastOffhandSchematic = schematicFile;
+				initializedOffhandSchematic = schematicFile;
 			}
 
 			// Create's tick() sets active=false because it only checks main-hand schematics.
@@ -136,7 +135,7 @@ public class ConstructinatorSchematicPreviewHandler {
 	private static void clearForcedPreview() {
 		if (!forcedPreviewLastTick || !reflectionReady) {
 			forcedPreviewLastTick = false;
-			lastOffhandSchematic = "";
+			initializedOffhandSchematic = "";
 			return;
 		}
 
@@ -150,7 +149,7 @@ public class ConstructinatorSchematicPreviewHandler {
 		}
 
 		forcedPreviewLastTick = false;
-		lastOffhandSchematic = "";
+		initializedOffhandSchematic = "";
 	}
 
 	private static boolean isSchematicWithFile(ItemStack stack) {
