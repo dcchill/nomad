@@ -3,6 +3,7 @@ package net.create_nomad.item;
 import com.simibubi.create.content.schematics.SchematicPrinter;
 import com.simibubi.create.content.schematics.requirement.ItemRequirement;
 import com.simibubi.create.content.equipment.armor.BacktankUtil;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -17,7 +18,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.world.phys.Vec3;
@@ -48,10 +51,14 @@ public class ConstructinatorItem extends Item implements GeoItem {
 	private static final String PRINTER_TAG = "constructinatorPrinter";
 	private static final String GECKO_ANIM_TAG = "geckoAnim";
 	private static final String SCHEMATIC_FILE_TAG = "constructinatorSchematicFile";
+	private static final String FAILED_TARGET_POS_TAG = "constructinatorFailedTargetPos";
+	private static final String FAILED_TARGET_COUNT_TAG = "constructinatorFailedTargetCount";
+	private static final String SKIPPED_TARGETS_TAG = "constructinatorSkippedTargets";
 	private static final int PLACE_INTERVAL_TICKS = 2;
 	private static final int BACKTANK_AIR_COST_PER_BLOCK = 1;
 	private static final int SHOT_VISUAL_LIFETIME_TICKS = 8;
 	private static final double SHOT_VISUAL_SPEED = 0.85;
+	private static final int FAILED_TARGET_SKIP_THRESHOLD = 3;
 	private static final RawAnimation FIRE_ANIMATION = RawAnimation.begin().thenPlay("fire");
 	private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 	public String animationprocedure = "empty";
@@ -120,8 +127,12 @@ public class ConstructinatorItem extends Item implements GeoItem {
 		}
 
 		String previousFile = getCustomTag(constructinatorStack).getString(SCHEMATIC_FILE_TAG);
-		if (!printer.isLoaded() || !schematicFile.equals(previousFile)) {
+		boolean schematicChanged = !schematicFile.equals(previousFile);
+		if (schematicChanged) {
 			printer.resetSchematic();
+			clearFailedTargetTracking(constructinatorStack);
+		}
+		if (!printer.isLoaded() || schematicChanged) {
 			printer.loadSchematic(schematicStack, level, false);
 		}
 
@@ -130,8 +141,7 @@ public class ConstructinatorItem extends Item implements GeoItem {
 		}
 
 		boolean placed = false;
-		int safety = 256;
-		while (!placed && safety-- > 0) {
+		while (!placed) {
 			if (!printer.advanceCurrentPos()) {
 				storePrinterState(constructinatorStack, printer, schematicFile);
 				return false;
@@ -142,31 +152,56 @@ public class ConstructinatorItem extends Item implements GeoItem {
 			}
 
 			final BlockState[] targetState = { null };
-			printer.handleCurrentTarget((pos, state, blockEntity) -> targetState[0] = state, (pos, entityTarget) -> {
+			final BlockPos[] targetPos = { null };
+			printer.handleCurrentTarget((pos, state, blockEntity) -> {
+				targetPos[0] = pos.immutable();
+				targetState[0] = state;
+			}, (pos, entityTarget) -> {
 			});
-			if (targetState[0] == null || shouldSkipPlacementState(targetState[0])) {
+			if (targetState[0] == null || targetPos[0] == null || shouldSkipPlacementState(targetState[0])) {
+				continue;
+			}
+
+			if (isSkippedTarget(constructinatorStack, targetPos[0])) {
+				continue;
+			}
+
+			if (!targetState[0].canSurvive(level, targetPos[0])) {
+				continue;
+			}
+
+			if (isAlreadySatisfiedIgnoringVolatileState(level, targetPos[0], targetState[0])) {
+				continue;
+			}
+
+			if (isAlreadySatisfiedIgnoringBlockEntityNbt(level, targetPos[0], targetState[0])) {
 				continue;
 			}
 
 			ItemRequirement requirement = printer.getCurrentRequirement();
 			if (requirement.isInvalid()) {
+				continue;
+			}
+
+			if (!canMeetRequirement(player, level, requirement)) {
+				if (isOnlyDamageRequirement(requirement)) {
+					continue;
+				}
 				storePrinterState(constructinatorStack, printer, schematicFile);
 				return false;
 			}
 
-			if (!canMeetRequirement(player, level, requirement)) {
-				storePrinterState(constructinatorStack, printer, schematicFile);
-				return true;
-			}
-
 			if (!tryConsumeBacktankAir(player, BACKTANK_AIR_COST_PER_BLOCK)) {
 				storePrinterState(constructinatorStack, printer, schematicFile);
-				return true;
+				return false;
 			}
 
 			if (!consumeRequirement(player, level, requirement)) {
+				if (isOnlyDamageRequirement(requirement)) {
+					continue;
+				}
 				storePrinterState(constructinatorStack, printer, schematicFile);
-				return true;
+				return false;
 			}
 
 			final boolean[] placementSucceeded = { false };
@@ -174,12 +209,15 @@ public class ConstructinatorItem extends Item implements GeoItem {
 			});
 
 			if (placementSucceeded[0]) {
+				clearRecentFailedTarget(constructinatorStack);
 				placed = true;
 				printer.sendBlockUpdates(level);
 				CustomData.update(DataComponents.CUSTOM_DATA, constructinatorStack, tag -> tag.putString(GECKO_ANIM_TAG, "fire"));
 				if (constructinatorStack.getItem() instanceof ConstructinatorItem constructinatorItem) {
 					constructinatorItem.triggerAnim(player, GeoItem.getOrAssignId(constructinatorStack, level), "procedureController", "fire");
 				}
+			} else {
+				recordFailedTarget(constructinatorStack, targetPos[0]);
 			}
 		}
 
@@ -193,11 +231,57 @@ public class ConstructinatorItem extends Item implements GeoItem {
 			return;
 		}
 
-		boolean placed = level.setBlock(pos, state, 3);
+		BlockState stateToPlace = normalizePlacementState(state);
+		boolean placed = level.setBlock(pos, stateToPlace, 3);
 		if (placed) {
-			spawnShotVisual(level, player, pos, state, requirement);
+			spawnShotVisual(level, player, pos, stateToPlace, requirement);
 			placementSucceeded[0] = true;
 		}
+	}
+
+	private static BlockState normalizePlacementState(BlockState state) {
+		if (state.getBlock() instanceof LeavesBlock && state.hasProperty(LeavesBlock.PERSISTENT)) {
+			return state.setValue(LeavesBlock.PERSISTENT, true);
+		}
+		return state;
+	}
+
+	private static boolean isAlreadySatisfiedIgnoringVolatileState(ServerLevel level, BlockPos targetPos, BlockState targetState) {
+		BlockState existingState = level.getBlockState(targetPos);
+		if (existingState.getBlock() != targetState.getBlock()) {
+			return false;
+		}
+
+		if (!(targetState.getBlock() instanceof LeavesBlock)) {
+			return false;
+		}
+
+		for (Property<?> property : targetState.getProperties()) {
+			if (property == LeavesBlock.DISTANCE || property == LeavesBlock.PERSISTENT) {
+				continue;
+			}
+
+			if (!existingState.hasProperty(property)) {
+				return false;
+			}
+
+			Comparable<?> targetValue = targetState.getValue(property);
+			Comparable<?> existingValue = existingState.getValue(property);
+			if (!targetValue.equals(existingValue)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	private static boolean isAlreadySatisfiedIgnoringBlockEntityNbt(ServerLevel level, BlockPos targetPos, BlockState targetState) {
+		BlockState existingState = level.getBlockState(targetPos);
+		if (!existingState.equals(targetState)) {
+			return false;
+		}
+
+		return existingState.hasBlockEntity();
 	}
 
 	private static void spawnShotVisual(ServerLevel level, Player player, net.minecraft.core.BlockPos targetPos, BlockState placedState, ItemRequirement requirement) {
@@ -263,6 +347,92 @@ public class ConstructinatorItem extends Item implements GeoItem {
 		return true;
 	}
 
+	private static boolean isSkippedTarget(ItemStack stack, BlockPos targetPos) {
+		if (targetPos == null) {
+			return false;
+		}
+
+		long target = targetPos.asLong();
+		long[] skipped = getCustomTag(stack).getLongArray(SKIPPED_TARGETS_TAG);
+		for (long skippedTarget : skipped) {
+			if (skippedTarget == target) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private static void recordFailedTarget(ItemStack stack, BlockPos targetPos) {
+		if (targetPos == null) {
+			return;
+		}
+
+		long target = targetPos.asLong();
+		CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
+			long lastFailed = tag.getLong(FAILED_TARGET_POS_TAG);
+			int failedCount = tag.getInt(FAILED_TARGET_COUNT_TAG);
+			if (lastFailed == target) {
+				failedCount++;
+			} else {
+				lastFailed = target;
+				failedCount = 1;
+			}
+
+			if (failedCount >= FAILED_TARGET_SKIP_THRESHOLD) {
+				long[] skipped = tag.getLongArray(SKIPPED_TARGETS_TAG);
+				boolean known = false;
+				for (long skippedTarget : skipped) {
+					if (skippedTarget == target) {
+						known = true;
+						break;
+					}
+				}
+				if (!known) {
+					long[] updated = java.util.Arrays.copyOf(skipped, skipped.length + 1);
+					updated[skipped.length] = target;
+					tag.putLongArray(SKIPPED_TARGETS_TAG, updated);
+				}
+				tag.putLong(FAILED_TARGET_POS_TAG, 0L);
+				tag.putInt(FAILED_TARGET_COUNT_TAG, 0);
+				return;
+			}
+
+			tag.putLong(FAILED_TARGET_POS_TAG, lastFailed);
+			tag.putInt(FAILED_TARGET_COUNT_TAG, failedCount);
+		});
+	}
+
+	private static void clearRecentFailedTarget(ItemStack stack) {
+		CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
+			tag.putLong(FAILED_TARGET_POS_TAG, 0L);
+			tag.putInt(FAILED_TARGET_COUNT_TAG, 0);
+		});
+	}
+
+	private static void clearFailedTargetTracking(ItemStack stack) {
+		CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
+			tag.putLong(FAILED_TARGET_POS_TAG, 0L);
+			tag.putInt(FAILED_TARGET_COUNT_TAG, 0);
+			tag.remove(SKIPPED_TARGETS_TAG);
+		});
+	}
+
+
+	private static boolean isOnlyDamageRequirement(ItemRequirement requirement) {
+		List<ItemRequirement.StackRequirement> requiredItems = requirement.getRequiredItems();
+		if (requiredItems.isEmpty()) {
+			return false;
+		}
+
+		for (ItemRequirement.StackRequirement stackRequirement : requiredItems) {
+			if (stackRequirement.usage != ItemRequirement.ItemUseType.DAMAGE) {
+				return false;
+			}
+		}
+
+		return true;
+	}
 	private static boolean canMeetRequirement(Player player, ServerLevel level, ItemRequirement requirement) {
 		if (player.getAbilities().instabuild || requirement.isEmpty()) {
 			return true;
