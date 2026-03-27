@@ -19,6 +19,20 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 
 import net.create_nomad.item.renderer.ConstructinatorItemRenderer;
+import net.create_nomad.CreateNomadMod;
+import net.create_nomad.util.BackpackDataUtils;
+import net.create_nomad.util.BackpackInventoryRules;
+import net.create_nomad.util.BackpackItemAssociations;
+
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.AnimationState;
+import software.bernie.geckolib.animation.PlayState;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animatable.GeoItem;
+import software.bernie.geckolib.animatable.client.GeoRenderProvider;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.animation.AnimationController;
@@ -31,6 +45,8 @@ import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.function.Consumer;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
 public class ConstructinatorItem extends Item implements GeoItem {
 	private static final String PRINTER_TAG = "constructinatorPrinter";
@@ -56,7 +72,7 @@ public class ConstructinatorItem extends Item implements GeoItem {
 			return InteractionResultHolder.pass(stack);
 		}
 
-		if (!hasSchematicFile(player.getOffhandItem())) {
+		if (!hasSchematicFile(player.getOffhandItem(), level)) {
 			return InteractionResultHolder.fail(stack);
 		}
 
@@ -91,7 +107,7 @@ public class ConstructinatorItem extends Item implements GeoItem {
 
 	private static boolean tryPlaceNextFromSchematic(ServerLevel level, Player player, ItemStack constructinatorStack) {
 		ItemStack schematicStack = player.getOffhandItem();
-		String schematicFile = extractSchematicFile(schematicStack);
+		String schematicFile = extractSchematicFile(schematicStack, level);
 		if (schematicFile.isEmpty()) {
 			return false;
 		}
@@ -130,12 +146,12 @@ public class ConstructinatorItem extends Item implements GeoItem {
 				return false;
 			}
 
-			if (!canMeetRequirement(player, requirement)) {
+			if (!canMeetRequirement(player, level, requirement)) {
 				storePrinterState(constructinatorStack, printer, schematicFile);
 				return true;
 			}
 
-			if (!consumeRequirement(player, requirement)) {
+			if (!consumeRequirement(player, level, requirement)) {
 				storePrinterState(constructinatorStack, printer, schematicFile);
 				return true;
 			}
@@ -167,13 +183,13 @@ public class ConstructinatorItem extends Item implements GeoItem {
 		}
 	}
 
-	private static boolean canMeetRequirement(Player player, ItemRequirement requirement) {
+	private static boolean canMeetRequirement(Player player, ServerLevel level, ItemRequirement requirement) {
 		if (player.getAbilities().instabuild || requirement.isEmpty()) {
 			return true;
 		}
 
 		for (ItemRequirement.StackRequirement stackRequirement : requirement.getRequiredItems()) {
-			if (!hasMatchingStack(player, stackRequirement)) {
+			if (!hasMatchingStack(player, level, stackRequirement)) {
 				return false;
 			}
 		}
@@ -181,13 +197,13 @@ public class ConstructinatorItem extends Item implements GeoItem {
 		return true;
 	}
 
-	private static boolean consumeRequirement(Player player, ItemRequirement requirement) {
+	private static boolean consumeRequirement(Player player, ServerLevel level, ItemRequirement requirement) {
 		if (player.getAbilities().instabuild || requirement.isEmpty()) {
 			return true;
 		}
 
 		for (ItemRequirement.StackRequirement stackRequirement : requirement.getRequiredItems()) {
-			if (!consumeMatchingStack(player, stackRequirement)) {
+			if (!consumeMatchingStack(player, level, stackRequirement)) {
 				return false;
 			}
 		}
@@ -195,7 +211,7 @@ public class ConstructinatorItem extends Item implements GeoItem {
 		return true;
 	}
 
-	private static boolean hasMatchingStack(Player player, ItemRequirement.StackRequirement requirement) {
+	private static boolean hasMatchingStack(Player player, ServerLevel level, ItemRequirement.StackRequirement requirement) {
 		for (ItemStack stack : player.getInventory().offhand) {
 			if (requirement.matches(stack) && !stack.isEmpty()) {
 				return true;
@@ -206,10 +222,22 @@ public class ConstructinatorItem extends Item implements GeoItem {
 				return true;
 			}
 		}
+
+		ItemStackHandler backpackHandler = getEquippedBackpackHandler(player, level);
+		if (backpackHandler != null) {
+			int slots = Math.min(BackpackInventoryRules.STORAGE_SLOT_COUNT, backpackHandler.getSlots());
+			for (int i = 0; i < slots; i++) {
+				ItemStack stack = backpackHandler.getStackInSlot(i);
+				if (requirement.matches(stack) && !stack.isEmpty()) {
+					return true;
+				}
+			}
+		}
+
 		return false;
 	}
 
-	private static boolean consumeMatchingStack(Player player, ItemRequirement.StackRequirement requirement) {
+	private static boolean consumeMatchingStack(Player player, ServerLevel level, ItemRequirement.StackRequirement requirement) {
 		for (ItemStack stack : player.getInventory().offhand) {
 			if (!requirement.matches(stack) || stack.isEmpty()) {
 				continue;
@@ -248,14 +276,66 @@ public class ConstructinatorItem extends Item implements GeoItem {
 			return true;
 		}
 
+		ItemStack backpackStack = findFirstCuriosBackpack(player);
+		if (!backpackStack.isEmpty()) {
+			ItemStackHandler backpackHandler = BackpackDataUtils.loadHandlerFromItem(backpackStack, level, BackpackInventoryRules.TOTAL_SLOT_COUNT);
+			int slots = Math.min(BackpackInventoryRules.STORAGE_SLOT_COUNT, backpackHandler.getSlots());
+			for (int slot = 0; slot < slots; slot++) {
+				ItemStack stack = backpackHandler.getStackInSlot(slot);
+				if (!requirement.matches(stack) || stack.isEmpty()) {
+					continue;
+				}
+
+				if (requirement.usage == ItemRequirement.ItemUseType.DAMAGE) {
+					if (!stack.isDamageableItem()) {
+						continue;
+					}
+					stack.setDamageValue(stack.getDamageValue() + 1);
+					if (stack.getDamageValue() > stack.getMaxDamage()) {
+						stack.shrink(1);
+					}
+				} else {
+					stack.shrink(1);
+				}
+
+				backpackHandler.setStackInSlot(slot, stack);
+				BackpackDataUtils.saveHandlerToItem(backpackHandler, backpackStack, level);
+				return true;
+			}
+		}
+
 		return false;
 	}
 
-	private static boolean hasSchematicFile(ItemStack stack) {
-		return !extractSchematicFile(stack).isEmpty();
+	private static ItemStackHandler getEquippedBackpackHandler(Player player, ServerLevel level) {
+		ItemStack backpackStack = findFirstCuriosBackpack(player);
+		if (backpackStack.isEmpty()) {
+			return null;
+		}
+		return BackpackDataUtils.loadHandlerFromItem(backpackStack, level, BackpackInventoryRules.TOTAL_SLOT_COUNT);
 	}
 
-	private static String extractSchematicFile(ItemStack stack) {
+	private static ItemStack findFirstCuriosBackpack(Player player) {
+		IItemHandler curiosInventory = CreateNomadMod.CuriosApiHelper.getCuriosInventory(player);
+		if (curiosInventory == null) {
+			return ItemStack.EMPTY;
+		}
+
+		for (int i = 0; i < curiosInventory.getSlots(); i++) {
+			ItemStack stack = curiosInventory.getStackInSlot(i);
+			if (BackpackItemAssociations.isBackpackItem(stack)) {
+				return stack;
+			}
+		}
+
+		return ItemStack.EMPTY;
+	}
+
+	private static boolean hasSchematicFile(ItemStack stack, Level level) {
+		return !extractSchematicFile(stack, level).isEmpty();
+	}
+
+	private static String extractSchematicFile(ItemStack stack, Level level) {
 		if (stack.isEmpty()) {
 			return "";
 		}
@@ -265,6 +345,18 @@ public class ConstructinatorItem extends Item implements GeoItem {
 		if (tag.contains("create:schematic_file")) {
 			return tag.getString("create:schematic_file");
 		}
+
+		try {
+			CompoundTag full = (CompoundTag) stack.saveOptional(level.registryAccess());
+			if (full.contains("components")) {
+				CompoundTag components = full.getCompound("components");
+				if (components.contains("create:schematic_file")) {
+					return components.getString("create:schematic_file");
+				}
+			}
+		} catch (Exception ignored) {
+		}
+
 		return "";
 	}
 
