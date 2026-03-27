@@ -18,7 +18,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.world.phys.Vec3;
@@ -168,6 +170,14 @@ public class ConstructinatorItem extends Item implements GeoItem {
 				continue;
 			}
 
+			if (isAlreadySatisfiedIgnoringVolatileState(level, targetPos[0], targetState[0])) {
+				continue;
+			}
+
+			if (isAlreadySatisfiedIgnoringBlockEntityNbt(level, targetPos[0], targetState[0])) {
+				continue;
+			}
+
 			ItemRequirement requirement = printer.getCurrentRequirement();
 			if (requirement.isInvalid()) {
 				continue;
@@ -221,11 +231,57 @@ public class ConstructinatorItem extends Item implements GeoItem {
 			return;
 		}
 
-		boolean placed = level.setBlock(pos, state, 3);
+		BlockState stateToPlace = normalizePlacementState(state);
+		boolean placed = level.setBlock(pos, stateToPlace, 3);
 		if (placed) {
-			spawnShotVisual(level, player, pos, state, requirement);
+			spawnShotVisual(level, player, pos, stateToPlace, requirement);
 			placementSucceeded[0] = true;
 		}
+	}
+
+	private static BlockState normalizePlacementState(BlockState state) {
+		if (state.getBlock() instanceof LeavesBlock && state.hasProperty(LeavesBlock.PERSISTENT)) {
+			return state.setValue(LeavesBlock.PERSISTENT, true);
+		}
+		return state;
+	}
+
+	private static boolean isAlreadySatisfiedIgnoringVolatileState(ServerLevel level, BlockPos targetPos, BlockState targetState) {
+		BlockState existingState = level.getBlockState(targetPos);
+		if (existingState.getBlock() != targetState.getBlock()) {
+			return false;
+		}
+
+		if (!(targetState.getBlock() instanceof LeavesBlock)) {
+			return false;
+		}
+
+		for (Property<?> property : targetState.getProperties()) {
+			if (property == LeavesBlock.DISTANCE || property == LeavesBlock.PERSISTENT) {
+				continue;
+			}
+
+			if (!existingState.hasProperty(property)) {
+				return false;
+			}
+
+			Comparable<?> targetValue = targetState.getValue(property);
+			Comparable<?> existingValue = existingState.getValue(property);
+			if (!targetValue.equals(existingValue)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	private static boolean isAlreadySatisfiedIgnoringBlockEntityNbt(ServerLevel level, BlockPos targetPos, BlockState targetState) {
+		BlockState existingState = level.getBlockState(targetPos);
+		if (!existingState.equals(targetState)) {
+			return false;
+		}
+
+		return existingState.hasBlockEntity();
 	}
 
 	private static void spawnShotVisual(ServerLevel level, Player player, net.minecraft.core.BlockPos targetPos, BlockState placedState, ItemRequirement requirement) {
