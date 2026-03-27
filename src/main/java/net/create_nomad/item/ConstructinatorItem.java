@@ -121,8 +121,11 @@ public class ConstructinatorItem extends Item implements GeoItem {
 		}
 
 		String previousFile = getCustomTag(constructinatorStack).getString(SCHEMATIC_FILE_TAG);
-		if (!printer.isLoaded() || !schematicFile.equals(previousFile)) {
+		boolean schematicChanged = !schematicFile.equals(previousFile);
+		if (schematicChanged) {
 			printer.resetSchematic();
+		}
+		if (!printer.isLoaded() || schematicChanged) {
 			printer.loadSchematic(schematicStack, level, false);
 		}
 
