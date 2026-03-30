@@ -51,6 +51,9 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
     private static final int PREVIEW_Y = 20;
     private static final int PREVIEW_W = 72;
     private static final int PREVIEW_H = 72;
+    private static final float ISOMETRIC_ROTATION_X = 30f;
+    private static final float ISOMETRIC_ROTATION_Y = -45f;
+    private static final float IDLE_ROTATION_SPEED_Y = 0.6f;
 
     // ── cache — mirrors Kotlin object fields exactly ──────────────────────────
     private String         cachedFilename = null;
@@ -60,12 +63,11 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
     private List<RenderableBlock> cachedRenderableBlocks = List.of();
     private List<BlockEntity> cachedBlockEntities = List.of();
 
-    // ── rotation ─────────────────────────────────────────────────────────────
-    private float   rotationX  = 30f;
-    private float   rotationY  = -45f;
+    private float rotationX = ISOMETRIC_ROTATION_X;
+    private float rotationY = ISOMETRIC_ROTATION_Y;
     private boolean isDragging = false;
-    private double  lastMouseX = 0;
-    private double  lastMouseY = 0;
+    private double lastMouseX = 0;
+    private double lastMouseY = 0;
 
     private int previewScreenX = 0;
     private int previewScreenY = 0;
@@ -93,7 +95,10 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
     @Override
     public void updateMenuState(int elementType, String name, Object elementState) {}
 
-    // ── mouse ────────────────────────────────────────────────────────────────
+    private boolean isInsidePreview(double mouseX, double mouseY) {
+        return mouseX >= previewScreenX && mouseX < previewScreenX + PREVIEW_W
+            && mouseY >= previewScreenY && mouseY < previewScreenY + PREVIEW_H;
+    }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
@@ -110,9 +115,9 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
     public boolean mouseDragged(double mouseX, double mouseY, int button,
                                 double dragX, double dragY) {
         if (isDragging && button == 0) {
-            rotationY += (float)(mouseX - lastMouseX);
-            rotationX += (float)(mouseY - lastMouseY) * 0.5f;
-            rotationX  = Math.max(-89f, Math.min(89f, rotationX));
+            rotationY += (float) (mouseX - lastMouseX);
+            rotationX += (float) (mouseY - lastMouseY) * 0.5f;
+            rotationX = Math.max(-89f, Math.min(89f, rotationX));
             lastMouseX = mouseX;
             lastMouseY = mouseY;
             return true;
@@ -124,11 +129,6 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         if (button == 0) isDragging = false;
         return super.mouseReleased(mouseX, mouseY, button);
-    }
-
-    private boolean isInsidePreview(double mouseX, double mouseY) {
-        return mouseX >= previewScreenX && mouseX < previewScreenX + PREVIEW_W
-            && mouseY >= previewScreenY && mouseY < previewScreenY + PREVIEW_H;
     }
 
     // ── rendering ────────────────────────────────────────────────────────────
@@ -150,10 +150,10 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
 
         previewScreenX = this.leftPos + PREVIEW_X;
         previewScreenY = this.topPos  + PREVIEW_Y;
-        boolean shouldRenderPreview = isDragging || isInsidePreview(mouseX, mouseY);
+        if (!isDragging) rotationY += IDLE_ROTATION_SPEED_Y * partialTicks;
 
         ItemStack stack = getHoveredCabinetSchematic();
-        if (!stack.isEmpty() && shouldRenderPreview) {
+        if (!stack.isEmpty()) {
             String file = extractFile(stack);
             if (!file.isBlank()) {
                 // mirrors Kotlin renderPreview(filename, guiGraphics, x, y, w, h)
@@ -163,14 +163,6 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
                         PREVIEW_W, PREVIEW_H,
                         rotationX, rotationY, 1f);
             }
-        }
-
-        if (!shouldRenderPreview) {
-            guiGraphics.drawCenteredString(this.font,
-                    Component.literal("Hover preview to render"),
-                    previewScreenX + PREVIEW_W / 2,
-                    previewScreenY + PREVIEW_H / 2 - 4,
-                    0xAAAAAA);
         }
 
         this.renderTooltip(guiGraphics, mouseX, mouseY);
@@ -388,4 +380,5 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
         } catch (Exception ignored) {}
         return "";
     }
+
 }
