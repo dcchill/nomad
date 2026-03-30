@@ -1,5 +1,6 @@
 package net.create_nomad.client;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.simibubi.create.AllDataComponents;
 import com.simibubi.create.AllSpecialTextures;
 import com.simibubi.create.CreateClient;
@@ -10,14 +11,17 @@ import net.create_nomad.CreateNomadMod;
 import net.create_nomad.item.ConstructinatorItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -32,6 +36,9 @@ public class ConstructinatorSchematicPreviewHandler {
 	// Reflected methods
 	private static Method loadSettingsMethod;
 	private static Method setupRendererMethod;
+	private static Method schematicRenderMethod;
+	private static Method superBufferGetInstanceMethod;
+	private static Method superBufferOfMethod;
 
 	// Reflected fields
 	private static Field activeSchematicItemField;
@@ -58,6 +65,7 @@ public class ConstructinatorSchematicPreviewHandler {
 	private static boolean reflectionFailed = false;
 	private static String initializedOffhandSchematic = "";
 	private static boolean forcedPreviewLastTick = false;
+	private static boolean customRenderActive = false;
 
 	private static ISchematicTool originalDeployTool;
 	private static ISchematicTool orangeDeployToolProxy;
@@ -148,18 +156,59 @@ public class ConstructinatorSchematicPreviewHandler {
 			// Restore the offhand schematic state after Create has finished ticking.
 			activeSchematicItemField.set(schematicHandler, offhand);
 			activeHotbarSlotField.setInt(schematicHandler, player.getInventory().selected);
-			activeField.setBoolean(schematicHandler, true);
+			activeField.setBoolean(schematicHandler, false);
+			customRenderActive = true;
 			forcedPreviewLastTick = true;
 		} catch (ReflectiveOperationException ignored) {
 			reflectionFailed = true;
 		}
 	}
 
+	@SubscribeEvent(priority = EventPriority.LOWEST)
+	public static void onRenderLevel(RenderLevelStageEvent event) {
+		if (!customRenderActive || event.getStage() != RenderLevelStageEvent.Stage.AFTER_ENTITIES || !reflectionReady) {
+			return;
+		}
+
+		Minecraft minecraft = Minecraft.getInstance();
+		if (minecraft.level == null || minecraft.player == null) {
+			return;
+		}
+
+		try {
+			Object superBuffer = getSuperRenderTypeBuffer(minecraft.renderBuffers().bufferSource());
+			if (superBuffer == null || schematicRenderMethod == null) {
+				return;
+			}
+
+			Vec3 cameraPos = minecraft.gameRenderer.getMainCamera().getPosition();
+
+			RenderSystem.enableBlend();
+			RenderSystem.defaultBlendFunc();
+			RenderSystem.setShaderColor(PREVIEW_RED, PREVIEW_GREEN, PREVIEW_BLUE, PREVIEW_ALPHA);
+			schematicRenderMethod.invoke(CreateClient.SCHEMATIC_HANDLER, event.getPoseStack(), superBuffer, cameraPos);
+			RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+			RenderSystem.disableBlend();
+		} catch (ReflectiveOperationException ignored) {
+			reflectionFailed = true;
+		}
+	}
+
+	private static Object getSuperRenderTypeBuffer(MultiBufferSource bufferSource) throws ReflectiveOperationException {
+		if (superBufferGetInstanceMethod != null) {
+			return superBufferGetInstanceMethod.invoke(null);
+		}
+		if (superBufferOfMethod != null) {
+			return superBufferOfMethod.invoke(null, bufferSource);
+		}
+		return null;
+	}
+
 	private static void clearForcedPreview() {
 		if (!forcedPreviewLastTick || !reflectionReady) {
 			forcedPreviewLastTick = false;
 			initializedOffhandSchematic = "";
-			uninstallOrangeDeployToolProxy();
+			customRenderActive = false;
 			return;
 		}
 
@@ -174,7 +223,7 @@ public class ConstructinatorSchematicPreviewHandler {
 
 		forcedPreviewLastTick = false;
 		initializedOffhandSchematic = "";
-		uninstallOrangeDeployToolProxy();
+		customRenderActive = false;
 	}
 
 	private static boolean isSchematicWithFile(ItemStack stack) {
@@ -198,6 +247,25 @@ public class ConstructinatorSchematicPreviewHandler {
 
 			setupRendererMethod = handlerClass.getDeclaredMethod("setupRenderer");
 			setupRendererMethod.setAccessible(true);
+
+			Class<?> superRenderTypeBufferClass = Class.forName("net.createmod.catnip.render.SuperRenderTypeBuffer");
+			schematicRenderMethod = handlerClass.getDeclaredMethod("render", com.mojang.blaze3d.vertex.PoseStack.class,
+					superRenderTypeBufferClass, net.minecraft.world.phys.Vec3.class);
+			schematicRenderMethod.setAccessible(true);
+			try {
+				superBufferGetInstanceMethod = superRenderTypeBufferClass.getDeclaredMethod("getInstance");
+				superBufferGetInstanceMethod.setAccessible(true);
+			} catch (NoSuchMethodException ignored) {
+				superBufferGetInstanceMethod = null;
+			}
+			if (superBufferGetInstanceMethod == null) {
+				try {
+					superBufferOfMethod = superRenderTypeBufferClass.getDeclaredMethod("of", MultiBufferSource.class);
+					superBufferOfMethod.setAccessible(true);
+				} catch (NoSuchMethodException ignored) {
+					superBufferOfMethod = null;
+				}
+			}
 
 			activeSchematicItemField = handlerClass.getDeclaredField("activeSchematicItem");
 			activeSchematicItemField.setAccessible(true);
