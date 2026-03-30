@@ -44,7 +44,10 @@ public class ConstructinatorSchematicPreviewHandler {
 	private static Method bufferColorIntMethod;
 	private static Method bufferSetColorIntMethod;
 
-	private static final float PREVIEW_ALPHA = 0.6f;
+	private static final float PREVIEW_RED = 1f;
+	private static final float PREVIEW_GREEN = 0.55f;
+	private static final float PREVIEW_BLUE = 0.1f;
+	private static final float PREVIEW_ALPHA = 0.5f;
 
 	private static boolean reflectionReady = false;
 	private static boolean reflectionFailed = false;
@@ -238,7 +241,7 @@ public class ConstructinatorSchematicPreviewHandler {
 				}
 
 				for (Object buffer : cache.values()) {
-					applyBufferAlpha(buffer, PREVIEW_ALPHA);
+					applyBufferColor(buffer, PREVIEW_RED, PREVIEW_GREEN, PREVIEW_BLUE, PREVIEW_ALPHA);
 				}
 			}
 		} catch (ReflectiveOperationException ignored) {
@@ -246,7 +249,7 @@ public class ConstructinatorSchematicPreviewHandler {
 		}
 	}
 
-	private static void applyBufferAlpha(Object buffer, float alpha) {
+	private static void applyBufferColor(Object buffer, float red, float green, float blue, float alpha) {
 		if (buffer == null) {
 			return;
 		}
@@ -260,7 +263,7 @@ public class ConstructinatorSchematicPreviewHandler {
 				}
 			}
 			if (bufferColorFloatMethod != null) {
-				bufferColorFloatMethod.invoke(buffer, 1f, 1f, 1f, alpha);
+				bufferColorFloatMethod.invoke(buffer, red, green, blue, alpha);
 				return;
 			}
 
@@ -273,7 +276,7 @@ public class ConstructinatorSchematicPreviewHandler {
 			}
 			if (bufferColorIntMethod != null) {
 				int alphaInt = Math.max(0, Math.min(255, Math.round(alpha * 255f)));
-				bufferColorIntMethod.invoke(buffer, (alphaInt << 24) | 0x00FFFFFF);
+				bufferColorIntMethod.invoke(buffer, (alphaInt << 24) | toRgbInt(red, green, blue));
 				return;
 			}
 
@@ -286,10 +289,17 @@ public class ConstructinatorSchematicPreviewHandler {
 			}
 			if (bufferSetColorIntMethod != null) {
 				int alphaInt = Math.max(0, Math.min(255, Math.round(alpha * 255f)));
-				bufferSetColorIntMethod.invoke(buffer, (alphaInt << 24) | 0x00FFFFFF);
+				bufferSetColorIntMethod.invoke(buffer, (alphaInt << 24) | toRgbInt(red, green, blue));
 			}
 		} catch (ReflectiveOperationException ignored) {
 			// Ignore unknown buffer implementations and keep normal preview rendering.
 		}
 	}
+	private static int toRgbInt(float red, float green, float blue) {
+		int redInt = Math.max(0, Math.min(255, Math.round(red * 255f)));
+		int greenInt = Math.max(0, Math.min(255, Math.round(green * 255f)));
+		int blueInt = Math.max(0, Math.min(255, Math.round(blue * 255f)));
+		return (redInt << 16) | (greenInt << 8) | blueInt;
+	}
+
 }
