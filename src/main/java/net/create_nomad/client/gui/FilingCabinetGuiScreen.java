@@ -208,10 +208,13 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
         var bufferSource = guiGraphics.bufferSource();
         RenderSystem.enableDepthTest();
 
-        for (var renderable : cachedRenderableBlocks) {
-
-            var blockPos = renderable.pos();
-            var state = renderable.state();
+        var bounds = level.getBounds();
+        for (BlockPos blockPos : BlockPos.betweenClosed(
+                bounds.minX(), bounds.minY(), bounds.minZ(),
+                bounds.maxX(), bounds.maxY(), bounds.maxZ())) {
+            var state = level.getBlockState(blockPos);
+            if (state.isAir()) continue;
+            if (state.getRenderShape() == RenderShape.INVISIBLE) continue;
 
             pose.pushPose();
             pose.translate(blockPos.getX(), blockPos.getY(), blockPos.getZ());
