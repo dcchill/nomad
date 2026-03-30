@@ -316,6 +316,10 @@ public class ConstructinatorSchematicPreviewHandler {
 		}
 	}
 
+	private static void applyOutlineTint(SchematicHandler schematicHandler) {
+		// Intentionally no-op. Kept for compatibility with stale generated call sites.
+	}
+
 	private static void applyBufferColor(Object buffer, float red, float green, float blue, float alpha) {
 		if (buffer == null) {
 			return;
