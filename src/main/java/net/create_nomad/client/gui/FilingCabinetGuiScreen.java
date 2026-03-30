@@ -17,6 +17,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -37,6 +38,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
 
 import java.util.ArrayList;
 import java.util.List;
+import java.lang.reflect.Method;
 
 import net.create_nomad.init.CreateNomadModScreens;
 import net.create_nomad.world.inventory.FilingCabinetGuiMenu;
@@ -161,7 +163,7 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
                 renderPreview(file, guiGraphics,
                         previewScreenX, previewScreenY,
                         PREVIEW_W, PREVIEW_H,
-                        rotationX, rotationY, 1f);
+                        rotationX, rotationY, 1f, partialTicks);
             }
         }
 
@@ -172,7 +174,7 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
 
     private void renderPreview(String filename, GuiGraphics guiGraphics,
                                int x, int y, int w, int h,
-                               float rotX, float rotY, float zoom) {
+                               float rotX, float rotY, float zoom, float partialTicks) {
         // mirrors Kotlin getOrLoadLevel — sync, returns cached level on subsequent calls
         SchematicLevel level = getOrLoadLevel(filename);
         if (level == null) return;
@@ -204,47 +206,53 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
         var dispatcher   = mc.getBlockRenderer();
         var bufferSource = guiGraphics.bufferSource();
         RenderSystem.enableDepthTest();
+        setShaderGameTimeSafely(0L, 0f);
 
-        for (var renderable : cachedRenderableBlocks) {
-            var blockPos = renderable.pos();
-            var state = renderable.state();
+        try {
+            for (var renderable : cachedRenderableBlocks) {
+                var blockPos = renderable.pos();
+                var state = renderable.state();
 
-            pose.pushPose();
-            pose.translate(blockPos.getX(), blockPos.getY(), blockPos.getZ());
+                pose.pushPose();
+                pose.translate(blockPos.getX(), blockPos.getY(), blockPos.getZ());
 
-            try {
-                var blockEntity = level.getBlockEntity(blockPos);
-                ModelData modelData = blockEntity != null
-                        ? renderable.bakedModel().getModelData(level, blockPos, state, blockEntity.getModelData())
-                        : renderable.modelData();
+                try {
+                    var blockEntity = level.getBlockEntity(blockPos);
+                    ModelData modelData = blockEntity != null
+                            ? renderable.bakedModel().getModelData(level, blockPos, state, blockEntity.getModelData())
+                            : renderable.modelData();
 
-                for (var renderType : renderable.renderTypes()) {
-                    dispatcher.getModelRenderer().renderModel(
-                            pose.last(), bufferSource.getBuffer(renderType),
-                            state, renderable.bakedModel(), renderable.r(), renderable.g(), renderable.b(),
-                            LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY,
-                            modelData, renderType);
-                }
-            } catch (Exception ignored) {}
+                    for (var renderType : renderable.renderTypes()) {
+                        dispatcher.getModelRenderer().renderModel(
+                                pose.last(), bufferSource.getBuffer(renderType),
+                                state, renderable.bakedModel(), renderable.r(), renderable.g(), renderable.b(),
+                                LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY,
+                                modelData, renderType);
+                    }
+                } catch (Exception ignored) {}
 
-            pose.popPose();
-        }
+                pose.popPose();
+            }
 
-        // Render block entities (belts, kinetic blocks, etc.) via their BlockEntityRenderers
-        var beDispatcher = mc.getBlockEntityRenderDispatcher();
-        for (var blockEntity : cachedBlockEntities) {
-            @SuppressWarnings({"rawtypes", "unchecked"})
-            BlockEntityRenderer ber = beDispatcher.getRenderer(blockEntity);
-            if (ber == null) continue;
+            // Render block entities (belts, kinetic blocks, etc.) via their BlockEntityRenderers
+            var beDispatcher = mc.getBlockEntityRenderDispatcher();
+            for (var blockEntity : cachedBlockEntities) {
+                @SuppressWarnings({"rawtypes", "unchecked"})
+                BlockEntityRenderer ber = beDispatcher.getRenderer(blockEntity);
+                if (ber == null) continue;
 
-            var pos = blockEntity.getBlockPos();
-            pose.pushPose();
-            pose.translate(pos.getX(), pos.getY(), pos.getZ());
-            try {
-                ber.render(blockEntity, 0f, pose, bufferSource,
-                        LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
-            } catch (Exception ignored) {}
-            pose.popPose();
+                var pos = blockEntity.getBlockPos();
+                pose.pushPose();
+                pose.translate(pos.getX(), pos.getY(), pos.getZ());
+                try {
+                    ber.render(blockEntity, 0f, pose, bufferSource,
+                            LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
+                } catch (Exception ignored) {}
+                pose.popPose();
+            }
+        } finally {
+            long gameTime = mc.level != null ? mc.level.getGameTime() : 0L;
+            setShaderGameTimeSafely(gameTime, partialTicks);
         }
 
         bufferSource.endBatch();
@@ -323,6 +331,7 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
                 for (var renderType : bakedModel.getRenderTypes(state, rng, modelData)) {
                     renderTypes.add(renderType);
                 }
+                if (hasAnimatedTexture(state, bakedModel, modelData, rng, renderTypes)) continue;
 
                 renderableBlocks.add(new RenderableBlock(
                         blockPos.immutable(), state, bakedModel, modelData, r, g, b, List.copyOf(renderTypes)));
