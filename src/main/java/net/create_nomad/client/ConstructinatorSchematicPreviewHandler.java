@@ -97,7 +97,7 @@ public class ConstructinatorSchematicPreviewHandler {
 		Minecraft minecraft = Minecraft.getInstance();
 		LocalPlayer player = minecraft.player;
 		if (player == null || minecraft.level == null) {
-			clearForcedPreview();
+			resetForcedPreviewState();
 			return;
 		}
 
@@ -105,7 +105,7 @@ public class ConstructinatorSchematicPreviewHandler {
 		ItemStack offhand = player.getOffhandItem();
 		boolean shouldForcePreview = mainHand.getItem() instanceof ConstructinatorItem && isSchematicWithFile(offhand);
 		if (!shouldForcePreview) {
-			clearForcedPreview();
+			resetForcedPreviewState();
 			return;
 		}
 		if (!reflectionReady) return;
@@ -149,7 +149,7 @@ public class ConstructinatorSchematicPreviewHandler {
 			Object superBuffer = getSuperRenderTypeBuffer(minecraft.renderBuffers().bufferSource());
 			if (superBuffer == null || schematicRenderMethod == null) return;
 
-			hideAlreadyPlacedBlocks(CreateClient.SCHEMATIC_HANDLER, minecraft);
+				applyPlacedBlockMask(CreateClient.SCHEMATIC_HANDLER, minecraft);
 			Vec3 cameraPos = minecraft.gameRenderer.getMainCamera().getPosition();
 
 			RenderSystem.enableBlend();
@@ -201,7 +201,7 @@ public class ConstructinatorSchematicPreviewHandler {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static void hideAlreadyPlacedBlocks(SchematicHandler schematicHandler, Minecraft minecraft) throws ReflectiveOperationException {
+	private static void applyPlacedBlockMask(SchematicHandler schematicHandler, Minecraft minecraft) throws ReflectiveOperationException {
 		Object renderersObject = renderersField.get(schematicHandler);
 		if (!(renderersObject instanceof Vector<?> renderers)) return;
 
@@ -229,17 +229,12 @@ public class ConstructinatorSchematicPreviewHandler {
 		}
 	}
 
-	private static void clearForcedPreview() {
+	private static void resetForcedPreviewState() {
 		if (!forcedPreviewLastTick || !reflectionReady) {
 			forcedPreviewLastTick = false;
 			initializedOffhandSchematic = "";
 			customRenderActive = false;
 			originalStatesByRenderer.clear();
-			return;
-		}
-
-		Object renderersObject = renderersField.get(schematicHandler);
-		if (!(renderersObject instanceof Vector<?> renderers)) {
 			return;
 		}
 
@@ -425,8 +420,5 @@ public class ConstructinatorSchematicPreviewHandler {
 		}
 	}
 
-	// compatibility shims for stale generated code paths
-	private static void installOrangeDeployToolProxy() { }
-	private static void uninstallOrangeDeployToolProxy() { }
 	private static void applyOutlineTint(SchematicHandler schematicHandler) { }
 }
