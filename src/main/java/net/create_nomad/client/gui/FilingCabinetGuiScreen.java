@@ -17,6 +17,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -330,6 +331,7 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
                 for (var renderType : bakedModel.getRenderTypes(state, rng, modelData)) {
                     renderTypes.add(renderType);
                 }
+                if (hasAnimatedTexture(state, bakedModel, modelData, rng, renderTypes)) continue;
 
                 renderableBlocks.add(new RenderableBlock(
                         blockPos.immutable(), state, bakedModel, modelData, r, g, b, List.copyOf(renderTypes)));
