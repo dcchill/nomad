@@ -35,36 +35,31 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
 import net.create_nomad.init.CreateNomadModScreens;
 import net.create_nomad.world.inventory.FilingCabinetGuiMenu;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.concurrent.CompletableFuture;
-
 public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabinetGuiMenu>
         implements CreateNomadModScreens.ScreenAccessor {
 
     private static final ResourceLocation TEXTURE =
             ResourceLocation.parse("create_nomad:textures/screens/filing_cabinet_gui.png");
 
-    // ── schematic state ──────────────────────────────────────────────────────
-    private String         cachedFile     = "";
-    private SchematicLevel schematicLevel = null;
-    private Vec3i          schematicSize  = Vec3i.ZERO;
+    private static final int PREVIEW_X = 14;
+    private static final int PREVIEW_Y = 20;
+    private static final int PREVIEW_W = 72;
+    private static final int PREVIEW_H = 72;
 
-    private CompletableFuture<SchematicPreviewCache.CachedPreview> loadFuture = null;
+    // ── cache — mirrors Kotlin object fields exactly ──────────────────────────
+    private String         cachedFilename = null;
+    private SchematicLevel cachedLevel    = null;
+    private Vec3i          cachedSize     = Vec3i.ZERO;
 
     // ── rotation ─────────────────────────────────────────────────────────────
-    private float   rotationX  = 30f;   // pitch — Kotlin default
-    private float   rotationY  = -45f;  // yaw   — Kotlin default
+    private float   rotationX  = 30f;
+    private float   rotationY  = -45f;
     private boolean isDragging = false;
     private double  lastMouseX = 0;
     private double  lastMouseY = 0;
 
     private int previewScreenX = 0;
     private int previewScreenY = 0;
-    private static final int PREVIEW_X = 14;
-    private static final int PREVIEW_Y = 20;
-    private static final int PREVIEW_W = 72;
-    private static final int PREVIEW_H = 72;
 
     public FilingCabinetGuiScreen(FilingCabinetGuiMenu menu, Inventory inv, Component title) {
         super(menu, inv, title);
@@ -77,8 +72,10 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
     @Override
     public void onClose() {
         super.onClose();
-        cancelLoad();
-        schematicLevel = null;
+        // mirror Kotlin clear()
+        cachedFilename = null;
+        cachedLevel    = null;
+        cachedSize     = Vec3i.ZERO;
     }
 
     @Override
@@ -142,18 +139,20 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
         previewScreenX = this.leftPos + PREVIEW_X;
         previewScreenY = this.topPos  + PREVIEW_Y;
 
-        // Auto-spin yaw when not dragging — same formula as the original
+        // auto-spin when not dragging
         if (!isDragging) {
             rotationY = (Minecraft.getInstance().level.getGameTime() / 4f) % 360f;
         }
 
         ItemStack stack = getHoveredCabinetSchematic();
         if (!stack.isEmpty()) {
-            tickPreviewLoad(stack);
-            if (schematicLevel != null && !schematicSize.equals(Vec3i.ZERO)) {
-                // Exact port of Kotlin renderPreview(filename, guiGraphics, x, y, w, h, rotX, rotY, zoom=1)
-                renderPreview(guiGraphics,
-                        previewScreenX, previewScreenY, PREVIEW_W, PREVIEW_H,
+            String file = extractFile(stack);
+            if (!file.isBlank()) {
+                // mirrors Kotlin renderPreview(filename, guiGraphics, x, y, w, h)
+                // which calls getOrLoadLevel(filename) inline — sync load, cached after
+                renderPreview(file, guiGraphics,
+                        previewScreenX, previewScreenY,
+                        PREVIEW_W, PREVIEW_H,
                         rotationX, rotationY, 1f);
             }
         }
@@ -161,12 +160,16 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
         this.renderTooltip(guiGraphics, mouseX, mouseY);
     }
 
-    // ── direct port of SchematicPreviewRenderer.kt renderPreview ─────────────
+    // ── exact port of Kotlin renderPreview(filename, guiGraphics, ...) ────────
 
-    private void renderPreview(GuiGraphics guiGraphics,
+    private void renderPreview(String filename, GuiGraphics guiGraphics,
                                int x, int y, int w, int h,
                                float rotX, float rotY, float zoom) {
-        var size = schematicSize;
+        // mirrors Kotlin getOrLoadLevel — sync, returns cached level on subsequent calls
+        SchematicLevel level = getOrLoadLevel(filename);
+        if (level == null) return;
+
+        Vec3i size = cachedSize;
         if (size.equals(Vec3i.ZERO)) return;
 
         guiGraphics.enableScissor(x, y, x + w, y + h);
@@ -190,9 +193,10 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
         pose.translate(-size.getX() / 2.0, -size.getY() / 2.0, -size.getZ() / 2.0);
 
         // Render each block
-        var dispatcher   = Minecraft.getInstance().getBlockRenderer();
+        var mc           = Minecraft.getInstance();
+        var dispatcher   = mc.getBlockRenderer();
         var bufferSource = guiGraphics.bufferSource();
-        var bounds       = schematicLevel.getBounds();
+        var bounds       = level.getBounds();
 
         RenderSystem.enableDepthTest();
 
@@ -200,7 +204,7 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
                 bounds.minX(), bounds.minY(), bounds.minZ(),
                 bounds.maxX(), bounds.maxY(), bounds.maxZ())) {
 
-            var state = schematicLevel.getBlockState(blockPos);
+            var state = level.getBlockState(blockPos);
             if (state.isAir()) continue;
             if (state.getRenderShape() == RenderShape.INVISIBLE) continue;
 
@@ -208,16 +212,13 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
             pose.translate(blockPos.getX(), blockPos.getY(), blockPos.getZ());
 
             try {
-                // Query block entity for model data (Create blocks need this for correct rendering)
-                var blockEntity = schematicLevel.getBlockEntity(blockPos);
+                var blockEntity = level.getBlockEntity(blockPos);
                 var bakedModel  = dispatcher.getBlockModel(state);
                 ModelData modelData = (blockEntity != null)
-                        ? bakedModel.getModelData(schematicLevel, blockPos, state,
-                                                  blockEntity.getModelData())
+                        ? bakedModel.getModelData(level, blockPos, state, blockEntity.getModelData())
                         : ModelData.EMPTY;
 
-                // Render the baked block model directly
-                int   color = Minecraft.getInstance().getBlockColors().getColor(state, null, null, 0);
+                int   color = mc.getBlockColors().getColor(state, null, null, 0);
                 float r     = ((color >> 16) & 0xFF) / 255f;
                 float g     = ((color >>  8) & 0xFF) / 255f;
                 float b     = ( color        & 0xFF) / 255f;
@@ -236,8 +237,8 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
         }
 
         // Render block entities (belts, kinetic blocks, etc.) via their BlockEntityRenderers
-        var beDispatcher = Minecraft.getInstance().getBlockEntityRenderDispatcher();
-        for (var blockEntity : schematicLevel.getRenderedBlockEntities()) {
+        var beDispatcher = mc.getBlockEntityRenderDispatcher();
+        for (var blockEntity : level.getRenderedBlockEntities()) {
             @SuppressWarnings({"rawtypes", "unchecked"})
             BlockEntityRenderer ber = beDispatcher.getRenderer(blockEntity);
             if (ber == null) continue;
@@ -257,53 +258,58 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
         guiGraphics.disableScissor();
     }
 
-    // ── load polling ─────────────────────────────────────────────────────────
+    // ── exact port of Kotlin getOrLoadLevel ──────────────────────────────────
 
-    private void tickPreviewLoad(ItemStack stack) {
-        String file = extractFile(stack);
-        if (file.isBlank()) return;
+    private SchematicLevel getOrLoadLevel(String filename) {
+        // return cached immediately — this is why the Kotlin has no FPS drop
+        if (filename.equals(cachedFilename)) return cachedLevel;
 
-        if (!file.equals(cachedFile)) {
-            cachedFile     = file;
-            schematicLevel = null;
-            schematicSize  = Vec3i.ZERO;
-            cancelLoad();
+        cachedFilename = filename;
+        cachedLevel    = null;
+        cachedSize     = Vec3i.ZERO;
 
-            SchematicPreviewCache.CachedPreview cached = SchematicPreviewCache.get(file);
-            if (cached != null) {
-                applyPreview(cached);
-            } else {
-                var mc    = Minecraft.getInstance();
-                Path path = mc.gameDirectory.toPath().resolve("schematics").resolve(file);
-                var level = mc.level;
-                loadFuture = CompletableFuture.supplyAsync(() -> loadPreview(path, level));
-            }
-        }
+        try {
+            var mc     = Minecraft.getInstance();
+            var level  = mc.level;
+            var player = mc.player;
+            if (level == null || player == null) return null;
 
-        if (loadFuture != null && loadFuture.isDone()) {
-            SchematicPreviewCache.CachedPreview result = loadFuture.getNow(null);
-            loadFuture = null;
-            if (result != null) {
-                SchematicPreviewCache.put(file, result);
-                applyPreview(result);
-            }
+            ItemStack fakeStack = new ItemStack(
+                    net.minecraft.core.registries.BuiltInRegistries.ITEM.get(
+                            ResourceLocation.parse("create:schematic")));
+            fakeStack.set(AllDataComponents.SCHEMATIC_FILE,     filename);
+            fakeStack.set(AllDataComponents.SCHEMATIC_OWNER,    player.getGameProfile().getName());
+            fakeStack.set(AllDataComponents.SCHEMATIC_ANCHOR,   BlockPos.ZERO);
+            fakeStack.set(AllDataComponents.SCHEMATIC_ROTATION, Rotation.NONE);
+            fakeStack.set(AllDataComponents.SCHEMATIC_MIRROR,   Mirror.NONE);
+            fakeStack.set(AllDataComponents.SCHEMATIC_DEPLOYED, true);
+
+            StructureTemplate template = SchematicItem.loadSchematic(level, fakeStack);
+            if (template.getSize().equals(Vec3i.ZERO)) return null;
+
+            cachedSize = template.getSize();
+
+            var schematicLevel = new SchematicLevel(level);
+            var settings       = new StructurePlaceSettings();
+            settings.setRotation(Rotation.NONE);
+            settings.setMirror(Mirror.NONE);
+
+            template.placeInWorld(
+                    schematicLevel, BlockPos.ZERO, BlockPos.ZERO,
+                    settings, schematicLevel.getRandom(), Block.UPDATE_CLIENTS);
+
+            for (var be : schematicLevel.getBlockEntities())
+                be.setLevel(schematicLevel);
+
+            cachedLevel = schematicLevel;
+            return schematicLevel;
+
+        } catch (Exception e) {
+            return null;
         }
     }
 
     // ── helpers ──────────────────────────────────────────────────────────────
-
-    private void applyPreview(SchematicPreviewCache.CachedPreview cached) {
-        if (cached == null || cached.level == null) return;
-        schematicLevel = cached.level;
-        schematicSize  = new Vec3i(cached.width, cached.height, cached.depth);
-    }
-
-    private void cancelLoad() {
-        if (loadFuture != null) {
-            loadFuture.cancel(true);
-            loadFuture = null;
-        }
-    }
 
     private ItemStack getHoveredCabinetSchematic() {
         Slot s = this.hoveredSlot;
@@ -329,51 +335,5 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
             }
         } catch (Exception ignored) {}
         return "";
-    }
-
-    // ── schematic loading (background thread) ────────────────────────────────
-
-    private SchematicPreviewCache.CachedPreview loadPreview(
-            Path path, net.minecraft.world.level.Level level) {
-        try {
-            if (!Files.exists(path)) return null;
-
-            var mc     = Minecraft.getInstance();
-            var player = mc.player;
-            if (player == null) return null;
-
-            ItemStack fakeStack = new ItemStack(
-                    net.minecraft.core.registries.BuiltInRegistries.ITEM.get(
-                            ResourceLocation.parse("create:schematic")));
-            fakeStack.set(AllDataComponents.SCHEMATIC_FILE,     path.getFileName().toString());
-            fakeStack.set(AllDataComponents.SCHEMATIC_OWNER,    player.getGameProfile().getName());
-            fakeStack.set(AllDataComponents.SCHEMATIC_ANCHOR,   BlockPos.ZERO);
-            fakeStack.set(AllDataComponents.SCHEMATIC_ROTATION, Rotation.NONE);
-            fakeStack.set(AllDataComponents.SCHEMATIC_MIRROR,   Mirror.NONE);
-            fakeStack.set(AllDataComponents.SCHEMATIC_DEPLOYED, true);
-
-            StructureTemplate template = SchematicItem.loadSchematic(level, fakeStack);
-            if (template.getSize().equals(Vec3i.ZERO)) return null;
-
-            var size           = template.getSize();
-            var schematicLevel = new SchematicLevel(level);
-            var settings       = new StructurePlaceSettings();
-            settings.setRotation(Rotation.NONE);
-            settings.setMirror(Mirror.NONE);
-
-            template.placeInWorld(
-                    schematicLevel, BlockPos.ZERO, BlockPos.ZERO,
-                    settings, schematicLevel.getRandom(), Block.UPDATE_CLIENTS);
-
-            for (var be : schematicLevel.getBlockEntities())
-                be.setLevel(schematicLevel);
-
-            return new SchematicPreviewCache.CachedPreview(
-                    schematicLevel, null,
-                    size.getX(), size.getY(), size.getZ());
-
-        } catch (Exception e) {
-            return null;
-        }
     }
 }
