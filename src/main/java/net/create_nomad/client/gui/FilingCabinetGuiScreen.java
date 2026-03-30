@@ -390,10 +390,4 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
         return "";
     }
 
-    private void setShaderGameTimeSafely(long gameTime, float partialTicks) {
-        try {
-            Method setShaderGameTime = RenderSystem.class.getDeclaredMethod("setShaderGameTime", long.class, float.class);
-            setShaderGameTime.invoke(null, gameTime, partialTicks);
-        } catch (Exception ignored) {}
-    }
 }
