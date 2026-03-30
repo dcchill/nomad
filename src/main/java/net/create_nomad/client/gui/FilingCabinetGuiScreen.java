@@ -161,7 +161,7 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
                 renderPreview(file, guiGraphics,
                         previewScreenX, previewScreenY,
                         PREVIEW_W, PREVIEW_H,
-                        rotationX, rotationY, 1f);
+                        ISOMETRIC_ROTATION_X, ISOMETRIC_ROTATION_Y, 1f);
             }
         }
 
