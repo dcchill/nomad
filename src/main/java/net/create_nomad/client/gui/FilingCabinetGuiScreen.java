@@ -321,7 +321,11 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
                 renderableBlocks.add(new RenderableBlock(blockPos.immutable(), state));
             }
             cachedRenderableBlocks = List.copyOf(renderableBlocks);
-            cachedBlockEntities = List.copyOf(schematicLevel.getRenderedBlockEntities());
+            var renderedBlockEntities = new ArrayList<BlockEntity>();
+            for (var blockEntity : schematicLevel.getRenderedBlockEntities()) {
+                renderedBlockEntities.add(blockEntity);
+            }
+            cachedBlockEntities = List.copyOf(renderedBlockEntities);
 
             cachedLevel = schematicLevel;
             return schematicLevel;
