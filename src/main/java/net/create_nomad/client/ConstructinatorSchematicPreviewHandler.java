@@ -173,7 +173,8 @@ public class ConstructinatorSchematicPreviewHandler {
 	private static void cacheRendererOriginalStates(SchematicHandler schematicHandler) throws ReflectiveOperationException {
 		originalStatesByRenderer.clear();
 		Object renderersObject = renderersField.get(schematicHandler);
-		if (!(renderersObject instanceof Vector<?> renderers)) return;
+		if (!(renderersObject instanceof Vector<?>)) return;
+		Vector<?> renderers = (Vector<?>) renderersObject;
 
 		for (Object renderer : renderers) {
 			Object schematic = rendererSchematicField.get(renderer);
@@ -203,7 +204,8 @@ public class ConstructinatorSchematicPreviewHandler {
 	@SuppressWarnings("unchecked")
 	private static void applyPlacedBlockMask(SchematicHandler schematicHandler, Minecraft minecraft) throws ReflectiveOperationException {
 		Object renderersObject = renderersField.get(schematicHandler);
-		if (!(renderersObject instanceof Vector<?> renderers)) return;
+		if (!(renderersObject instanceof Vector<?>)) return;
+		Vector<?> renderers = (Vector<?>) renderersObject;
 
 		Object airState = Blocks.AIR.defaultBlockState();
 		for (Object renderer : renderers) {
@@ -235,39 +237,6 @@ public class ConstructinatorSchematicPreviewHandler {
 			initializedOffhandSchematic = "";
 			customRenderActive = false;
 			originalStatesByRenderer.clear();
-			return;
-		}
-
-		for (Object renderer : renderers) {
-			Object schematic = rendererSchematicField.get(renderer);
-			Object anchorObj = rendererAnchorField.get(renderer);
-			if (!(anchorObj instanceof BlockPos anchor) || schematic == null) {
-				continue;
-			}
-
-			Object bounds = schematicGetBoundsMethod.invoke(schematic);
-			Map<BlockPos, Object> originalStates = new HashMap<>();
-			int minX = (int) bounds.getClass().getMethod("minX").invoke(bounds);
-			int minY = (int) bounds.getClass().getMethod("minY").invoke(bounds);
-			int minZ = (int) bounds.getClass().getMethod("minZ").invoke(bounds);
-			int maxX = (int) bounds.getClass().getMethod("maxX").invoke(bounds);
-			int maxY = (int) bounds.getClass().getMethod("maxY").invoke(bounds);
-			int maxZ = (int) bounds.getClass().getMethod("maxZ").invoke(bounds);
-
-			for (BlockPos localPos : BlockPos.betweenClosed(minX, minY, minZ, maxX, maxY, maxZ)) {
-				BlockPos worldPos = localPos.offset(anchor);
-				Object originalState = schematicGetBlockStateMethod.invoke(schematic, worldPos);
-				if (originalState != null && !originalState.equals(Blocks.AIR.defaultBlockState())) {
-					originalStates.put(worldPos.immutable(), originalState);
-				}
-			}
-			originalStatesByRenderer.put(renderer, originalStates);
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	private static void hideAlreadyPlacedBlocks(SchematicHandler schematicHandler, Minecraft minecraft) throws ReflectiveOperationException {
-		if (renderersField == null || rendererSchematicField == null || schematicSetBlockMethod == null) {
 			return;
 		}
 
