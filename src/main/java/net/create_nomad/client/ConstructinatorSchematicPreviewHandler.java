@@ -44,7 +44,10 @@ public class ConstructinatorSchematicPreviewHandler {
 	private static Method bufferColorIntMethod;
 	private static Method bufferSetColorIntMethod;
 
-	private static final float PREVIEW_ALPHA = 0.6f;
+	private static final float PREVIEW_RED = 1f;
+	private static final float PREVIEW_GREEN = 0.55f;
+	private static final float PREVIEW_BLUE = 0.1f;
+	private static final float PREVIEW_ALPHA = 0.5f;
 
 	private static boolean reflectionReady = false;
 	private static boolean reflectionFailed = false;
@@ -128,6 +131,7 @@ public class ConstructinatorSchematicPreviewHandler {
 				displayedSchematicField.set(schematicHandler, schematicFile);
 				setupRendererMethod.invoke(schematicHandler);
 				schematicHandler.equip(ToolType.DEPLOY);
+				applyPreviewTransparency(schematicHandler);
 				initializedOffhandSchematic = schematicFile;
 			}
 
@@ -136,7 +140,6 @@ public class ConstructinatorSchematicPreviewHandler {
 			activeSchematicItemField.set(schematicHandler, offhand);
 			activeHotbarSlotField.setInt(schematicHandler, player.getInventory().selected);
 			activeField.setBoolean(schematicHandler, true);
-			applyPreviewTransparency(schematicHandler);
 			forcedPreviewLastTick = true;
 		} catch (ReflectiveOperationException ignored) {
 			reflectionFailed = true;
@@ -238,7 +241,7 @@ public class ConstructinatorSchematicPreviewHandler {
 				}
 
 				for (Object buffer : cache.values()) {
-					applyBufferAlpha(buffer, PREVIEW_ALPHA);
+					applyBufferColor(buffer, PREVIEW_RED, PREVIEW_GREEN, PREVIEW_BLUE, PREVIEW_ALPHA);
 				}
 			}
 		} catch (ReflectiveOperationException ignored) {
@@ -246,21 +249,28 @@ public class ConstructinatorSchematicPreviewHandler {
 		}
 	}
 
-	private static void applyBufferAlpha(Object buffer, float alpha) {
+	private static void applyOutlineTint(SchematicHandler schematicHandler) {
+		// Intentionally no-op. Kept for compatibility with stale generated call sites.
+	}
+
+	private static void applyBufferColor(Object buffer, float red, float green, float blue, float alpha) {
 		if (buffer == null) {
 			return;
 		}
 
 		try {
-			if (bufferColorFloatMethod == null) {
+			int alphaInt = Math.max(0, Math.min(255, Math.round(alpha * 255f)));
+			int color = (alphaInt << 24) | toRgbInt(red, green, blue);
+
+			if (bufferSetColorIntMethod == null) {
 				try {
-					bufferColorFloatMethod = buffer.getClass().getMethod("color", float.class, float.class, float.class, float.class);
+					bufferSetColorIntMethod = buffer.getClass().getMethod("setColor", int.class);
 				} catch (NoSuchMethodException ignored) {
-					bufferColorFloatMethod = null;
+					bufferSetColorIntMethod = null;
 				}
 			}
-			if (bufferColorFloatMethod != null) {
-				bufferColorFloatMethod.invoke(buffer, 1f, 1f, 1f, alpha);
+			if (bufferSetColorIntMethod != null) {
+				bufferSetColorIntMethod.invoke(buffer, color);
 				return;
 			}
 
@@ -272,24 +282,30 @@ public class ConstructinatorSchematicPreviewHandler {
 				}
 			}
 			if (bufferColorIntMethod != null) {
-				int alphaInt = Math.max(0, Math.min(255, Math.round(alpha * 255f)));
-				bufferColorIntMethod.invoke(buffer, (alphaInt << 24) | 0x00FFFFFF);
+				bufferColorIntMethod.invoke(buffer, color);
 				return;
 			}
 
-			if (bufferSetColorIntMethod == null) {
+			if (bufferColorFloatMethod == null) {
 				try {
-					bufferSetColorIntMethod = buffer.getClass().getMethod("setColor", int.class);
+					bufferColorFloatMethod = buffer.getClass().getMethod("color", float.class, float.class, float.class, float.class);
 				} catch (NoSuchMethodException ignored) {
-					bufferSetColorIntMethod = null;
+					bufferColorFloatMethod = null;
 				}
 			}
-			if (bufferSetColorIntMethod != null) {
-				int alphaInt = Math.max(0, Math.min(255, Math.round(alpha * 255f)));
-				bufferSetColorIntMethod.invoke(buffer, (alphaInt << 24) | 0x00FFFFFF);
+			if (bufferColorFloatMethod != null) {
+				bufferColorFloatMethod.invoke(buffer, red, green, blue, alpha);
 			}
 		} catch (ReflectiveOperationException ignored) {
 			// Ignore unknown buffer implementations and keep normal preview rendering.
 		}
 	}
+
+	private static int toRgbInt(float red, float green, float blue) {
+		int redInt = Math.max(0, Math.min(255, Math.round(red * 255f)));
+		int greenInt = Math.max(0, Math.min(255, Math.round(green * 255f)));
+		int blueInt = Math.max(0, Math.min(255, Math.round(blue * 255f)));
+		return (redInt << 16) | (greenInt << 8) | blueInt;
+	}
+
 }
