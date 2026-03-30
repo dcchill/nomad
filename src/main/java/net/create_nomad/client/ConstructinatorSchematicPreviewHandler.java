@@ -140,6 +140,7 @@ public class ConstructinatorSchematicPreviewHandler {
 				displayedSchematicField.set(schematicHandler, schematicFile);
 				setupRendererMethod.invoke(schematicHandler);
 				schematicHandler.equip(ToolType.DEPLOY);
+				applyPreviewTransparency(schematicHandler);
 				initializedOffhandSchematic = schematicFile;
 			}
 
@@ -148,8 +149,6 @@ public class ConstructinatorSchematicPreviewHandler {
 			activeSchematicItemField.set(schematicHandler, offhand);
 			activeHotbarSlotField.setInt(schematicHandler, player.getInventory().selected);
 			activeField.setBoolean(schematicHandler, true);
-			applyPreviewTransparency(schematicHandler);
-			applyOutlineTint(schematicHandler);
 			forcedPreviewLastTick = true;
 		} catch (ReflectiveOperationException ignored) {
 			reflectionFailed = true;
