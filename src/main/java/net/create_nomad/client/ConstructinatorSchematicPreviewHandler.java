@@ -1,8 +1,10 @@
 package net.create_nomad.client;
 
 import com.simibubi.create.AllDataComponents;
+import com.simibubi.create.AllSpecialTextures;
 import com.simibubi.create.CreateClient;
 import com.simibubi.create.content.schematics.client.SchematicHandler;
+import com.simibubi.create.content.schematics.client.tools.ISchematicTool;
 import com.simibubi.create.content.schematics.client.tools.ToolType;
 import net.create_nomad.CreateNomadMod;
 import net.create_nomad.item.ConstructinatorItem;
@@ -19,6 +21,7 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.Map;
 import java.util.Vector;
 
@@ -39,6 +42,8 @@ public class ConstructinatorSchematicPreviewHandler {
 	private static Field currentToolField;
 	private static Field renderersField;
 	private static Field bufferCacheField;
+	private static Field outlineField;
+	private static Field toolTypeToolField;
 
 	private static Method bufferColorFloatMethod;
 	private static Method bufferColorIntMethod;
@@ -53,6 +58,9 @@ public class ConstructinatorSchematicPreviewHandler {
 	private static boolean reflectionFailed = false;
 	private static String initializedOffhandSchematic = "";
 	private static boolean forcedPreviewLastTick = false;
+
+	private static ISchematicTool originalDeployTool;
+	private static ISchematicTool orangeDeployToolProxy;
 
 	/**
 	 * HIGH priority: runs before Create's SchematicHandler.tick().
@@ -125,6 +133,7 @@ public class ConstructinatorSchematicPreviewHandler {
 					|| !schematicFile.equals(initializedOffhandSchematic);
 
 			if (needsInit) {
+				installOrangeDeployToolProxy();
 				activeSchematicItemField.set(schematicHandler, offhand);
 				loadSettingsMethod.invoke(schematicHandler, offhand);
 				deployedField.setBoolean(schematicHandler, true);
@@ -150,6 +159,7 @@ public class ConstructinatorSchematicPreviewHandler {
 		if (!forcedPreviewLastTick || !reflectionReady) {
 			forcedPreviewLastTick = false;
 			initializedOffhandSchematic = "";
+			uninstallOrangeDeployToolProxy();
 			return;
 		}
 
@@ -164,6 +174,7 @@ public class ConstructinatorSchematicPreviewHandler {
 
 		forcedPreviewLastTick = false;
 		initializedOffhandSchematic = "";
+		uninstallOrangeDeployToolProxy();
 	}
 
 	private static boolean isSchematicWithFile(ItemStack stack) {
@@ -209,6 +220,13 @@ public class ConstructinatorSchematicPreviewHandler {
 			renderersField = handlerClass.getDeclaredField("renderers");
 			renderersField.setAccessible(true);
 
+			outlineField = handlerClass.getDeclaredField("outline");
+			outlineField.setAccessible(true);
+
+			Class<ToolType> toolTypeClass = ToolType.class;
+			toolTypeToolField = toolTypeClass.getDeclaredField("tool");
+			toolTypeToolField.setAccessible(true);
+
 			Class<?> rendererClass = Class.forName("com.simibubi.create.content.schematics.client.SchematicRenderer");
 			bufferCacheField = rendererClass.getDeclaredField("bufferCache");
 			bufferCacheField.setAccessible(true);
@@ -221,6 +239,54 @@ public class ConstructinatorSchematicPreviewHandler {
 			return false;
 		}
 	}
+
+
+	private static void installOrangeDeployToolProxy() {
+		if (toolTypeToolField == null) {
+			return;
+		}
+
+		try {
+			if (originalDeployTool == null) {
+				originalDeployTool = (ISchematicTool) toolTypeToolField.get(ToolType.DEPLOY);
+			}
+			if (originalDeployTool == null) {
+				return;
+			}
+			if (orangeDeployToolProxy == null) {
+				orangeDeployToolProxy = (ISchematicTool) Proxy.newProxyInstance(
+					ISchematicTool.class.getClassLoader(),
+					new Class<?>[]{ISchematicTool.class},
+					(proxy, method, args) -> {
+						if ("renderOnSchematic".equals(method.getName())) {
+							return null;
+						}
+						return method.invoke(originalDeployTool, args);
+					});
+			}
+			Object currentTool = toolTypeToolField.get(ToolType.DEPLOY);
+			if (currentTool != orangeDeployToolProxy) {
+				toolTypeToolField.set(ToolType.DEPLOY, orangeDeployToolProxy);
+			}
+		} catch (ReflectiveOperationException ignored) {
+			// If ToolType internals change, keep default behavior.
+		}
+	}
+
+	private static void uninstallOrangeDeployToolProxy() {
+		if (toolTypeToolField == null || originalDeployTool == null) {
+			return;
+		}
+		try {
+			Object currentTool = toolTypeToolField.get(ToolType.DEPLOY);
+			if (currentTool == orangeDeployToolProxy) {
+				toolTypeToolField.set(ToolType.DEPLOY, originalDeployTool);
+			}
+		} catch (ReflectiveOperationException ignored) {
+			// ignore
+		}
+	}
+
 
 	@SuppressWarnings("unchecked")
 	private static void applyPreviewTransparency(SchematicHandler schematicHandler) {
