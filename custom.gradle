@@ -8,6 +8,8 @@ repositories {
 }
 
 dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+
     compileOnly name: "create-1.21.1-6.0.6"
     runtimeOnly name: "create-1.21.1-6.0.6"
 
