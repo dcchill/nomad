@@ -39,15 +39,21 @@ public class ConstructinatorSchematicPreviewHandler {
 	private static Field currentToolField;
 	private static Field renderersField;
 	private static Field bufferCacheField;
+	private static Field outlineField;
 
 	private static Method bufferColorFloatMethod;
 	private static Method bufferColorIntMethod;
 	private static Method bufferSetColorIntMethod;
+	private static Method outlineGetParamsMethod;
+	private static Method outlineColoredMethod;
+	private static Method outlineAlphaMethod;
 
+	private static final int PREVIEW_ORANGE_RGB = 0xFF8C1A;
 	private static final float PREVIEW_RED = 1f;
 	private static final float PREVIEW_GREEN = 0.55f;
 	private static final float PREVIEW_BLUE = 0.1f;
 	private static final float PREVIEW_ALPHA = 0.5f;
+	private static final float PREVIEW_OUTLINE_ALPHA = 0.35f;
 
 	private static boolean reflectionReady = false;
 	private static boolean reflectionFailed = false;
@@ -140,6 +146,7 @@ public class ConstructinatorSchematicPreviewHandler {
 			activeHotbarSlotField.setInt(schematicHandler, player.getInventory().selected);
 			activeField.setBoolean(schematicHandler, true);
 			applyPreviewTransparency(schematicHandler);
+			applyOutlineTint(schematicHandler);
 			forcedPreviewLastTick = true;
 		} catch (ReflectiveOperationException ignored) {
 			reflectionFailed = true;
@@ -209,6 +216,9 @@ public class ConstructinatorSchematicPreviewHandler {
 			renderersField = handlerClass.getDeclaredField("renderers");
 			renderersField.setAccessible(true);
 
+			outlineField = handlerClass.getDeclaredField("outline");
+			outlineField.setAccessible(true);
+
 			Class<?> rendererClass = Class.forName("com.simibubi.create.content.schematics.client.SchematicRenderer");
 			bufferCacheField = rendererClass.getDeclaredField("bufferCache");
 			bufferCacheField.setAccessible(true);
@@ -248,6 +258,55 @@ public class ConstructinatorSchematicPreviewHandler {
 			reflectionFailed = true;
 		}
 	}
+
+
+	private static void applyOutlineTint(SchematicHandler schematicHandler) {
+		if (outlineField == null) {
+			return;
+		}
+
+		try {
+			Object outline = outlineField.get(schematicHandler);
+			if (outline == null) {
+				return;
+			}
+
+			if (outlineGetParamsMethod == null) {
+				outlineGetParamsMethod = outline.getClass().getMethod("getParams");
+			}
+
+			Object params = outlineGetParamsMethod.invoke(outline);
+			if (params == null) {
+				return;
+			}
+
+			if (outlineColoredMethod == null) {
+				outlineColoredMethod = params.getClass().getMethod("colored", int.class);
+			}
+			outlineColoredMethod.invoke(params, PREVIEW_ORANGE_RGB);
+
+			if (outlineAlphaMethod == null) {
+				outlineAlphaMethod = findOutlineAlphaMethod(params.getClass());
+			}
+			if (outlineAlphaMethod != null) {
+				outlineAlphaMethod.invoke(params, PREVIEW_OUTLINE_ALPHA);
+			}
+		} catch (ReflectiveOperationException ignored) {
+			// Ignore if Create/Catnip outline internals change.
+		}
+	}
+
+	private static Method findOutlineAlphaMethod(Class<?> paramsClass) {
+		for (String methodName : new String[]{"alpha", "withAlpha", "transparency"}) {
+			try {
+				return paramsClass.getMethod(methodName, float.class);
+			} catch (NoSuchMethodException ignored) {
+				// Try next candidate
+			}
+		}
+		return null;
+	}
+
 
 	private static void applyBufferColor(Object buffer, float red, float green, float blue, float alpha) {
 		if (buffer == null) {
