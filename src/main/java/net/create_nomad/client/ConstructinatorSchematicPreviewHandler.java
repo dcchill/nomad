@@ -2,6 +2,7 @@ package net.create_nomad.client;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.simibubi.create.AllDataComponents;
+import com.simibubi.create.AllSpecialTextures;
 import com.simibubi.create.CreateClient;
 import com.simibubi.create.content.schematics.client.SchematicHandler;
 import com.simibubi.create.content.schematics.client.tools.ISchematicTool;
@@ -152,6 +153,7 @@ public class ConstructinatorSchematicPreviewHandler {
 					|| !schematicFile.equals(initializedOffhandSchematic);
 
 			if (needsInit) {
+				installOrangeDeployToolProxy();
 				activeSchematicItemField.set(schematicHandler, offhand);
 				loadSettingsMethod.invoke(schematicHandler, offhand);
 				deployedField.setBoolean(schematicHandler, true);
@@ -184,6 +186,84 @@ public class ConstructinatorSchematicPreviewHandler {
 		if (minecraft.level == null || minecraft.player == null) {
 			return;
 		}
+
+		for (Object renderer : renderers) {
+			Object schematic = rendererSchematicField.get(renderer);
+			Object anchorObj = rendererAnchorField.get(renderer);
+			if (!(anchorObj instanceof BlockPos anchor) || schematic == null) {
+				continue;
+			}
+
+			Object bounds = schematicGetBoundsMethod.invoke(schematic);
+			Map<BlockPos, Object> originalStates = new HashMap<>();
+			int minX = (int) bounds.getClass().getMethod("minX").invoke(bounds);
+			int minY = (int) bounds.getClass().getMethod("minY").invoke(bounds);
+			int minZ = (int) bounds.getClass().getMethod("minZ").invoke(bounds);
+			int maxX = (int) bounds.getClass().getMethod("maxX").invoke(bounds);
+			int maxY = (int) bounds.getClass().getMethod("maxY").invoke(bounds);
+			int maxZ = (int) bounds.getClass().getMethod("maxZ").invoke(bounds);
+
+			for (BlockPos localPos : BlockPos.betweenClosed(minX, minY, minZ, maxX, maxY, maxZ)) {
+				BlockPos worldPos = localPos.offset(anchor);
+				Object originalState = schematicGetBlockStateMethod.invoke(schematic, worldPos);
+				if (originalState != null && !originalState.equals(Blocks.AIR.defaultBlockState())) {
+					originalStates.put(worldPos.immutable(), originalState);
+				}
+			}
+			originalStatesByRenderer.put(renderer, originalStates);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private static void hideAlreadyPlacedBlocks(SchematicHandler schematicHandler, Minecraft minecraft) throws ReflectiveOperationException {
+		if (renderersField == null || rendererSchematicField == null || schematicSetBlockMethod == null) {
+			return;
+		}
+
+		Object renderersObject = renderersField.get(schematicHandler);
+		if (!(renderersObject instanceof Vector<?> renderers)) {
+			return;
+		}
+
+		Object airState = Blocks.AIR.defaultBlockState();
+		for (Object renderer : renderers) {
+			Map<BlockPos, Object> originals = originalStatesByRenderer.get(renderer);
+			if (originals == null || originals.isEmpty()) {
+				continue;
+			}
+
+			Object schematic = rendererSchematicField.get(renderer);
+			if (schematic == null) {
+				continue;
+			}
+
+			boolean changed = false;
+			for (Map.Entry<BlockPos, Object> entry : originals.entrySet()) {
+				BlockPos worldPos = entry.getKey();
+				Object originalState = entry.getValue();
+				Object worldState = minecraft.level.getBlockState(worldPos);
+				Object desired = worldState.equals(originalState) ? airState : originalState;
+				Object current = schematicGetBlockStateMethod.invoke(schematic, worldPos);
+				if (!desired.equals(current)) {
+					schematicSetBlockMethod.invoke(schematic, worldPos, desired, 2);
+					changed = true;
+				}
+			}
+
+			if (changed && rendererUpdateMethod != null) {
+				rendererUpdateMethod.invoke(renderer);
+			}
+		}
+	}
+
+	private static void clearForcedPreview() {
+			if (!forcedPreviewLastTick || !reflectionReady) {
+				forcedPreviewLastTick = false;
+				initializedOffhandSchematic = "";
+				customRenderActive = false;
+				originalStatesByRenderer.clear();
+				return;
+			}
 
 		try {
 			Object superBuffer = getSuperRenderTypeBuffer(minecraft.renderBuffers().bufferSource());
@@ -391,6 +471,13 @@ public class ConstructinatorSchematicPreviewHandler {
 			renderersField = handlerClass.getDeclaredField("renderers");
 			renderersField.setAccessible(true);
 
+			outlineField = handlerClass.getDeclaredField("outline");
+			outlineField.setAccessible(true);
+
+			Class<ToolType> toolTypeClass = ToolType.class;
+			toolTypeToolField = toolTypeClass.getDeclaredField("tool");
+			toolTypeToolField.setAccessible(true);
+
 			Class<?> rendererClass = Class.forName("com.simibubi.create.content.schematics.client.SchematicRenderer");
 			bufferCacheField = rendererClass.getDeclaredField("bufferCache");
 			bufferCacheField.setAccessible(true);
@@ -418,6 +505,54 @@ public class ConstructinatorSchematicPreviewHandler {
 			return false;
 		}
 	}
+
+
+	private static void installOrangeDeployToolProxy() {
+		if (toolTypeToolField == null) {
+			return;
+		}
+
+		try {
+			if (originalDeployTool == null) {
+				originalDeployTool = (ISchematicTool) toolTypeToolField.get(ToolType.DEPLOY);
+			}
+			if (originalDeployTool == null) {
+				return;
+			}
+			if (orangeDeployToolProxy == null) {
+				orangeDeployToolProxy = (ISchematicTool) Proxy.newProxyInstance(
+					ISchematicTool.class.getClassLoader(),
+					new Class<?>[]{ISchematicTool.class},
+					(proxy, method, args) -> {
+						if ("renderOnSchematic".equals(method.getName())) {
+							return null;
+						}
+						return method.invoke(originalDeployTool, args);
+					});
+			}
+			Object currentTool = toolTypeToolField.get(ToolType.DEPLOY);
+			if (currentTool != orangeDeployToolProxy) {
+				toolTypeToolField.set(ToolType.DEPLOY, orangeDeployToolProxy);
+			}
+		} catch (ReflectiveOperationException ignored) {
+			// If ToolType internals change, keep default behavior.
+		}
+	}
+
+	private static void uninstallOrangeDeployToolProxy() {
+		if (toolTypeToolField == null || originalDeployTool == null) {
+			return;
+		}
+		try {
+			Object currentTool = toolTypeToolField.get(ToolType.DEPLOY);
+			if (currentTool == orangeDeployToolProxy) {
+				toolTypeToolField.set(ToolType.DEPLOY, originalDeployTool);
+			}
+		} catch (ReflectiveOperationException ignored) {
+			// ignore
+		}
+	}
+
 
 	@SuppressWarnings("unchecked")
 	private static void applyPreviewTransparency(SchematicHandler schematicHandler) {
