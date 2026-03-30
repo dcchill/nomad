@@ -38,7 +38,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
 
 import java.util.ArrayList;
 import java.util.List;
-import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 import net.create_nomad.init.CreateNomadModScreens;
 import net.create_nomad.world.inventory.FilingCabinetGuiMenu;
@@ -55,6 +55,7 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
     private static final int PREVIEW_H = 72;
     private static final float ISOMETRIC_ROTATION_X = 30f;
     private static final float ISOMETRIC_ROTATION_Y = -45f;
+    private static final float IDLE_ROTATION_SPEED_Y = 0.6f;
 
     // ── cache — mirrors Kotlin object fields exactly ──────────────────────────
     private String         cachedFilename = null;
@@ -151,6 +152,7 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
 
         previewScreenX = this.leftPos + PREVIEW_X;
         previewScreenY = this.topPos  + PREVIEW_Y;
+        if (!isDragging) rotationY += IDLE_ROTATION_SPEED_Y * partialTicks;
 
         ItemStack stack = getHoveredCabinetSchematic();
         if (!stack.isEmpty()) {
@@ -161,7 +163,7 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
                 renderPreview(file, guiGraphics,
                         previewScreenX, previewScreenY,
                         PREVIEW_W, PREVIEW_H,
-                        ISOMETRIC_ROTATION_X, ISOMETRIC_ROTATION_Y, 1f);
+                        rotationX, rotationY, 1f, partialTicks);
             }
         }
 
@@ -172,7 +174,7 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
 
     private void renderPreview(String filename, GuiGraphics guiGraphics,
                                int x, int y, int w, int h,
-                               float rotX, float rotY, float zoom) {
+                               float rotX, float rotY, float zoom, float partialTicks) {
         // mirrors Kotlin getOrLoadLevel — sync, returns cached level on subsequent calls
         SchematicLevel level = getOrLoadLevel(filename);
         if (level == null) return;
@@ -204,47 +206,53 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
         var dispatcher   = mc.getBlockRenderer();
         var bufferSource = guiGraphics.bufferSource();
         RenderSystem.enableDepthTest();
+        setShaderGameTimeSafely(0L, 0f);
 
-        for (var renderable : cachedRenderableBlocks) {
-            var blockPos = renderable.pos();
-            var state = renderable.state();
+        try {
+            for (var renderable : cachedRenderableBlocks) {
+                var blockPos = renderable.pos();
+                var state = renderable.state();
 
-            pose.pushPose();
-            pose.translate(blockPos.getX(), blockPos.getY(), blockPos.getZ());
+                pose.pushPose();
+                pose.translate(blockPos.getX(), blockPos.getY(), blockPos.getZ());
 
-            try {
-                var blockEntity = level.getBlockEntity(blockPos);
-                ModelData modelData = blockEntity != null
-                        ? renderable.bakedModel().getModelData(level, blockPos, state, blockEntity.getModelData())
-                        : renderable.modelData();
+                try {
+                    var blockEntity = level.getBlockEntity(blockPos);
+                    ModelData modelData = blockEntity != null
+                            ? renderable.bakedModel().getModelData(level, blockPos, state, blockEntity.getModelData())
+                            : renderable.modelData();
 
-                for (var renderType : renderable.renderTypes()) {
-                    dispatcher.getModelRenderer().renderModel(
-                            pose.last(), bufferSource.getBuffer(renderType),
-                            state, renderable.bakedModel(), renderable.r(), renderable.g(), renderable.b(),
-                            LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY,
-                            modelData, renderType);
-                }
-            } catch (Exception ignored) {}
+                    for (var renderType : renderable.renderTypes()) {
+                        dispatcher.getModelRenderer().renderModel(
+                                pose.last(), bufferSource.getBuffer(renderType),
+                                state, renderable.bakedModel(), renderable.r(), renderable.g(), renderable.b(),
+                                LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY,
+                                modelData, renderType);
+                    }
+                } catch (Exception ignored) {}
 
-            pose.popPose();
-        }
+                pose.popPose();
+            }
 
-        // Render block entities (belts, kinetic blocks, etc.) via their BlockEntityRenderers
-        var beDispatcher = mc.getBlockEntityRenderDispatcher();
-        for (var blockEntity : cachedBlockEntities) {
-            @SuppressWarnings({"rawtypes", "unchecked"})
-            BlockEntityRenderer ber = beDispatcher.getRenderer(blockEntity);
-            if (ber == null) continue;
+            // Render block entities (belts, kinetic blocks, etc.) via their BlockEntityRenderers
+            var beDispatcher = mc.getBlockEntityRenderDispatcher();
+            for (var blockEntity : cachedBlockEntities) {
+                @SuppressWarnings({"rawtypes", "unchecked"})
+                BlockEntityRenderer ber = beDispatcher.getRenderer(blockEntity);
+                if (ber == null) continue;
 
-            var pos = blockEntity.getBlockPos();
-            pose.pushPose();
-            pose.translate(pos.getX(), pos.getY(), pos.getZ());
-            try {
-                ber.render(blockEntity, 0f, pose, bufferSource,
-                        LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
-            } catch (Exception ignored) {}
-            pose.popPose();
+                var pos = blockEntity.getBlockPos();
+                pose.pushPose();
+                pose.translate(pos.getX(), pos.getY(), pos.getZ());
+                try {
+                    ber.render(blockEntity, 0f, pose, bufferSource,
+                            LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
+                } catch (Exception ignored) {}
+                pose.popPose();
+            }
+        } finally {
+            long gameTime = mc.level != null ? mc.level.getGameTime() : 0L;
+            setShaderGameTimeSafely(gameTime, partialTicks);
         }
 
         bufferSource.endBatch();
@@ -382,39 +390,10 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
         return "";
     }
 
-    private boolean hasAnimatedTexture(
-            BlockState state,
-            net.minecraft.client.resources.model.BakedModel bakedModel,
-            ModelData modelData,
-            RandomSource rng,
-            List<RenderType> renderTypes
-    ) {
-        for (RenderType renderType : renderTypes) {
-            if (isAnimatedQuadList(bakedModel.getQuads(state, null, rng, modelData, renderType))) return true;
-            for (Direction direction : Direction.values()) {
-                if (isAnimatedQuadList(bakedModel.getQuads(state, direction, rng, modelData, renderType))) return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean isAnimatedQuadList(List<net.minecraft.client.renderer.block.model.BakedQuad> quads) {
-        for (var quad : quads) {
-            if (quad.getSprite() == null) continue;
-            if (isAnimatedSprite(quad.getSprite())) return true;
-        }
-        return false;
-    }
-
-    private boolean isAnimatedSprite(net.minecraft.client.renderer.texture.TextureAtlasSprite sprite) {
+    private void setShaderGameTimeSafely(long gameTime, float partialTicks) {
         try {
-            Object contents = sprite.contents();
-            for (Field field : contents.getClass().getDeclaredFields()) {
-                if (!field.getType().getSimpleName().toLowerCase().contains("animated")) continue;
-                field.setAccessible(true);
-                if (field.get(contents) != null) return true;
-            }
+            Method setShaderGameTime = RenderSystem.class.getDeclaredMethod("setShaderGameTime", long.class, float.class);
+            setShaderGameTime.invoke(null, gameTime, partialTicks);
         } catch (Exception ignored) {}
-        return false;
     }
 }
