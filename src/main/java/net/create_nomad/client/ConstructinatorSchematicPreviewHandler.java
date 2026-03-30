@@ -27,6 +27,7 @@ import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -56,6 +57,9 @@ public class ConstructinatorSchematicPreviewHandler {
 	private static Field currentToolField;
 	private static Field renderersField;
 	private static Field bufferCacheField;
+	// Compatibility fields for stale generated code paths
+	private static Field outlineField;
+	private static Field toolTypeToolField;
 	private static Field rendererSchematicField;
 	private static Field rendererAnchorField;
 
@@ -73,6 +77,9 @@ public class ConstructinatorSchematicPreviewHandler {
 	private static String initializedOffhandSchematic = "";
 	private static boolean forcedPreviewLastTick = false;
 	private static boolean customRenderActive = false;
+	// Compatibility fields for stale generated code paths
+	private static ISchematicTool originalDeployTool;
+	private static ISchematicTool orangeDeployToolProxy;
 	private static final Map<Object, Map<BlockPos, Object>> originalStatesByRenderer = new IdentityHashMap<>();
 
 	/**
@@ -179,6 +186,84 @@ public class ConstructinatorSchematicPreviewHandler {
 		if (minecraft.level == null || minecraft.player == null) {
 			return;
 		}
+
+		for (Object renderer : renderers) {
+			Object schematic = rendererSchematicField.get(renderer);
+			Object anchorObj = rendererAnchorField.get(renderer);
+			if (!(anchorObj instanceof BlockPos anchor) || schematic == null) {
+				continue;
+			}
+
+			Object bounds = schematicGetBoundsMethod.invoke(schematic);
+			Map<BlockPos, Object> originalStates = new HashMap<>();
+			int minX = (int) bounds.getClass().getMethod("minX").invoke(bounds);
+			int minY = (int) bounds.getClass().getMethod("minY").invoke(bounds);
+			int minZ = (int) bounds.getClass().getMethod("minZ").invoke(bounds);
+			int maxX = (int) bounds.getClass().getMethod("maxX").invoke(bounds);
+			int maxY = (int) bounds.getClass().getMethod("maxY").invoke(bounds);
+			int maxZ = (int) bounds.getClass().getMethod("maxZ").invoke(bounds);
+
+			for (BlockPos localPos : BlockPos.betweenClosed(minX, minY, minZ, maxX, maxY, maxZ)) {
+				BlockPos worldPos = localPos.offset(anchor);
+				Object originalState = schematicGetBlockStateMethod.invoke(schematic, worldPos);
+				if (originalState != null && !originalState.equals(Blocks.AIR.defaultBlockState())) {
+					originalStates.put(worldPos.immutable(), originalState);
+				}
+			}
+			originalStatesByRenderer.put(renderer, originalStates);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private static void hideAlreadyPlacedBlocks(SchematicHandler schematicHandler, Minecraft minecraft) throws ReflectiveOperationException {
+		if (renderersField == null || rendererSchematicField == null || schematicSetBlockMethod == null) {
+			return;
+		}
+
+		Object renderersObject = renderersField.get(schematicHandler);
+		if (!(renderersObject instanceof Vector<?> renderers)) {
+			return;
+		}
+
+		Object airState = Blocks.AIR.defaultBlockState();
+		for (Object renderer : renderers) {
+			Map<BlockPos, Object> originals = originalStatesByRenderer.get(renderer);
+			if (originals == null || originals.isEmpty()) {
+				continue;
+			}
+
+			Object schematic = rendererSchematicField.get(renderer);
+			if (schematic == null) {
+				continue;
+			}
+
+			boolean changed = false;
+			for (Map.Entry<BlockPos, Object> entry : originals.entrySet()) {
+				BlockPos worldPos = entry.getKey();
+				Object originalState = entry.getValue();
+				Object worldState = minecraft.level.getBlockState(worldPos);
+				Object desired = worldState.equals(originalState) ? airState : originalState;
+				Object current = schematicGetBlockStateMethod.invoke(schematic, worldPos);
+				if (!desired.equals(current)) {
+					schematicSetBlockMethod.invoke(schematic, worldPos, desired, 2);
+					changed = true;
+				}
+			}
+
+			if (changed && rendererUpdateMethod != null) {
+				rendererUpdateMethod.invoke(renderer);
+			}
+		}
+	}
+
+	private static void clearForcedPreview() {
+			if (!forcedPreviewLastTick || !reflectionReady) {
+				forcedPreviewLastTick = false;
+				initializedOffhandSchematic = "";
+				customRenderActive = false;
+				originalStatesByRenderer.clear();
+				return;
+			}
 
 		try {
 			Object superBuffer = getSuperRenderTypeBuffer(minecraft.renderBuffers().bufferSource());
@@ -289,6 +374,15 @@ public class ConstructinatorSchematicPreviewHandler {
 				rendererUpdateMethod.invoke(renderer);
 			}
 		}
+	}
+
+	// Compatibility shims for stale generated code paths.
+	private static void installOrangeDeployToolProxy() {
+		// Intentionally no-op.
+	}
+
+	private static void uninstallOrangeDeployToolProxy() {
+		// Intentionally no-op.
 	}
 
 	private static void clearForcedPreview() {
