@@ -1,8 +1,8 @@
 package dc.nomad.content.schematics.client
 
 import com.simibubi.create.CreateClient
-import dc.nomad.content.schematics.external.ExternalSchematicSource
-import dc.nomad.content.schematics.external.RemoteSchematic
+import de.devin.cbbees.content.schematics.external.ExternalSchematicSource
+import de.devin.cbbees.content.schematics.external.RemoteSchematic
 import net.minecraft.ChatFormatting
 import net.minecraft.Util
 import net.minecraft.client.Minecraft

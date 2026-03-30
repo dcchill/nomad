@@ -13,12 +13,15 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer
 import net.minecraft.client.renderer.texture.OverlayTexture
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Vec3i
+import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.core.registries.Registries
+import net.minecraft.resources.ResourceLocation
 import net.minecraft.nbt.NbtAccounter
 import net.minecraft.nbt.NbtIo
 import net.minecraft.util.RandomSource
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Mirror
 import net.minecraft.world.level.block.RenderShape
@@ -253,7 +256,11 @@ object SchematicPreviewRenderer {
             val level = mc.level ?: return null
             val player = mc.player ?: return null
 
-            val fakeStack = com.simibubi.create.AllItems.SCHEMATIC.asStack()
+            val schematicItem = BuiltInRegistries.ITEM.get(
+                ResourceLocation.fromNamespaceAndPath("create", "schematic")
+            )
+            if (schematicItem == Items.AIR) return null
+            val fakeStack = ItemStack(schematicItem)
             fakeStack.set(AllDataComponents.SCHEMATIC_FILE, filename)
             fakeStack.set(AllDataComponents.SCHEMATIC_OWNER, player.gameProfile.name)
             fakeStack.set(AllDataComponents.SCHEMATIC_ANCHOR, BlockPos.ZERO)
