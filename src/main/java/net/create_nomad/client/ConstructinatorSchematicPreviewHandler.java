@@ -1,6 +1,7 @@
 package net.create_nomad.client;
 
 import com.simibubi.create.AllDataComponents;
+import com.simibubi.create.AllSpecialTextures;
 import com.simibubi.create.CreateClient;
 import com.simibubi.create.content.schematics.client.SchematicHandler;
 import com.simibubi.create.content.schematics.client.tools.ToolType;
@@ -47,6 +48,7 @@ public class ConstructinatorSchematicPreviewHandler {
 	private static Method outlineGetParamsMethod;
 	private static Method outlineColoredMethod;
 	private static Method outlineAlphaMethod;
+	private static Method outlineFaceTexturesMethod;
 
 	private static final int PREVIEW_ORANGE_RGB = 0xFF8C1A;
 	private static final float PREVIEW_RED = 1f;
@@ -284,6 +286,7 @@ public class ConstructinatorSchematicPreviewHandler {
 				outlineColoredMethod = params.getClass().getMethod("colored", int.class);
 			}
 			outlineColoredMethod.invoke(params, PREVIEW_ORANGE_RGB);
+			applyOutlineFaceTextures(params);
 
 			if (outlineAlphaMethod == null) {
 				outlineAlphaMethod = findOutlineAlphaMethod(params.getClass());
@@ -295,6 +298,33 @@ public class ConstructinatorSchematicPreviewHandler {
 			// Ignore if Create/Catnip outline internals change.
 		}
 	}
+
+
+	private static void applyOutlineFaceTextures(Object params) {
+		if (outlineFaceTexturesMethod == null) {
+			outlineFaceTexturesMethod = findOutlineFaceTexturesMethod(params.getClass());
+		}
+		if (outlineFaceTexturesMethod == null) {
+			return;
+		}
+
+		try {
+			outlineFaceTexturesMethod.invoke(params, AllSpecialTextures.SELECTION, AllSpecialTextures.SELECTION);
+		} catch (ReflectiveOperationException ignored) {
+			outlineFaceTexturesMethod = null;
+		}
+	}
+
+	private static Method findOutlineFaceTexturesMethod(Class<?> paramsClass) {
+		for (Method method : paramsClass.getMethods()) {
+			if (!method.getName().equals("withFaceTextures") || method.getParameterCount() != 2) {
+				continue;
+			}
+			return method;
+		}
+		return null;
+	}
+
 
 	private static Method findOutlineAlphaMethod(Class<?> paramsClass) {
 		for (String methodName : new String[]{"alpha", "withAlpha", "transparency"}) {
