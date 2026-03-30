@@ -88,11 +88,6 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
     @Override
     public void updateMenuState(int elementType, String name, Object elementState) {}
 
-    private boolean isInsidePreview(double mouseX, double mouseY) {
-        return mouseX >= previewScreenX && mouseX < previewScreenX + PREVIEW_W
-            && mouseY >= previewScreenY && mouseY < previewScreenY + PREVIEW_H;
-    }
-
     // ── rendering ────────────────────────────────────────────────────────────
 
     @Override
@@ -112,10 +107,9 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
 
         previewScreenX = this.leftPos + PREVIEW_X;
         previewScreenY = this.topPos  + PREVIEW_Y;
-        boolean shouldRenderPreview = isInsidePreview(mouseX, mouseY);
 
         ItemStack stack = getHoveredCabinetSchematic();
-        if (!stack.isEmpty() && shouldRenderPreview) {
+        if (!stack.isEmpty()) {
             String file = extractFile(stack);
             if (!file.isBlank()) {
                 // mirrors Kotlin renderPreview(filename, guiGraphics, x, y, w, h)
@@ -125,14 +119,6 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
                         PREVIEW_W, PREVIEW_H,
                         ISOMETRIC_ROTATION_X, ISOMETRIC_ROTATION_Y, 1f);
             }
-        }
-
-        if (!shouldRenderPreview) {
-            guiGraphics.drawCenteredString(this.font,
-                    Component.literal("Hover preview to render"),
-                    previewScreenX + PREVIEW_W / 2,
-                    previewScreenY + PREVIEW_H / 2 - 4,
-                    0xAAAAAA);
         }
 
         this.renderTooltip(guiGraphics, mouseX, mouseY);
