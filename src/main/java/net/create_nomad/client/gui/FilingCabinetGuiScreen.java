@@ -26,11 +26,16 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import net.create_nomad.init.CreateNomadModScreens;
 import net.create_nomad.world.inventory.FilingCabinetGuiMenu;
@@ -50,6 +55,9 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
     private String         cachedFilename = null;
     private SchematicLevel cachedLevel    = null;
     private Vec3i          cachedSize     = Vec3i.ZERO;
+    private float          cachedScaleBase = 1f;
+    private List<RenderableBlock> cachedRenderableBlocks = List.of();
+    private List<BlockEntity> cachedBlockEntities = List.of();
 
     // ── rotation ─────────────────────────────────────────────────────────────
     private float   rotationX  = 30f;
@@ -76,6 +84,9 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
         cachedFilename = null;
         cachedLevel    = null;
         cachedSize     = Vec3i.ZERO;
+        cachedScaleBase = 1f;
+        cachedRenderableBlocks = List.of();
+        cachedBlockEntities = List.of();
     }
 
     @Override
@@ -181,8 +192,7 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
         pose.translate((x + w / 2.0), (y + h / 2.0), 150.0);
 
         // Scale to fit the preview rectangle, then apply user zoom
-        float maxDim = Math.max(size.getX(), Math.max(size.getY(), size.getZ()));
-        float scale  = Math.min(w, h) / (maxDim * 1.6f) * zoom;
+        float scale  = cachedScaleBase * Math.min(w, h) * zoom;
         pose.scale(scale, -scale, scale); // Negative Y because GUI Y is downward
 
         // Rotation (isometric default: 30° X, -45° Y)
@@ -196,17 +206,12 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
         var mc           = Minecraft.getInstance();
         var dispatcher   = mc.getBlockRenderer();
         var bufferSource = guiGraphics.bufferSource();
-        var bounds       = level.getBounds();
-
         RenderSystem.enableDepthTest();
 
-        for (BlockPos blockPos : BlockPos.betweenClosed(
-                bounds.minX(), bounds.minY(), bounds.minZ(),
-                bounds.maxX(), bounds.maxY(), bounds.maxZ())) {
+        for (var renderable : cachedRenderableBlocks) {
 
-            var state = level.getBlockState(blockPos);
-            if (state.isAir()) continue;
-            if (state.getRenderShape() == RenderShape.INVISIBLE) continue;
+            var blockPos = renderable.pos();
+            var state = renderable.state();
 
             pose.pushPose();
             pose.translate(blockPos.getX(), blockPos.getY(), blockPos.getZ());
@@ -238,7 +243,7 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
 
         // Render block entities (belts, kinetic blocks, etc.) via their BlockEntityRenderers
         var beDispatcher = mc.getBlockEntityRenderDispatcher();
-        for (var blockEntity : level.getRenderedBlockEntities()) {
+        for (var blockEntity : cachedBlockEntities) {
             @SuppressWarnings({"rawtypes", "unchecked"})
             BlockEntityRenderer ber = beDispatcher.getRenderer(blockEntity);
             if (ber == null) continue;
@@ -267,6 +272,9 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
         cachedFilename = filename;
         cachedLevel    = null;
         cachedSize     = Vec3i.ZERO;
+        cachedScaleBase = 1f;
+        cachedRenderableBlocks = List.of();
+        cachedBlockEntities = List.of();
 
         try {
             var mc     = Minecraft.getInstance();
@@ -288,6 +296,8 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
             if (template.getSize().equals(Vec3i.ZERO)) return null;
 
             cachedSize = template.getSize();
+            float maxDim = Math.max(cachedSize.getX(), Math.max(cachedSize.getY(), cachedSize.getZ()));
+            cachedScaleBase = maxDim <= 0 ? 1f : (1f / (maxDim * 1.6f));
 
             var schematicLevel = new SchematicLevel(level);
             var settings       = new StructurePlaceSettings();
@@ -300,6 +310,22 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
 
             for (var be : schematicLevel.getBlockEntities())
                 be.setLevel(schematicLevel);
+
+            var renderableBlocks = new ArrayList<RenderableBlock>();
+            var bounds = schematicLevel.getBounds();
+            for (BlockPos blockPos : BlockPos.betweenClosed(
+                    bounds.minX(), bounds.minY(), bounds.minZ(),
+                    bounds.maxX(), bounds.maxY(), bounds.maxZ())) {
+                BlockState state = schematicLevel.getBlockState(blockPos);
+                if (state.isAir() || state.getRenderShape() == RenderShape.INVISIBLE) continue;
+                renderableBlocks.add(new RenderableBlock(blockPos.immutable(), state));
+            }
+            cachedRenderableBlocks = List.copyOf(renderableBlocks);
+            var renderedBlockEntities = new ArrayList<BlockEntity>();
+            for (var blockEntity : schematicLevel.getRenderedBlockEntities()) {
+                renderedBlockEntities.add(blockEntity);
+            }
+            cachedBlockEntities = List.copyOf(renderedBlockEntities);
 
             cachedLevel = schematicLevel;
             return schematicLevel;
@@ -317,6 +343,8 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
             return ItemStack.EMPTY;
         return s.getItem();
     }
+
+    private record RenderableBlock(BlockPos pos, BlockState state) {}
 
     private String extractFile(ItemStack stack) {
         try {
