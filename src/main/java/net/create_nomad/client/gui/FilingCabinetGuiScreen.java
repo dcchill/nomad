@@ -150,14 +150,10 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
 
         previewScreenX = this.leftPos + PREVIEW_X;
         previewScreenY = this.topPos  + PREVIEW_Y;
-
-        // auto-spin when not dragging
-        if (!isDragging) {
-            rotationY = (Minecraft.getInstance().level.getGameTime() / 4f) % 360f;
-        }
+        boolean shouldRenderPreview = isDragging || isInsidePreview(mouseX, mouseY);
 
         ItemStack stack = getHoveredCabinetSchematic();
-        if (!stack.isEmpty()) {
+        if (!stack.isEmpty() && shouldRenderPreview) {
             String file = extractFile(stack);
             if (!file.isBlank()) {
                 // mirrors Kotlin renderPreview(filename, guiGraphics, x, y, w, h)
@@ -167,6 +163,14 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
                         PREVIEW_W, PREVIEW_H,
                         rotationX, rotationY, 1f);
             }
+        }
+
+        if (!shouldRenderPreview) {
+            guiGraphics.drawCenteredString(this.font,
+                    Component.literal("Hover preview to render"),
+                    previewScreenX + PREVIEW_W / 2,
+                    previewScreenY + PREVIEW_H / 2 - 4,
+                    0xAAAAAA);
         }
 
         this.renderTooltip(guiGraphics, mouseX, mouseY);
