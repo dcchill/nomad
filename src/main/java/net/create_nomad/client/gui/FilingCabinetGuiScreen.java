@@ -13,6 +13,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
@@ -27,10 +28,10 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 
@@ -208,34 +209,23 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
         var bufferSource = guiGraphics.bufferSource();
         RenderSystem.enableDepthTest();
 
-        var bounds = level.getBounds();
-        for (BlockPos blockPos : BlockPos.betweenClosed(
-                bounds.minX(), bounds.minY(), bounds.minZ(),
-                bounds.maxX(), bounds.maxY(), bounds.maxZ())) {
-            var state = level.getBlockState(blockPos);
-            if (state.isAir()) continue;
-            if (state.getRenderShape() == RenderShape.INVISIBLE) continue;
+        for (var renderable : cachedRenderableBlocks) {
+            var blockPos = renderable.pos();
+            var state = renderable.state();
 
             pose.pushPose();
             pose.translate(blockPos.getX(), blockPos.getY(), blockPos.getZ());
 
             try {
                 var blockEntity = level.getBlockEntity(blockPos);
-                var bakedModel  = dispatcher.getBlockModel(state);
-                ModelData modelData = (blockEntity != null)
-                        ? bakedModel.getModelData(level, blockPos, state, blockEntity.getModelData())
-                        : ModelData.EMPTY;
+                ModelData modelData = blockEntity != null
+                        ? renderable.bakedModel().getModelData(level, blockPos, state, blockEntity.getModelData())
+                        : renderable.modelData();
 
-                int   color = mc.getBlockColors().getColor(state, null, null, 0);
-                float r     = ((color >> 16) & 0xFF) / 255f;
-                float g     = ((color >>  8) & 0xFF) / 255f;
-                float b     = ( color        & 0xFF) / 255f;
-                var   rng   = RandomSource.create(state.getSeed(blockPos));
-
-                for (var renderType : bakedModel.getRenderTypes(state, rng, modelData)) {
+                for (var renderType : renderable.renderTypes()) {
                     dispatcher.getModelRenderer().renderModel(
                             pose.last(), bufferSource.getBuffer(renderType),
-                            state, bakedModel, r, g, b,
+                            state, renderable.bakedModel(), renderable.r(), renderable.g(), renderable.b(),
                             LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY,
                             modelData, renderType);
                 }
@@ -314,6 +304,7 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
             for (var be : schematicLevel.getBlockEntities())
                 be.setLevel(schematicLevel);
 
+            var dispatcher = Minecraft.getInstance().getBlockRenderer();
             var renderableBlocks = new ArrayList<RenderableBlock>();
             var bounds = schematicLevel.getBounds();
             for (BlockPos blockPos : BlockPos.betweenClosed(
@@ -321,9 +312,27 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
                     bounds.maxX(), bounds.maxY(), bounds.maxZ())) {
                 BlockState state = schematicLevel.getBlockState(blockPos);
                 if (state.isAir() || state.getRenderShape() == RenderShape.INVISIBLE) continue;
-                renderableBlocks.add(new RenderableBlock(blockPos.immutable(), state));
+
+                var bakedModel = dispatcher.getBlockModel(state);
+                var blockEntity = schematicLevel.getBlockEntity(blockPos);
+                ModelData modelData = blockEntity != null
+                        ? bakedModel.getModelData(schematicLevel, blockPos, state, blockEntity.getModelData())
+                        : ModelData.EMPTY;
+                int color = Minecraft.getInstance().getBlockColors().getColor(state, null, null, 0);
+                float r = ((color >> 16) & 0xFF) / 255f;
+                float g = ((color >> 8) & 0xFF) / 255f;
+                float b = (color & 0xFF) / 255f;
+                var rng = RandomSource.create(state.getSeed(blockPos));
+                var renderTypes = new ArrayList<RenderType>();
+                for (var renderType : bakedModel.getRenderTypes(state, rng, modelData)) {
+                    renderTypes.add(renderType);
+                }
+
+                renderableBlocks.add(new RenderableBlock(
+                        blockPos.immutable(), state, bakedModel, modelData, r, g, b, List.copyOf(renderTypes)));
             }
             cachedRenderableBlocks = List.copyOf(renderableBlocks);
+
             var renderedBlockEntities = new ArrayList<BlockEntity>();
             for (var blockEntity : schematicLevel.getRenderedBlockEntities()) {
                 renderedBlockEntities.add(blockEntity);
@@ -347,7 +356,15 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
         return s.getItem();
     }
 
-    private record RenderableBlock(BlockPos pos, BlockState state) {}
+    private record RenderableBlock(
+            BlockPos pos,
+            BlockState state,
+            net.minecraft.client.resources.model.BakedModel bakedModel,
+            ModelData modelData,
+            float r,
+            float g,
+            float b,
+            List<RenderType> renderTypes) {}
 
     private String extractFile(ItemStack stack) {
         try {
