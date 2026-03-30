@@ -196,14 +196,12 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
         var mc           = Minecraft.getInstance();
         var dispatcher   = mc.getBlockRenderer();
         var bufferSource = guiGraphics.bufferSource();
-        var bounds       = level.getBounds();
-
         RenderSystem.enableDepthTest();
 
+        var bounds = level.getBounds();
         for (BlockPos blockPos : BlockPos.betweenClosed(
                 bounds.minX(), bounds.minY(), bounds.minZ(),
                 bounds.maxX(), bounds.maxY(), bounds.maxZ())) {
-
             var state = level.getBlockState(blockPos);
             if (state.isAir()) continue;
             if (state.getRenderShape() == RenderShape.INVISIBLE) continue;
