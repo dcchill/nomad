@@ -43,6 +43,11 @@ import software.bernie.geckolib.animatable.client.GeoRenderProvider;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.client.gui.screens.Screen;
+
 import java.util.List;
 import java.util.function.Consumer;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -735,7 +740,20 @@ public class ConstructinatorItem extends Item implements GeoItem {
 			}
 		});
 	}
+	
+	@Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, tooltip, flag);
 
+        if (Screen.hasShiftDown()) {
+            tooltip.add(Component.translatable("tooltip.create_nomad.backpack.description_1").withStyle(ChatFormatting.WHITE));
+            tooltip.add(Component.translatable("tooltip.create_nomad.constructinator.description_1").withStyle(ChatFormatting.GOLD));
+        } else {
+            tooltip.add(Component.translatable("tooltip.create_nomad.shift_for_info",
+                    Component.translatable("key.keyboard.left.shift").withStyle(ChatFormatting.YELLOW))
+                    .withStyle(ChatFormatting.GRAY));
+        }
+    }
 	private PlayState idlePredicate(AnimationState event) {
 		if (this.animationprocedure.equals("empty")) {
 			event.getController().setAnimation(RawAnimation.begin().thenLoop("idle"));

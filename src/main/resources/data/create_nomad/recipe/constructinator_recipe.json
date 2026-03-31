@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "a",
+    "b",
+    "c"
+  ],
+  "key": {
+    "a": {
+      "item": "create:schematicannon"
+    },
+    "b": {
+      "item": "create:sturdy_sheet"
+    },
+    "c": {
+      "item": "create:potato_cannon"
+    }
+  },
+  "result": {
+    "id": "create_nomad:constructinator",
+    "count": 1
+  }
+}

@@ -1000,6 +1000,19 @@
         ]
       },
       "path": "~/buildgun"
+    },
+    {
+      "name": "ConstructinatorRecipe",
+      "type": "recipe",
+      "compiles": true,
+      "locked_code": true,
+      "registry_name": "constructinator_recipe",
+      "metadata": {
+        "files": [
+          "src/main/resources/data/create_nomad/recipe/constructinator_recipe.json"
+        ]
+      },
+      "path": "~/buildgun"
     }
   ],
   "variable_elements": [],
@@ -1155,7 +1168,8 @@
       "item.create_nomad.infinity_upgrade": "Infinity Upgrade",
       "item.create_nomad.tool_upgrade": "Tool Upgrade",
       "item.create_nomad.invulnerable_upgrade": "Invulnerable Upgrade",
-      "item.create_nomad.constructinator": "Constructinator"
+      "item.create_nomad.constructinator": "Constructinator",
+      "tooltip.create_nomad.constructinator.description_1": "Uses backtank air to build schematics.  Put a schematic in your offhand and the required blocks in your inventory/backpack, then hold right click!"
     }
   },
   "metadata": {
