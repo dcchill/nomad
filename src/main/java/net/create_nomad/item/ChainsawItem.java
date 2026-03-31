@@ -74,6 +74,11 @@ public class ChainsawItem extends AxeItem {
 	public ChainsawItem() {
 		super(TOOL_TIER, new Item.Properties().attributes(DiggerItem.createAttributes(TOOL_TIER, 3f, -3.5f)));
 	}
+
+	@Override
+	public net.minecraft.world.item.UseAnim getUseAnimation(ItemStack stack) {
+		return net.minecraft.world.item.UseAnim.CROSSBOW;
+	}
 		
 	@Override
 	public void initializeClient(Consumer<IClientItemExtensions> consumer) {

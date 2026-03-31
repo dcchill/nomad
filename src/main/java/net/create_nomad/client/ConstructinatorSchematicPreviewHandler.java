@@ -5,6 +5,7 @@ import com.simibubi.create.CreateClient;
 import com.simibubi.create.content.schematics.client.SchematicHandler;
 import com.simibubi.create.content.schematics.client.tools.ToolType;
 import net.create_nomad.CreateNomadMod;
+import net.create_nomad.init.CreateNomadModKeyMappings;
 import net.create_nomad.item.ConstructinatorItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -26,6 +27,9 @@ import java.util.Vector;
 public class ConstructinatorSchematicPreviewHandler {
 	private static final ResourceLocation CREATE_SCHEMATIC_ID = ResourceLocation.fromNamespaceAndPath("create", "schematic");
 
+	// Toggle state
+	private static boolean renderEnabled = true;
+
 	// Reflected methods
 	private static Method loadSettingsMethod;
 	private static Method setupRendererMethod;
@@ -44,7 +48,7 @@ public class ConstructinatorSchematicPreviewHandler {
 	private static Method bufferColorIntMethod;
 	private static Method bufferSetColorIntMethod;
 
-	private static final float PREVIEW_ALPHA = 0.6f;
+	private static final float PREVIEW_ALPHA = 0.6f;  // Not used - Create doesn't support transparency
 
 	private static boolean reflectionReady = false;
 	private static boolean reflectionFailed = false;
@@ -86,14 +90,32 @@ public class ConstructinatorSchematicPreviewHandler {
 
 	/**
 	 * LOWEST priority: runs after Create's SchematicHandler.tick().
-	 * Create's tick sets active=false because the schematic isn't in main hand.
+	 * Create's tick() sets active=false because it only checks main-hand schematics.
 	 * We flip it back to true here so the renderer sees it as active.
+	 * 
+	 * NOTE: We no longer force transparency because Create's renderer doesn't support it.
+	 * Instead, the preview is only shown when aiming/previewing, not during placement.
 	 */
 	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public static void onClientTickLate(ClientTickEvent.Post event) {
 		Minecraft minecraft = Minecraft.getInstance();
 		LocalPlayer player = minecraft.player;
 		if (player == null || minecraft.level == null) {
+			clearForcedPreview();
+			return;
+		}
+
+		// Check toggle keybind
+		if (CreateNomadModKeyMappings.TOGGLE_CONSTRUCTINATOR_RENDER.consumeClick()) {
+			renderEnabled = !renderEnabled;
+			player.displayClientMessage(
+				net.minecraft.network.chat.Component.literal(
+					renderEnabled ? "§aConstructinator preview: ON" : "§cConstructinator preview: OFF"
+				), true);
+		}
+		
+		// Skip preview if disabled
+		if (!renderEnabled) {
 			clearForcedPreview();
 			return;
 		}
@@ -136,7 +158,7 @@ public class ConstructinatorSchematicPreviewHandler {
 			activeSchematicItemField.set(schematicHandler, offhand);
 			activeHotbarSlotField.setInt(schematicHandler, player.getInventory().selected);
 			activeField.setBoolean(schematicHandler, true);
-			applyPreviewTransparency(schematicHandler);
+			// Transparency removed - Create's renderer doesn't support it
 			forcedPreviewLastTick = true;
 		} catch (ReflectiveOperationException ignored) {
 			reflectionFailed = true;
@@ -219,6 +241,8 @@ public class ConstructinatorSchematicPreviewHandler {
 		}
 	}
 
+	// Transparency support removed - Create's schematic renderer doesn't support alpha blending
+	/*
 	@SuppressWarnings("unchecked")
 	private static void applyPreviewTransparency(SchematicHandler schematicHandler) {
 		if (renderersField == null || bufferCacheField == null) {
@@ -292,4 +316,5 @@ public class ConstructinatorSchematicPreviewHandler {
 			// Ignore unknown buffer implementations and keep normal preview rendering.
 		}
 	}
+	*/
 }

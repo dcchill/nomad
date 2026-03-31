@@ -80,6 +80,11 @@ public class ConstructinatorItem extends Item implements GeoItem {
 	}
 
 	@Override
+	public net.minecraft.world.item.UseAnim getUseAnimation(ItemStack stack) {
+		return net.minecraft.world.item.UseAnim.CROSSBOW;
+	}
+
+	@Override
 	public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
 		return false;
 	}
@@ -247,7 +252,7 @@ public class ConstructinatorItem extends Item implements GeoItem {
 				}
 
 				incrementProgress(constructinatorStack);
-				showProgress(player, constructinatorStack);
+				// Progress bar removed - schematic preview is semi-transparent so you can see placed blocks through it
 			} else {
 				recordFailedTarget(constructinatorStack, targetPos[0]);
 			}
@@ -351,6 +356,8 @@ public class ConstructinatorItem extends Item implements GeoItem {
 		return state.getFluidState().is(Fluids.WATER) || state.getFluidState().is(Fluids.LAVA);
 	}
 
+	// Progress bar removed - schematic preview is now semi-transparent
+	/*
 	private static String makeProgressBar(int done, int total, int length) {
 		if (total <= 0) {
 			StringBuilder full = new StringBuilder("[");
@@ -370,17 +377,18 @@ public class ConstructinatorItem extends Item implements GeoItem {
 		sb.append(']');
 		return sb.toString();
 	}
+	*/
 
 	private static void incrementProgress(ItemStack stack) {
 		CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
 			int done = tag.getInt(PROGRESS_DONE_TAG);
 			int total = tag.getInt(PROGRESS_TOTAL_TAG);
-	
+
 			if (total <= 0) {
 				tag.putInt(PROGRESS_DONE_TAG, done + 1);
 				return;
 			}
-	
+
 			if (done < total) {
 				tag.putInt(PROGRESS_DONE_TAG, done + 1);
 			} else {
@@ -389,23 +397,26 @@ public class ConstructinatorItem extends Item implements GeoItem {
 		});
 	}
 
-		private static void showProgress(Player player, ItemStack stack) {
-			if (player == null)
-				return;
-		
-			CompoundTag tag = getCustomTag(stack);
-			int total = tag.getInt(PROGRESS_TOTAL_TAG);
-			int done = tag.getInt(PROGRESS_DONE_TAG);
-		
-			if (total > 0) {
-				done = Math.min(done, total);
-				String bar = makeProgressBar(done, total, 20);
-				int pct = (int) Math.round((done / (double) total) * 100);
-				player.displayClientMessage(Component.literal("Constructing: " + bar + " " + pct + "%"), true);
-			} else {
-				player.displayClientMessage(Component.literal("Constructing: " + done + " blocks"), true);
-			}
+	// Progress bar display removed
+	/*
+	private static void showProgress(Player player, ItemStack stack) {
+		if (player == null)
+			return;
+
+		CompoundTag tag = getCustomTag(stack);
+		int total = tag.getInt(PROGRESS_TOTAL_TAG);
+		int done = tag.getInt(PROGRESS_DONE_TAG);
+
+		if (total > 0) {
+			done = Math.min(done, total);
+			String bar = makeProgressBar(done, total, 20);
+			int pct = (int) Math.round((done / (double) total) * 100);
+			player.displayClientMessage(Component.literal("Constructing: " + bar + " " + pct + "%"), true);
+		} else {
+			player.displayClientMessage(Component.literal("Constructing: " + done + " blocks"), true);
 		}
+	}
+	*/
 
 	private static boolean tryConsumeBacktankAir(Player player, int airCost) {
 		if (airCost <= 0 || player.isCreative()) {
@@ -754,6 +765,7 @@ public class ConstructinatorItem extends Item implements GeoItem {
                     .withStyle(ChatFormatting.GRAY));
         }
     }
+
 	private PlayState idlePredicate(AnimationState event) {
 		if (this.animationprocedure.equals("empty")) {
 			event.getController().setAnimation(RawAnimation.begin().thenLoop("idle"));

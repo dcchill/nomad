@@ -32,10 +32,12 @@ public class CreateNomadModKeyMappings {
 			isDownOld = isDown;
 		}
 	};
+	public static final KeyMapping TOGGLE_CONSTRUCTINATOR_RENDER = new KeyMapping("key.create_nomad.toggle_constructinator_render", GLFW.GLFW_KEY_C, "key.categories.misc");
 
 	@SubscribeEvent
 	public static void registerKeyMappings(RegisterKeyMappingsEvent event) {
 		event.register(OPEN_BACKPACK);
+		event.register(TOGGLE_CONSTRUCTINATOR_RENDER);
 	}
 
 	@EventBusSubscriber({Dist.CLIENT})

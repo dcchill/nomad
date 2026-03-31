@@ -72,6 +72,11 @@ public class HarpoonGunItem extends Item implements GeoItem {
 	}
 
 	@Override
+	public net.minecraft.world.item.UseAnim getUseAnimation(ItemStack stack) {
+		return net.minecraft.world.item.UseAnim.CROSSBOW;
+	}
+
+	@Override
 	public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
 		return false;
 	}
@@ -102,6 +107,7 @@ public class HarpoonGunItem extends Item implements GeoItem {
                     .withStyle(ChatFormatting.GRAY));
         }
     }
+
 	public static final EnumProxy<HumanoidModel.ArmPose> ARM_POSE = new EnumProxy<>(HumanoidModel.ArmPose.class, false, (IArmPoseTransformer) (model, entity, arm) -> {
 		if (arm == HumanoidArm.LEFT) {
 			model.leftArm.xRot = -45F + model.head.xRot;

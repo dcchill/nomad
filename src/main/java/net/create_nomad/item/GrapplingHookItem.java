@@ -26,6 +26,11 @@ public class GrapplingHookItem extends Item {
 	}
 
 	@Override
+	public net.minecraft.world.item.UseAnim getUseAnimation(ItemStack stack) {
+		return net.minecraft.world.item.UseAnim.CROSSBOW;
+	}
+
+	@Override
 	public void appendHoverText(ItemStack itemstack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
 		super.appendHoverText(itemstack, context, tooltip, flag);
 

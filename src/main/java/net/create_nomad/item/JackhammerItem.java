@@ -95,6 +95,11 @@ public class JackhammerItem extends PickaxeItem implements GeoItem {
 	}
 
 	@Override
+	public net.minecraft.world.item.UseAnim getUseAnimation(ItemStack stack) {
+		return net.minecraft.world.item.UseAnim.CROSSBOW;
+	}
+
+	@Override
 		public void initializeClient(Consumer<IClientItemExtensions> consumer) {
 			consumer.accept(new IClientItemExtensions() {
 				@Override
