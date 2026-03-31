@@ -20,6 +20,7 @@ import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
@@ -59,6 +60,11 @@ public class ConstructinatorItem extends Item implements GeoItem {
 	private static final int SHOT_VISUAL_LIFETIME_TICKS = 8;
 	private static final double SHOT_VISUAL_SPEED = 0.85;
 	private static final int FAILED_TARGET_SKIP_THRESHOLD = 3;
+	private static final String PROGRESS_TOTAL_TAG = "constructinatorPlaceTotal";
+	private static final String PROGRESS_DONE_TAG = "constructinatorPlaceDone";
+	private static final String SCHEMATIC_HASH_TAG = "constructinatorSchematicHash";
+	// Persistent storage for schematic totals (file -> total)
+	private static final java.util.Map<String, Integer> SCHEMATIC_TOTALS = new java.util.HashMap<>();
 	private static final RawAnimation FIRE_ANIMATION = RawAnimation.begin().thenPlay("fire");
 	private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 	public String animationprocedure = "empty";
@@ -134,6 +140,32 @@ public class ConstructinatorItem extends Item implements GeoItem {
 		}
 		if (!printer.isLoaded() || schematicChanged) {
 			printer.loadSchematic(schematicStack, level, false);
+
+			// Compute total placements for progress tracking when schematic changes or total is not set
+			if (printer.isLoaded()) {
+				CompoundTag tag = getCustomTag(constructinatorStack);
+				int existingTotal = tag.getInt(PROGRESS_TOTAL_TAG);
+				// Check if we have a cached total for this schematic
+				Integer cachedTotal = SCHEMATIC_TOTALS.get(schematicFile);
+				// Only recalculate total if schematic changed or total was never set
+				if (schematicChanged || existingTotal <= 0) {
+					int total;
+					if (cachedTotal != null) {
+						total = cachedTotal;
+					} else {
+						total = countValidPlacements(schematicStack, level);
+						SCHEMATIC_TOTALS.put(schematicFile, total);
+					}
+					final int finalTotal = total;
+					CustomData.update(DataComponents.CUSTOM_DATA, constructinatorStack, tag2 -> {
+						tag2.putInt(PROGRESS_TOTAL_TAG, finalTotal);
+						if (schematicChanged) {
+							tag2.putInt(PROGRESS_DONE_TAG, 0);
+						}
+						tag2.putString(SCHEMATIC_FILE_TAG, schematicFile);
+					});
+				}
+			}
 		}
 
 		if (!printer.isLoaded() || printer.isErrored()) {
@@ -163,28 +195,34 @@ public class ConstructinatorItem extends Item implements GeoItem {
 			}
 
 			if (isSkippedTarget(constructinatorStack, targetPos[0])) {
+				incrementProgress(constructinatorStack);
+				showProgress(player, constructinatorStack);
 				continue;
 			}
 
 			if (!targetState[0].canSurvive(level, targetPos[0])) {
+				incrementProgress(constructinatorStack);
+				showProgress(player, constructinatorStack);
 				continue;
 			}
 
 			if (isAlreadySatisfiedIgnoringVolatileState(level, targetPos[0], targetState[0])) {
-				continue;
-			}
-
-			if (isAlreadySatisfiedIgnoringBlockEntityNbt(level, targetPos[0], targetState[0])) {
+				incrementProgress(constructinatorStack);
+				showProgress(player, constructinatorStack);
 				continue;
 			}
 
 			ItemRequirement requirement = printer.getCurrentRequirement();
 			if (requirement.isInvalid()) {
+				incrementProgress(constructinatorStack);
+				showProgress(player, constructinatorStack);
 				continue;
 			}
 
 			if (!canMeetRequirement(player, level, requirement)) {
 				if (isOnlyDamageRequirement(requirement)) {
+					incrementProgress(constructinatorStack);
+					showProgress(player, constructinatorStack);
 					continue;
 				}
 				storePrinterState(constructinatorStack, printer, schematicFile);
@@ -198,6 +236,8 @@ public class ConstructinatorItem extends Item implements GeoItem {
 
 			if (!consumeRequirement(player, level, requirement)) {
 				if (isOnlyDamageRequirement(requirement)) {
+					incrementProgress(constructinatorStack);
+					showProgress(player, constructinatorStack);
 					continue;
 				}
 				storePrinterState(constructinatorStack, printer, schematicFile);
@@ -216,6 +256,9 @@ public class ConstructinatorItem extends Item implements GeoItem {
 				if (constructinatorStack.getItem() instanceof ConstructinatorItem constructinatorItem) {
 					constructinatorItem.triggerAnim(player, GeoItem.getOrAssignId(constructinatorStack, level), "procedureController", "fire");
 				}
+
+				incrementProgress(constructinatorStack);
+				showProgress(player, constructinatorStack);
 			} else {
 				recordFailedTarget(constructinatorStack, targetPos[0]);
 			}
@@ -275,15 +318,6 @@ public class ConstructinatorItem extends Item implements GeoItem {
 		return true;
 	}
 
-	private static boolean isAlreadySatisfiedIgnoringBlockEntityNbt(ServerLevel level, BlockPos targetPos, BlockState targetState) {
-		BlockState existingState = level.getBlockState(targetPos);
-		if (!existingState.equals(targetState)) {
-			return false;
-		}
-
-		return existingState.hasBlockEntity();
-	}
-
 	private static void spawnShotVisual(ServerLevel level, Player player, net.minecraft.core.BlockPos targetPos, BlockState placedState, ItemRequirement requirement) {
 		ItemStack display = ItemStack.EMPTY;
 		for (ItemRequirement.StackRequirement stackRequirement : requirement.getRequiredItems()) {
@@ -326,6 +360,54 @@ public class ConstructinatorItem extends Item implements GeoItem {
 			return true;
 		}
 		return state.getFluidState().is(Fluids.WATER) || state.getFluidState().is(Fluids.LAVA);
+	}
+
+	private static String makeProgressBar(int done, int total, int length) {
+		if (total <= 0) {
+			StringBuilder full = new StringBuilder("[");
+			for (int i = 0; i < length; i++)
+				full.append('█');
+			full.append(']');
+			return full.toString();
+		}
+
+		done = Math.max(0, Math.min(done, total));
+		int filled = (int) Math.round((done / (double) total) * length);
+		StringBuilder sb = new StringBuilder("[");
+		for (int i = 0; i < filled; i++)
+			sb.append('█');
+		for (int i = filled; i < length; i++)
+			sb.append('░');
+		sb.append(']');
+		return sb.toString();
+	}
+
+	private static void incrementProgress(ItemStack stack) {
+		CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
+			int currentDone = tag.getInt(PROGRESS_DONE_TAG);
+			int total = tag.getInt(PROGRESS_TOTAL_TAG);
+			// Cap done at total to prevent >100% progress
+			if (total <= 0 || currentDone < total) {
+				tag.putInt(PROGRESS_DONE_TAG, currentDone + 1);
+			}
+		});
+	}
+
+	private static void showProgress(Player player, ItemStack stack) {
+		if (player == null)
+			return;
+
+		CompoundTag progressTag = getCustomTag(stack);
+		int total = progressTag.getInt(PROGRESS_TOTAL_TAG);
+		int done = progressTag.getInt(PROGRESS_DONE_TAG);
+
+		if (total > 0) {
+			String bar = makeProgressBar(done, total, 20);
+			int pct = (int) Math.round((done / (double) total) * 100);
+			player.displayClientMessage(Component.literal("Constructing: " + bar + " " + pct + "%"), true);
+		} else {
+			player.displayClientMessage(Component.literal("Constructing: " + done + " blocks"), true);
+		}
 	}
 
 	private static boolean tryConsumeBacktankAir(Player player, int airCost) {
@@ -608,6 +690,31 @@ public class ConstructinatorItem extends Item implements GeoItem {
 		}
 
 		return "";
+	}
+
+	private static int countValidPlacements(ItemStack schematicStack, Level level) {
+		int total = 0;
+		SchematicPrinter temp = new SchematicPrinter();
+		try {
+			temp.loadSchematic(schematicStack, level, false);
+			while (temp.advanceCurrentPos()) {
+				final BlockState[] targetState = { null };
+				final BlockPos[] targetPos = { null };
+				temp.handleCurrentTarget((pos, state, blockEntity) -> {
+					targetPos[0] = pos.immutable();
+					targetState[0] = state;
+				}, (pos, entityTarget) -> {
+				});
+				if (targetState[0] == null || targetPos[0] == null)
+					continue;
+				if (shouldSkipPlacementState(targetState[0]))
+					continue;
+				total++;
+			}
+		} catch (Exception ignored) {
+			// If counting fails, fall back to 0
+		}
+		return total;
 	}
 
 	private static void storePrinterState(ItemStack stack, SchematicPrinter printer, String schematicFile) {
