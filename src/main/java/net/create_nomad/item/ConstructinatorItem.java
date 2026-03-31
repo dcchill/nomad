@@ -176,6 +176,10 @@ public class ConstructinatorItem extends Item implements GeoItem {
 		while (!placed) {
 			if (!printer.advanceCurrentPos()) {
 				storePrinterState(constructinatorStack, printer, schematicFile);
+				CustomData.update(DataComponents.CUSTOM_DATA, constructinatorStack, tag -> {
+					tag.putInt(PROGRESS_DONE_TAG, 0);
+					tag.putInt(PROGRESS_TOTAL_TAG, 0);
+				});
 				return false;
 			}
 
@@ -194,35 +198,17 @@ public class ConstructinatorItem extends Item implements GeoItem {
 				continue;
 			}
 
-			if (isSkippedTarget(constructinatorStack, targetPos[0])) {
-				incrementProgress(constructinatorStack);
-				showProgress(player, constructinatorStack);
-				continue;
-			}
-
-			if (!targetState[0].canSurvive(level, targetPos[0])) {
-				incrementProgress(constructinatorStack);
-				showProgress(player, constructinatorStack);
-				continue;
-			}
-
 			if (isAlreadySatisfiedIgnoringVolatileState(level, targetPos[0], targetState[0])) {
-				incrementProgress(constructinatorStack);
-				showProgress(player, constructinatorStack);
 				continue;
 			}
 
 			ItemRequirement requirement = printer.getCurrentRequirement();
 			if (requirement.isInvalid()) {
-				incrementProgress(constructinatorStack);
-				showProgress(player, constructinatorStack);
 				continue;
 			}
 
 			if (!canMeetRequirement(player, level, requirement)) {
 				if (isOnlyDamageRequirement(requirement)) {
-					incrementProgress(constructinatorStack);
-					showProgress(player, constructinatorStack);
 					continue;
 				}
 				storePrinterState(constructinatorStack, printer, schematicFile);
@@ -236,8 +222,6 @@ public class ConstructinatorItem extends Item implements GeoItem {
 
 			if (!consumeRequirement(player, level, requirement)) {
 				if (isOnlyDamageRequirement(requirement)) {
-					incrementProgress(constructinatorStack);
-					showProgress(player, constructinatorStack);
 					continue;
 				}
 				storePrinterState(constructinatorStack, printer, schematicFile);
@@ -275,7 +259,7 @@ public class ConstructinatorItem extends Item implements GeoItem {
 		}
 
 		BlockState stateToPlace = normalizePlacementState(state);
-		boolean placed = level.setBlock(pos, stateToPlace, 3);
+		boolean placed = level.setBlock(pos, stateToPlace, 18);
 		if (placed) {
 			spawnShotVisual(level, player, pos, stateToPlace, requirement);
 			placementSucceeded[0] = true;
@@ -384,31 +368,39 @@ public class ConstructinatorItem extends Item implements GeoItem {
 
 	private static void incrementProgress(ItemStack stack) {
 		CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
-			int currentDone = tag.getInt(PROGRESS_DONE_TAG);
+			int done = tag.getInt(PROGRESS_DONE_TAG);
 			int total = tag.getInt(PROGRESS_TOTAL_TAG);
-			// Cap done at total to prevent >100% progress
-			if (total <= 0 || currentDone < total) {
-				tag.putInt(PROGRESS_DONE_TAG, currentDone + 1);
+	
+			if (total <= 0) {
+				tag.putInt(PROGRESS_DONE_TAG, done + 1);
+				return;
+			}
+	
+			if (done < total) {
+				tag.putInt(PROGRESS_DONE_TAG, done + 1);
+			} else {
+				tag.putInt(PROGRESS_DONE_TAG, total);
 			}
 		});
 	}
 
-	private static void showProgress(Player player, ItemStack stack) {
-		if (player == null)
-			return;
-
-		CompoundTag progressTag = getCustomTag(stack);
-		int total = progressTag.getInt(PROGRESS_TOTAL_TAG);
-		int done = progressTag.getInt(PROGRESS_DONE_TAG);
-
-		if (total > 0) {
-			String bar = makeProgressBar(done, total, 20);
-			int pct = (int) Math.round((done / (double) total) * 100);
-			player.displayClientMessage(Component.literal("Constructing: " + bar + " " + pct + "%"), true);
-		} else {
-			player.displayClientMessage(Component.literal("Constructing: " + done + " blocks"), true);
+		private static void showProgress(Player player, ItemStack stack) {
+			if (player == null)
+				return;
+		
+			CompoundTag tag = getCustomTag(stack);
+			int total = tag.getInt(PROGRESS_TOTAL_TAG);
+			int done = tag.getInt(PROGRESS_DONE_TAG);
+		
+			if (total > 0) {
+				done = Math.min(done, total);
+				String bar = makeProgressBar(done, total, 20);
+				int pct = (int) Math.round((done / (double) total) * 100);
+				player.displayClientMessage(Component.literal("Constructing: " + bar + " " + pct + "%"), true);
+			} else {
+				player.displayClientMessage(Component.literal("Constructing: " + done + " blocks"), true);
+			}
 		}
-	}
 
 	private static boolean tryConsumeBacktankAir(Player player, int airCost) {
 		if (airCost <= 0 || player.isCreative()) {
