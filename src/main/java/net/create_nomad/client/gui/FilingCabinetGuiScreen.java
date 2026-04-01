@@ -14,6 +14,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
@@ -35,6 +36,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
 
 import net.create_nomad.init.CreateNomadModScreens;
 import net.create_nomad.world.inventory.FilingCabinetGuiMenu;
+import net.create_nomad.client.renderer.schematic.SchematicRenderer;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -50,8 +52,11 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
     private static String cachedFilename = null;
     private static SchematicLevel cachedLevel = null;
     private static Vec3i cachedSize = Vec3i.ZERO;
-    
+
     private String currentFilename = "";
+    
+    // ── optimized renderer ───────────────────────────────────────────────────
+    private static final SchematicRenderer schematicRenderer = new SchematicRenderer();
 
     // ── rotation ─────────────────────────────────────────────────────────────
     private float   rotationX  = 30f;   // pitch
@@ -83,6 +88,7 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
         cachedLevel = null;
         cachedSize = Vec3i.ZERO;
         currentFilename = "";
+        schematicRenderer.clear();
     }
 
     @Override
@@ -159,7 +165,7 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
                 if (!isDragging) {
                     rotationY = (Minecraft.getInstance().level.getGameTime() / 4f) % 360f;
                 }
-                
+
                 renderPreview(guiGraphics,
                         previewScreenX, previewScreenY, PREVIEW_W, PREVIEW_H,
                         rotationX, rotationY, 1f);
@@ -169,7 +175,7 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
         this.renderTooltip(guiGraphics, mouseX, mouseY);
     }
 
-    // ── direct port of SchematicPreviewRenderer.kt renderPreview ─────────────
+    // ── optimized rendering using SchematicRenderer ──────────────────────────
 
     private void renderPreview(GuiGraphics guiGraphics,
                                int x, int y, int w, int h,
@@ -187,7 +193,7 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
 
         // Scale to fit the preview rectangle, then apply user zoom
         float maxDim = Math.max(size.getX(), Math.max(size.getY(), size.getZ()));
-        float scale  = Math.min(w, h) / (maxDim * 1.6f) * zoom;
+        float scale = Math.min(w, h) / (maxDim * 1.6f) * zoom;
         pose.scale(scale, -scale, scale); // Negative Y because GUI Y is downward
 
         // Rotation (isometric default: 30° X, -45° Y)
@@ -199,63 +205,9 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
 
         RenderSystem.enableDepthTest();
 
-        // Render all blocks
-        var dispatcher = Minecraft.getInstance().getBlockRenderer();
+        // Use optimized renderer with cached meshes
         var bufferSource = guiGraphics.bufferSource();
-        var bounds = cachedLevel.getBounds();
-
-        for (BlockPos blockPos : BlockPos.betweenClosed(
-                bounds.minX(), bounds.minY(), bounds.minZ(),
-                bounds.maxX(), bounds.maxY(), bounds.maxZ())) {
-
-            var state = cachedLevel.getBlockState(blockPos);
-            if (state.isAir()) continue;
-            if (state.getRenderShape() == RenderShape.INVISIBLE) continue;
-
-            pose.pushPose();
-            pose.translate(blockPos.getX(), blockPos.getY(), blockPos.getZ());
-
-            try {
-                var blockEntity = cachedLevel.getBlockEntity(blockPos);
-                var bakedModel = dispatcher.getBlockModel(state);
-                ModelData modelData = (blockEntity != null)
-                        ? bakedModel.getModelData(cachedLevel, blockPos, state, blockEntity.getModelData())
-                        : ModelData.EMPTY;
-
-                int color = Minecraft.getInstance().getBlockColors().getColor(state, null, null, 0);
-                float r = ((color >> 16) & 0xFF) / 255f;
-                float g = ((color >>  8) & 0xFF) / 255f;
-                float b = (color & 0xFF) / 255f;
-                var rng = RandomSource.create(state.getSeed(blockPos));
-
-                for (var renderType : bakedModel.getRenderTypes(state, rng, modelData)) {
-                    dispatcher.getModelRenderer().renderModel(
-                            pose.last(), bufferSource.getBuffer(renderType),
-                            state, bakedModel, r, g, b,
-                            LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY,
-                            modelData, renderType);
-                }
-            } catch (Exception ignored) {}
-
-            pose.popPose();
-        }
-
-        // Render block entities (belts, kinetic blocks, etc.) via their BlockEntityRenderers
-        var beDispatcher = Minecraft.getInstance().getBlockEntityRenderDispatcher();
-        for (var blockEntity : cachedLevel.getRenderedBlockEntities()) {
-            @SuppressWarnings({"rawtypes", "unchecked"})
-            BlockEntityRenderer ber = beDispatcher.getRenderer(blockEntity);
-            if (ber == null) continue;
-
-            var pos = blockEntity.getBlockPos();
-            pose.pushPose();
-            pose.translate(pos.getX(), pos.getY(), pos.getZ());
-            try {
-                ber.render(blockEntity, 0f, pose, bufferSource,
-                        LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
-            } catch (Exception ignored) {}
-            pose.popPose();
-        }
+        schematicRenderer.render(pose, bufferSource, rotX, rotY, zoom);
 
         bufferSource.endBatch();
         pose.popPose();
@@ -266,13 +218,14 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
 
     private void loadSchematic(String filename) {
         if (filename.equals(cachedFilename)) return;
-        
+
         cachedFilename = filename;
         cachedLevel = null;
         cachedSize = Vec3i.ZERO;
-        
+        schematicRenderer.clear();
+
         if (filename.isBlank()) return;
-        
+
         try {
             var mc = Minecraft.getInstance();
             var level = mc.level;
@@ -310,6 +263,9 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
                 be.setLevel(schematicLevel);
 
             cachedLevel = schematicLevel;
+            
+            // Load into optimized renderer
+            schematicRenderer.load(schematicLevel);
 
         } catch (Exception e) {
             e.printStackTrace();
