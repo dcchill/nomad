@@ -26,6 +26,8 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.List;
+
 import net.create_nomad.item.renderer.ConstructinatorItemRenderer;
 import net.create_nomad.CreateNomadMod;
 import net.create_nomad.util.BackpackDataUtils;
@@ -81,7 +83,7 @@ public class ConstructinatorItem extends Item implements GeoItem {
 
 	@Override
 	public net.minecraft.world.item.UseAnim getUseAnimation(ItemStack stack) {
-		return net.minecraft.world.item.UseAnim.CROSSBOW;
+		return net.minecraft.world.item.UseAnim.NONE;
 	}
 
 	@Override
@@ -268,12 +270,77 @@ public class ConstructinatorItem extends Item implements GeoItem {
 			return;
 		}
 
+		BlockState existingState = level.getBlockState(pos);
+		
+		// Check if existing block is mineable (not bedrock, barriers, etc.)
+		if (!existingState.isAir() && !isBlockMineable(existingState, level, pos, player)) {
+			placementSucceeded[0] = false;
+			return;
+		}
+
+		// Drop existing block's drops if there's a block to replace
+		if (!existingState.isAir() && existingState.getBlock() != state.getBlock()) {
+			dropBlock(level, pos, existingState, player);
+		}
+
 		BlockState stateToPlace = normalizePlacementState(state);
 		boolean placed = level.setBlock(pos, stateToPlace, 18);
 		if (placed) {
 			spawnShotVisual(level, player, pos, stateToPlace, requirement);
 			placementSucceeded[0] = true;
 		}
+	}
+
+	private static boolean isBlockMineable(BlockState state, ServerLevel level, BlockPos pos, Player player) {
+		// Check for unbreakable blocks
+		if (state.getBlock().defaultDestroyTime() < 0) {
+			return false;
+		}
+		
+		// Check for specific unbreakable blocks
+		if (state.getBlock() == net.minecraft.world.level.block.Blocks.BEDROCK ||
+			state.getBlock() instanceof net.minecraft.world.level.block.BarrierBlock ||
+			state.getBlock() instanceof net.minecraft.world.level.block.CommandBlock ||
+			state.getBlock() instanceof net.minecraft.world.level.block.StructureBlock ||
+			state.getBlock() instanceof net.minecraft.world.level.block.StructureVoidBlock) {
+			return false;
+		}
+		
+		// Check if the block can be destroyed by the player
+		return state.canHarvestBlock(level, pos, player);
+	}
+
+	private static void dropBlock(ServerLevel level, BlockPos pos, BlockState state, Player player) {
+		// Get the block's drops using LootParams
+		net.minecraft.world.level.storage.loot.LootParams.Builder builder = new net.minecraft.world.level.storage.loot.LootParams.Builder(level)
+			.withParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.BLOCK_STATE, state)
+			.withParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.ORIGIN, net.minecraft.world.phys.Vec3.atCenterOf(pos))
+			.withParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.TOOL, player.getMainHandItem())
+			.withOptionalParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.THIS_ENTITY, player);
+		
+		List<net.minecraft.world.item.ItemStack> drops = state.getDrops(builder);
+		
+		// Spawn the drops as item entities
+		for (net.minecraft.world.item.ItemStack drop : drops) {
+			if (!drop.isEmpty()) {
+				net.minecraft.world.entity.item.ItemEntity itemEntity = new net.minecraft.world.entity.item.ItemEntity(
+					level,
+					pos.getX() + 0.5,
+					pos.getY() + 0.5,
+					pos.getZ() + 0.5,
+					drop
+				);
+				itemEntity.setDeltaMovement(
+					level.random.nextGaussian() * 0.1,
+					0.2 + level.random.nextGaussian() * 0.05,
+					level.random.nextGaussian() * 0.1
+				);
+				level.addFreshEntity(itemEntity);
+			}
+		}
+		
+		// Break the block (this also triggers block events)
+		level.destroyBlock(pos, false);
 	}
 
 	private static BlockState normalizePlacementState(BlockState state) {
