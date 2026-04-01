@@ -19,13 +19,19 @@ public final class BackpackInventoryRules {
     private BackpackInventoryRules() {
     }
 
-    public static boolean canStoreInBackpack(ItemStack stack) {
-        return canStoreInBackpack(stack, false);
-    }
-
     public static boolean canStoreInBackpack(ItemStack stack, boolean allowBackpacks) {
+        return canStoreInBackpack(stack, allowBackpacks, false);
+    }
+    
+    public static boolean canStoreInBackpack(ItemStack stack, boolean allowBackpacks, boolean allowShulkerBoxes) {
         boolean disallowBackpack = !allowBackpacks && BackpackItemAssociations.isBackpackItem(stack);
-        return !disallowBackpack && !isShulkerBoxItem(stack);
+        boolean disallowShulker = !allowShulkerBoxes && isShulkerBoxItem(stack);
+        return !disallowBackpack && !disallowShulker;
+    }
+    
+    public static boolean isShulkerBoxItem(ItemStack stack) {
+        return stack.getItem() instanceof BlockItem blockItem
+                && blockItem.getBlock() instanceof ShulkerBoxBlock;
     }
 
     public static boolean isUpgradeSlot(int slot) {
@@ -37,11 +43,6 @@ public final class BackpackInventoryRules {
             return stack.is(BACKPACK_UPGRADES_TAG);
         }
 
-        return canStoreInBackpack(stack);
-    }
-
-    private static boolean isShulkerBoxItem(ItemStack stack) {
-        return stack.getItem() instanceof BlockItem blockItem
-                && blockItem.getBlock() instanceof ShulkerBoxBlock;
+        return canStoreInBackpack(stack, false);
     }
 }

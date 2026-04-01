@@ -61,13 +61,15 @@ public class BackpackMagnetUpgradeHandler {
             return;
         }
 
+        boolean hasInfinity = hasInfinityUpgrade(backpackInventory);
         boolean changed = pullItemsTowardsAndInsert(
                 serverLevel,
                 player.position().add(0, 0.5, 0),
                 () -> {
                 },
-                stack -> insertIntoBackpackStorage(backpackInventory, stack),
-                WORN_AUTO_INSERT_RANGE);
+                stack -> insertIntoBackpackStorage(backpackInventory, stack, hasInfinity),
+                WORN_AUTO_INSERT_RANGE,
+                hasInfinity);
 
         if (changed) {
             BackpackDataUtils.saveHandlerToItem(backpackInventory, backpackStack, serverLevel);
@@ -97,12 +99,14 @@ public class BackpackMagnetUpgradeHandler {
                     }
 
                     Vec3 target = Vec3.atCenterOf(pos).add(0, -0.15, 0);
+                    boolean hasInfinity = hasInfinityUpgrade(container);
                     boolean changed = pullItemsTowardsAndInsert(
                             serverLevel,
                             target,
                             container::setChanged,
-                            stack -> insertIntoBackpackStorage(container, stack),
-                            PLACED_AUTO_INSERT_RANGE);
+                            stack -> insertIntoBackpackStorage(container, stack, hasInfinity),
+                            PLACED_AUTO_INSERT_RANGE,
+                            hasInfinity);
 
                     if (changed) {
                         blockEntity.setChanged();
@@ -113,6 +117,10 @@ public class BackpackMagnetUpgradeHandler {
     }
 
     private static boolean pullItemsTowardsAndInsert(ServerLevel level, Vec3 target, Runnable markDirty, Inserter inserter, double autoInsertRange) {
+        return pullItemsTowardsAndInsert(level, target, markDirty, inserter, autoInsertRange, false);
+    }
+    
+    private static boolean pullItemsTowardsAndInsert(ServerLevel level, Vec3 target, Runnable markDirty, Inserter inserter, double autoInsertRange, boolean allowShulkerBoxes) {
         List<ItemEntity> nearbyItems = level.getEntitiesOfClass(
                 ItemEntity.class,
                 new AABB(target, target).inflate(MAGNET_RANGE),
@@ -121,7 +129,7 @@ public class BackpackMagnetUpgradeHandler {
         boolean changed = false;
         for (ItemEntity itemEntity : nearbyItems) {
             ItemStack stack = itemEntity.getItem();
-            if (stack.isEmpty() || !BackpackInventoryRules.canStoreInBackpack(stack)) {
+            if (stack.isEmpty() || !BackpackInventoryRules.canStoreInBackpack(stack, false, allowShulkerBoxes)) {
                 continue;
             }
 
@@ -183,6 +191,16 @@ public class BackpackMagnetUpgradeHandler {
 
         return false;
     }
+    
+    private static boolean hasInfinityUpgrade(ItemStackHandler backpackInventory) {
+        for (int slot = BackpackInventoryRules.UPGRADE_SLOT_START; slot < BackpackInventoryRules.TOTAL_SLOT_COUNT; slot++) {
+            if (backpackInventory.getStackInSlot(slot).is(CreateNomadModItems.INFINITY_UPGRADE.get())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     private static boolean hasMagnetUpgrade(Container container) {
         for (int slot = BackpackInventoryRules.UPGRADE_SLOT_START; slot < BackpackInventoryRules.TOTAL_SLOT_COUNT; slot++) {
@@ -193,8 +211,27 @@ public class BackpackMagnetUpgradeHandler {
 
         return false;
     }
+    
+    private static boolean hasInfinityUpgrade(Container container) {
+        for (int slot = BackpackInventoryRules.UPGRADE_SLOT_START; slot < BackpackInventoryRules.TOTAL_SLOT_COUNT; slot++) {
+            if (container.getItem(slot).is(CreateNomadModItems.INFINITY_UPGRADE.get())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     private static ItemStack insertIntoBackpackStorage(ItemStackHandler backpackInventory, ItemStack stack) {
+        return insertIntoBackpackStorage(backpackInventory, stack, false);
+    }
+    
+    private static ItemStack insertIntoBackpackStorage(ItemStackHandler backpackInventory, ItemStack stack, boolean allowShulkerBoxes) {
+        // If it's a shulker box and we don't allow them, return the stack unchanged
+        if (!allowShulkerBoxes && BackpackInventoryRules.isShulkerBoxItem(stack)) {
+            return stack;
+        }
+        
         ItemStack remainder = stack.copy();
         for (int slot = 0; slot < BackpackInventoryRules.STORAGE_SLOT_COUNT; slot++) {
             ItemStack slotStack = backpackInventory.getStackInSlot(slot);
@@ -226,6 +263,15 @@ public class BackpackMagnetUpgradeHandler {
     }
 
     private static ItemStack insertIntoBackpackStorage(Container container, ItemStack stack) {
+        return insertIntoBackpackStorage(container, stack, false);
+    }
+    
+    private static ItemStack insertIntoBackpackStorage(Container container, ItemStack stack, boolean allowShulkerBoxes) {
+        // If it's a shulker box and we don't allow them, return the stack unchanged
+        if (!allowShulkerBoxes && BackpackInventoryRules.isShulkerBoxItem(stack)) {
+            return stack;
+        }
+        
         ItemStack remainder = stack.copy();
         for (int slot = 0; slot < BackpackInventoryRules.STORAGE_SLOT_COUNT; slot++) {
             ItemStack slotStack = container.getItem(slot);

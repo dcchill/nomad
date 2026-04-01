@@ -156,7 +156,8 @@ public class BrassBackpackGUIMenu extends AbstractContainerMenu implements Creat
                         new SlotItemHandler(internal, index, xPos, yPos) {
                             @Override
                             public boolean mayPlace(ItemStack stack) {
-                                if (!BackpackInventoryRules.canStoreInBackpack(stack, hasInfinityUpgradeInstalled())) {
+                                boolean hasInfinity = hasInfinityUpgradeInstalled();
+                                if (!BackpackInventoryRules.canStoreInBackpack(stack, hasInfinity, hasInfinity)) {
                                     return false;
                                 }
 

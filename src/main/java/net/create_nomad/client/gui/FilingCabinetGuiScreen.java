@@ -188,13 +188,13 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
         var pose = guiGraphics.pose();
         pose.pushPose();
 
-        // Position at center of preview area, with Z depth for proper ordering
+        // Position at center of preview area
         pose.translate((x + w / 2.0), (y + h / 2.0), 150.0);
 
-        // Scale to fit the preview rectangle, then apply user zoom
+        // Scale to fit the preview rectangle
         float maxDim = Math.max(size.getX(), Math.max(size.getY(), size.getZ()));
         float scale = Math.min(w, h) / (maxDim * 1.6f) * zoom;
-        pose.scale(scale, -scale, scale); // Negative Y because GUI Y is downward
+        pose.scale(scale, -scale, scale);
 
         // Rotation (isometric default: 30° X, -45° Y)
         pose.mulPose(Axis.XP.rotationDegrees(rotX));
@@ -205,7 +205,7 @@ public class FilingCabinetGuiScreen extends AbstractContainerScreen<FilingCabine
 
         RenderSystem.enableDepthTest();
 
-        // Use optimized renderer with cached meshes
+        // FBO renderer handles its own rendering - just need to pass rotation
         var bufferSource = guiGraphics.bufferSource();
         schematicRenderer.render(pose, bufferSource, rotX, rotY, zoom);
 
