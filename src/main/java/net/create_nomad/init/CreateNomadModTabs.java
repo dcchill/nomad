@@ -49,5 +49,6 @@ public class CreateNomadModTabs {
 				tabData.accept(CreateNomadModItems.INFINITY_UPGRADE.get());
 				tabData.accept(CreateNomadModItems.INVULNERABLE_UPGRADE.get());
 				tabData.accept(CreateNomadModItems.CONSTRUCTINATOR.get());
+				tabData.accept(CreateNomadModItems.FALL_UPGRADE.get());
 			}).build());
 }

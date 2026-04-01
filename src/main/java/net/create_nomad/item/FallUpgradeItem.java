@@ -9,9 +9,9 @@ import net.minecraft.client.gui.screens.Screen;
 
 import java.util.List;
 
-public class PackagerUpgradeItem extends Item {
-	public PackagerUpgradeItem() {
-		super(new Item.Properties());
+public class FallUpgradeItem extends Item {
+	public FallUpgradeItem() {
+		super(new Item.Properties().stacksTo(1));
 	}
 
 	@Override
@@ -19,9 +19,9 @@ public class PackagerUpgradeItem extends Item {
 		super.appendHoverText(stack, context, tooltip, flag);
 
 		if (Screen.hasShiftDown()) {
-			tooltip.add(Component.literal("Adds packaging functionality to the backpack").withStyle(ChatFormatting.GOLD));
-			tooltip.add(Component.literal("Allows creating item packages from the").withStyle(ChatFormatting.GOLD));
-			tooltip.add(Component.literal("backpack's inventory.").withStyle(ChatFormatting.GOLD));
+			tooltip.add(Component.literal("Automatically places water to break your fall").withStyle(ChatFormatting.GOLD));
+			tooltip.add(Component.literal("when falling from a dangerous height.").withStyle(ChatFormatting.GOLD));
+			tooltip.add(Component.literal("Hold Shift while falling to activate.").withStyle(ChatFormatting.GOLD));
 		} else {
 			tooltip.add(Component.translatable("tooltip.create_nomad.shift_for_info",
 					Component.translatable("key.keyboard.left.shift").withStyle(ChatFormatting.YELLOW))

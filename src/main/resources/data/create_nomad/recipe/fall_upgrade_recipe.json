@@ -1,0 +1,16 @@
+{
+  "type": "create:deploying",
+  "ingredients": [
+    {
+      "item": "create_nomad:andesite_upgrade"
+    },
+    {
+      "item": "minecraft:dispenser"
+    }
+  ],
+  "results": [
+    {
+      "id": "create_nomad:fall_upgrade"
+    }
+  ]
+}

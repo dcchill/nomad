@@ -5,6 +5,7 @@
     "create_nomad:infinity_upgrade",
     "create_nomad:invulnerable_upgrade",
     "create_nomad:magnet_upgrade",
-    "create_nomad:tool_upgrade"
+    "create_nomad:tool_upgrade",
+    "create_nomad:fall_upgrade"
   ]
 }
