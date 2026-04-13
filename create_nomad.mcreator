@@ -1138,11 +1138,11 @@
       "MagnetUpgrade",
       "PackagerUpgrade",
       "ToolUpgrade",
+      "FallUpgrade",
       "BrassUpgrade",
       "InfinityUpgrade",
       "InvulnerableUpgrade",
-      "Constructinator",
-      "FallUpgrade"
+      "Constructinator"
     ]
   },
   "language_map": {

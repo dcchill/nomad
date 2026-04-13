@@ -20,6 +20,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.Inventory;
@@ -31,7 +33,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.screens.Screen;
+
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.CollisionContext;
 
@@ -72,7 +77,7 @@ public class FilingCabinetBlock extends BaseEntityBlock implements EntityBlock {
 	public RenderShape getRenderShape(BlockState state) {
 		return RenderShape.ENTITYBLOCK_ANIMATED;
 	}
-	
+
 // =========================
 // SHAPES (ROTATING)
 // =========================
@@ -156,6 +161,22 @@ private static final VoxelShape SHAPE_WEST  = rotateShape(SHAPE_NORTH, Direction
 		if (!dropsOriginal.isEmpty())
 			return dropsOriginal;
 		return Collections.singletonList(new ItemStack(this, 1));
+	}
+
+	@Override
+	public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+		super.appendHoverText(stack, context, tooltip, flag);
+
+		if (Screen.hasShiftDown()) {
+			tooltip.add(Component.literal("A storage block specifically for Create schematics.").withStyle(ChatFormatting.GOLD));
+			tooltip.add(Component.literal("Holds up to 16 schematics in a 4x4 grid.").withStyle(ChatFormatting.GOLD));
+			tooltip.add(Component.literal("Displays a 3d schematic preview.").withStyle(ChatFormatting.GOLD));
+			tooltip.add(Component.literal("Right-click to access the schematic inventory.").withStyle(ChatFormatting.GOLD));
+		} else {
+			tooltip.add(Component.translatable("tooltip.create_nomad.shift_for_info",
+					Component.translatable("key.keyboard.left.shift").withStyle(ChatFormatting.YELLOW))
+					.withStyle(ChatFormatting.GRAY));
+		}
 	}
 
 	@Override
