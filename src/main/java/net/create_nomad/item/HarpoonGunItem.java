@@ -216,11 +216,11 @@ public class HarpoonGunItem extends Item implements GeoItem {
 			return InteractionResultHolder.sidedSuccess(gunStack, level.isClientSide());
 		}
 
-		if (!tryConsumeBacktankAir(player, BACKTANK_AIR_COST_PER_SHOT)) {
-			return InteractionResultHolder.fail(gunStack);
-		}
-
 		if (!level.isClientSide) {
+			if (!tryConsumeBacktankAir(player, BACKTANK_AIR_COST_PER_SHOT)) {
+				return InteractionResultHolder.fail(gunStack);
+			}
+
 			int multishot = net.minecraft.world.item.enchantment.EnchantmentHelper
 				.getItemEnchantmentLevel(
 					level.registryAccess()
@@ -262,7 +262,7 @@ public class HarpoonGunItem extends Item implements GeoItem {
 				projectile.setBaseDamage(damage);
 				projectile.setKnockback(SHOT_KNOCKBACK);
 				projectile.setHarpoonPierceLevel(SHOT_PIERCING);
-				projectile.pickup = HarpoonEntity.Pickup.DISALLOWED;
+				projectile.pickup = shots == 1 || i == 1 ? HarpoonEntity.Pickup.ALLOWED : HarpoonEntity.Pickup.DISALLOWED;
 
 				level.addFreshEntity(projectile);
 			}

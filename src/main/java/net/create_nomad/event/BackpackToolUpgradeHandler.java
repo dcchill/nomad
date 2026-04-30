@@ -48,6 +48,10 @@ public class BackpackToolUpgradeHandler {
         if (toolSlot < 0) {
             return;
         }
+        boolean hasInfinityUpgrade = hasInfinityUpgrade(backpackRef.inventory());
+        if (!current.isEmpty() && !BackpackInventoryRules.canStoreInBackpack(current, hasInfinityUpgrade, hasInfinityUpgrade)) {
+            return;
+        }
 
         ItemStack backpackTool = backpackRef.inventory().getStackInSlot(toolSlot);
         ItemStack replaced = current.copy();
@@ -71,7 +75,12 @@ public class BackpackToolUpgradeHandler {
             }
         }
 
+        int selectedSlot = player.getInventory().selected;
         for (int slot = 0; slot < player.getInventory().getContainerSize(); slot++) {
+            if (slot == selectedSlot) {
+                continue;
+            }
+
             ItemStack stack = player.getInventory().getItem(slot);
             BackpackRef ref = toToolUpgradeBackpack(stack, level);
             if (ref != null) {
@@ -80,6 +89,16 @@ public class BackpackToolUpgradeHandler {
         }
 
         return null;
+    }
+
+    private static boolean hasInfinityUpgrade(ItemStackHandler inventory) {
+        for (int slot = BackpackInventoryRules.UPGRADE_SLOT_START; slot < BackpackInventoryRules.TOTAL_SLOT_COUNT; slot++) {
+            if (inventory.getStackInSlot(slot).is(CreateNomadModItems.INFINITY_UPGRADE.get())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static BackpackRef toToolUpgradeBackpack(ItemStack stack, ServerLevel level) {

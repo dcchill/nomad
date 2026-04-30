@@ -22,6 +22,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.animatable.client.GeoRenderProvider;
@@ -150,11 +151,14 @@ public class JackhammerItem extends PickaxeItem implements GeoItem {
 				continue;
 			}
 
+			BlockState connectedState = level.getBlockState(connectedOre);
+			BlockEntity blockEntity = connectedState.hasBlockEntity() ? level.getBlockEntity(connectedOre) : null;
 			int durabilityBeforeDestroy = stack.getDamageValue();
-			boolean destroyed = level.destroyBlock(connectedOre, true, player);
+			boolean destroyed = level.destroyBlock(connectedOre, false, player);
 			if (!destroyed) {
 				continue;
 			}
+			connectedState.getBlock().playerDestroy(level, player, connectedOre, connectedState, blockEntity, stack);
 
 			int durabilityConsumed = stack.getDamageValue() - durabilityBeforeDestroy;
 			if (durabilityConsumed > 0 && tryConsumeBacktankAir(player, BACKTANK_AIR_COST_PER_BLOCK)) {

@@ -39,12 +39,14 @@ public class HarpoonEntity extends AbstractArrow implements ItemSupplier {
 
 	public HarpoonEntity(EntityType<? extends HarpoonEntity> type, double x, double y, double z, Level world, @Nullable ItemStack firedFromWeapon) {
 		super(type, x, y, z, world, PROJECTILE_ITEM, firedFromWeapon);
+		this.pickup = Pickup.ALLOWED;
 		if (firedFromWeapon != null)
 			setKnockback(EnchantmentHelper.getItemEnchantmentLevel(world.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.KNOCKBACK), firedFromWeapon));
 	}
 
 	public HarpoonEntity(EntityType<? extends HarpoonEntity> type, LivingEntity entity, Level world, @Nullable ItemStack firedFromWeapon) {
 		super(type, entity, world, PROJECTILE_ITEM, firedFromWeapon);
+		this.pickup = Pickup.ALLOWED;
 		if (firedFromWeapon != null)
 			setKnockback(EnchantmentHelper.getItemEnchantmentLevel(world.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.KNOCKBACK), firedFromWeapon));
 	}
@@ -87,12 +89,6 @@ public class HarpoonEntity extends AbstractArrow implements ItemSupplier {
 		}
 	}
 
-	@Override
-	public void tick() {
-		super.tick();
-		if (this.inGround)
-			this.discard();
-	}
 @Override
 	protected void onHitEntity(EntityHitResult result) {
 		if (this.remainingPierceHits > 0) {

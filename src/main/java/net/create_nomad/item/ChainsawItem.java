@@ -29,6 +29,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LeavesBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 
@@ -148,11 +149,14 @@ public class ChainsawItem extends AxeItem {
 				continue;
 			}
 
+			BlockState connectedState = level.getBlockState(connectedLog);
+			BlockEntity blockEntity = connectedState.hasBlockEntity() ? level.getBlockEntity(connectedLog) : null;
 			int durabilityBeforeDestroy = stack.getDamageValue();
-			boolean destroyed = level.destroyBlock(connectedLog, true, player);
+			boolean destroyed = level.destroyBlock(connectedLog, false, player);
 			if (!destroyed) {
 				continue;
 			}
+			connectedState.getBlock().playerDestroy(level, player, connectedLog, connectedState, blockEntity, stack);
 
 			int durabilityConsumed = stack.getDamageValue() - durabilityBeforeDestroy;
 			if (tryConsumeBacktankAir(player, BACKTANK_AIR_COST_PER_LOG) && durabilityConsumed > 0) {
